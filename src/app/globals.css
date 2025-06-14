@@ -1,167 +1,47 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Variables CSS pour les couleurs Dodomove */
+/* Polices Google */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Roboto+Slab:wght@400;500;600;700&display=swap');
+
+/* Variables CSS personnalisées */
 :root {
-  --dodomove-blue: #0052cc;
-  --dodomove-blue-light: #e6f2ff;
-  --dodomove-orange: #ff6b35;
-  --dodomove-orange-light: #fff4f1;
-  --dodomove-gray: #f8f9fa;
-  --dodomove-gray-dark: #6c757d;
+  --font-roboto-slab: 'Roboto Slab', serif;
+  --font-lato: 'Lato', sans-serif;
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
-/* Reset et styles globaux */
-* {
-  box-sizing: border-box;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-title: var(--font-roboto-slab);
+  --font-body: var(--font-lato);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-  font-family: var(--font-lato), sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background-color: #fff;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-lato), Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-roboto-slab), serif;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-/* Conteneur principal DodoPartage */
-.partage-container {
-  min-height: calc(100vh - 80px) !important;
-}
-
-/* Styles pour les filtres - Plus spécifiques */
-div.partage-filters {
-  background: linear-gradient(135deg, #f0f7ff, #ffffff) !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 16px !important;
-  padding: 24px !important;
-  margin-bottom: 32px !important;
-  box-shadow: 0 2px 8px rgba(0, 82, 204, 0.08) !important;
-}
-
-/* Styles pour les cartes d'annonces */
-div.partage-card {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
-  transition: all 0.3s ease !important;
-}
-
-div.partage-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 82, 204, 0.12) !important;
-  transform: translateY(-2px) !important;
-  border-color: var(--dodomove-blue) !important;
-}
-
-/* Badges pour les annonces - Plus spécifiques */
-span.partage-badge {
-  display: inline-flex !important;
-  align-items: center !important;
-  padding: 6px 12px !important;
-  border-radius: 20px !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
-}
-
-span.partage-badge-offer {
-  background: var(--dodomove-blue-light) !important;
-  color: var(--dodomove-blue) !important;
-}
-
-span.partage-badge-request {
-  background: var(--dodomove-orange-light) !important;
-  color: var(--dodomove-orange) !important;
-}
-
-span.partage-badge-price {
-  background: #10b981 !important;
-  color: white !important;
-}
-
-/* Boutons DodoPartage - Plus spécifiques */
-button.partage-button-primary {
-  background: linear-gradient(135deg, var(--dodomove-blue), #0043a3) !important;
-  color: white !important;
-  font-weight: 600 !important;
-  padding: 12px 24px !important;
-  border-radius: 8px !important;
-  border: none !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  font-family: 'Lato', sans-serif !important;
-  text-decoration: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-button.partage-button-primary:hover {
-  background: linear-gradient(135deg, #0043a3, var(--dodomove-blue)) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3) !important;
-}
-
-button.partage-button-secondary {
-  background: white !important;
-  color: var(--dodomove-blue) !important;
-  font-weight: 600 !important;
-  padding: 10px 20px !important;
-  border-radius: 8px !important;
-  border: 2px solid var(--dodomove-blue) !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  font-family: 'Lato', sans-serif !important;
-  text-decoration: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-button.partage-button-secondary:hover {
-  background: var(--dodomove-blue) !important;
-  color: white !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.2) !important;
-}
-
-/* Styles pour le header */
-.header-dodomove {
-  background: white !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 50 !important;
-}
-
-.header-logo {
-  font-family: 'Roboto Slab', serif !important;
-  font-weight: 700 !important;
-  color: var(--dodomove-blue) !important;
-  text-decoration: none !important;
-  font-size: 24px !important;
-}
-
-.header-logo:hover {
-  color: #0043a3 !important;
-}
-
-/* Animation pour les éléments qui apparaissent */
-.fade-in {
-  animation: fadeIn 0.6s ease-out !important;
-}
-
+/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -169,96 +49,271 @@ button.partage-button-secondary:hover {
   }
 }
 
-/* Styles responsives */
-@media (max-width: 768px) {
-  div.partage-filters {
-    padding: 16px !important;
-  }
-  
-  div.partage-card {
-    padding: 16px !important;
-  }
-  
-  .header-logo {
-    font-size: 20px !important;
-  }
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* Loading states */
-.loading-spinner {
-  border: 2px solid var(--dodomove-blue-light) !important;
-  border-top: 2px solid var(--dodomove-blue) !important;
-  border-radius: 50% !important;
-  width: 20px !important;
-  height: 20px !important;
-  animation: spin 1s linear infinite !important;
+/* Styles spécifiques pour la page de confirmation */
+/* Transitions communes */
+.transition-hover {
+  transition: all 0.2s ease-in-out;
 }
 
+/* Animation de spinner pour les éléments de chargement */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Styles pour les formulaires */
-.form-input {
-  width: 100% !important;
-  padding: 12px 16px !important;
-  border: 2px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  font-size: 16px !important;
-  font-family: 'Lato', sans-serif !important;
-  transition: all 0.3s ease !important;
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-.form-input:focus {
-  outline: none !important;
-  border-color: var(--dodomove-blue) !important;
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1) !important;
+/* Animation subtile pour le point actif */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
 }
 
-.form-label {
-  display: block !important;
-  margin-bottom: 6px !important;
-  font-weight: 600 !important;
-  color: #374151 !important;
-  font-family: 'Lato', sans-serif !important;
+.animate-ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Messages d'état */
-.success-message {
-  background: #dcfce7 !important;
-  color: #166534 !important;
-  padding: 12px 16px !important;
-  border-radius: 8px !important;
-  border-left: 4px solid #22c55e !important;
+/* Helpers */
+.focus-visible:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
-.error-message {
-  background: #fef2f2 !important;
-  color: #dc2626 !important;
-  padding: 12px 16px !important;
-  border-radius: 8px !important;
-  border-left: 4px solid #ef4444 !important;
+/* Optimisations mobile */
+@media (max-width: 768px) {
+  .md-stack {
+    flex-direction: column;
+  }
+  
+  .md-full-width {
+    width: 100%;
+  }
+  
+  .md-compact-text {
+    font-size: 0.9em;
+  }
+
+  /* Améliorer l'espace de scroll pour les dropdowns */
+  .funnel-step-container {
+    min-height: calc(100vh - 140px);
+    padding-bottom: 200px; /* Espace généreux pour les dropdowns */
+  }
+
+  /* Styles pour les dropdowns ouverts sur mobile */
+  .mobile-dropdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 40;
+    pointer-events: none;
+  }
+
+  /* Optimisation du scrolling mobile */
+  .mobile-optimized-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Améliorer l'accessibilité tactile sur mobile */
+  [role="combobox"], 
+  [role="option"] {
+    min-height: 48px; /* Recommandation WCAG pour la taille de touche minimum */
+  }
+
+  /* Réduire l'espace entre les sections sur mobile pour plus de contenu visible */
+  .space-y-6 > * + * {
+    margin-top: 1.25rem; /* Réduire de 1.5rem à 1.25rem */
+  }
+
+  /* Optimiser la hauteur des champs de formulaire sur mobile */
+  .form-field-mobile {
+    min-height: 64px;
+  }
 }
 
-.warning-message {
-  background: var(--dodomove-orange-light) !important;
-  color: #c2410c !important;
-  padding: 12px 16px !important;
-  border-radius: 8px !important;
-  border-left: 4px solid var(--dodomove-orange) !important;
+/* Styles pour l'amélioration du footer de navigation mobile */
+@media (max-width: 768px) {
+  .navigation-footer-mobile {
+    background: linear-gradient(to top, white 0%, white 85%, rgba(255, 255, 255, 0.95) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
 }
 
-/* Force l'affichage de nos couleurs personnalisées */
-.text-blue-600 {
-  color: var(--dodomove-blue) !important;
+/* Animation pour la frise chronologique moderne */
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
 }
 
-/* Override des classes Tailwind pour les boutons */
-.bg-blue-600 {
-  background-color: var(--dodomove-blue) !important;
+.step-active {
+  animation: glow 2s infinite;
 }
 
-.bg-orange-500 {
-  background-color: var(--dodomove-orange) !important;
+.progress-steps-container {
+  overflow: hidden;
+}
+
+.progress-line {
+  position: relative;
+}
+
+.progress-line::before {
+  content: '';
+  position: absolute;
+  height: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, #3b82f6 0%, #38bdf8 100%);
+}
+
+/* Effet subtil d'élévation pour les étapes actives */
+.step-indicator {
+  transition: all 0.3s ease;
+}
+
+.step-indicator:hover {
+  transform: translateY(-2px);
+}
+
+/* Animation de pulsation personnalisée pour la frise chronologique */
+@keyframes soft-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pulse-ring {
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+.hand-highlight {
+  position: relative;
+}
+
+.hand-highlight::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.3);
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Styles pour dropdowns avancés */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dropdown-position-bottom {
+  top: 100%;
+  margin-top: 4px;
+}
+
+.dropdown-position-top {
+  bottom: 100%;
+  margin-bottom: 4px;
+}
+
+/* Animation bateau flottant */
+@keyframes boat-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+.boat-animation {
+  animation: boat-float 3s ease-in-out infinite;
+}
+
+.transition-shadow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover\:shadow-soft:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Correction pour iOS */
+@media (max-width: 768px) {
+  .ios-scroll-fix {
+    -webkit-overflow-scrolling: touch;
+  }
 }

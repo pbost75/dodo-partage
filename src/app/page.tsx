@@ -2,15 +2,17 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Filter, X, Bell, Plus } from 'lucide-react';
+import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
 import AnnouncementCard from '@/components/partage/AnnouncementCard';
 import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
 import AlertModal from '@/components/partage/AlertModal';
+import ChoiceModal from '@/components/partage/ChoiceModal';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
+import { useRouter } from 'next/navigation';
 
 interface FilterState {
   type: string;
@@ -20,6 +22,7 @@ interface FilterState {
 export default function HomePage() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     type: 'offer',
     volumes: []
@@ -329,12 +332,24 @@ export default function HomePage() {
 
   // Fonction pour ouvrir l'alerte avec les filtres actuels
   const handleCreateAlert = () => {
-    const initialAlertFilters = {
-      departure: appliedDeparture,
-      destination: appliedDestination,
-      type: filters.type === 'offer' ? 'offer' : filters.type === 'request' ? 'request' : 'all'
-    };
     setIsAlertModalOpen(true);
+  };
+
+  const handleCreateAnnouncement = () => {
+    setIsChoiceModalOpen(true);
+  };
+
+  const router = useRouter();
+
+  const handleChoice = (choice: 'cherche' | 'propose') => {
+    if (choice === 'propose') {
+      // Rediriger vers le funnel "Je propose de la place"
+      router.push('/funnel/propose/locations');
+    } else if (choice === 'cherche') {
+      // TODO: Rediriger vers le funnel "Je cherche de la place" (à créer)
+      console.log('Funnel "Je cherche" pas encore implémenté');
+      // Pour l'instant, on peut rediriger vers une page temporaire ou rester sur la page d'accueil
+    }
   };
 
   return (
@@ -498,34 +513,26 @@ export default function HomePage() {
                   transition={{ duration: 0.6 }}
                   className="flex gap-3 w-full sm:w-auto sm:flex-shrink-0"
                 >
-                  {/* Nouveau bouton alerte - design vertical */}
+                  {/* Bouton alerte simplifié - icône seule */}
                   <button
                     onClick={handleCreateAlert}
-                    className="hidden sm:flex flex-col items-center justify-center p-3 bg-white border-2 border-[#F47D6C]/30 text-[#F47D6C] hover:bg-[#F47D6C] hover:text-white hover:border-[#F47D6C] transition-all duration-200 shadow-sm hover:shadow-md rounded-lg min-w-[80px]"
+                    className="w-16 py-4 flex items-center justify-center bg-white border-2 border-[#F47D6C]/30 text-[#F47D6C] hover:bg-[#F47D6C] hover:text-white hover:border-[#F47D6C] transition-all duration-200 shadow-sm hover:shadow-md rounded-xl group relative flex-shrink-0"
+                    title="Créer une alerte"
                   >
-                    {/* Icône cloche avec plus */}
-                    <div className="relative mb-1">
-                      <Bell className="w-5 h-5" />
-                      <Plus className="w-3 h-3 absolute -top-1 -right-1 bg-current rounded-full" strokeWidth={3} />
+                    {/* Icône cloche avec plus intégrée */}
+                    <BellPlus className="w-5 h-5" />
+                    
+                    {/* Tooltip au survol */}
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                      Créer une alerte
                     </div>
-                    {/* Texte en dessous */}
-                    <span className="text-xs font-medium text-center leading-tight">
-                      Créer une<br />alerte
-                    </span>
-                  </button>
-
-                  {/* Version mobile du bouton alerte - carré simple */}
-                  <button
-                    onClick={handleCreateAlert}
-                    className="sm:hidden w-12 h-12 flex items-center justify-center bg-white border-2 border-[#F47D6C]/30 text-[#F47D6C] hover:bg-[#F47D6C] hover:text-white hover:border-[#F47D6C] transition-all duration-200 shadow-sm hover:shadow-md rounded-lg flex-shrink-0"
-                  >
-                    <Bell className="w-5 h-5" />
                   </button>
                   
                   {/* Bouton déposer annonce responsive */}
                   <Button
                     variant="primary"
                     size="lg"
+                    onClick={handleCreateAnnouncement}
                     className="flex-1 sm:flex-none sm:w-auto bg-[#F47D6C] hover:bg-[#e66b5a] shadow-md hover:shadow-lg transition-all duration-200"
                   >
                     ➕ Déposer une annonce
@@ -605,6 +612,13 @@ export default function HomePage() {
         }}
       />
 
+      {/* Modal de choix du type d'annonce */}
+      <ChoiceModal
+        isOpen={isChoiceModalOpen}
+        onClose={() => setIsChoiceModalOpen(false)}
+        onChoice={handleChoice}
+      />
+
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="container mx-auto px-6 lg:px-8">
@@ -655,6 +669,7 @@ export default function HomePage() {
                   <Button 
                     variant="primary" 
                     size="lg"
+                    onClick={handleCreateAnnouncement}
                     className="bg-[#F47D6C] hover:bg-[#e66b5a] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     ➕ Déposer une annonce
@@ -685,3 +700,4 @@ export default function HomePage() {
     </div>
   );
 }
+

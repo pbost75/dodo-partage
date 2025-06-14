@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:backend": "curl -s http://localhost:3000/api/test-backend | jq ."
   },
   "dependencies": {
     "framer-motion": "^12.15.0",

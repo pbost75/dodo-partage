@@ -40,11 +40,15 @@ Outil de mise en relation pour le partage de conteneurs entre la France métropo
 - **Gestion des alertes** avec possibilité de modification/suppression
 - **Pré-remplissage intelligent** avec les filtres de recherche actuels
 
-### 📝 Dépôt d'annonce
+### 📝 Funnel de dépôt d'annonce optimisé (7 étapes)
 - **Formulaire sans compte** inspiré du funnel Dodomove
 - **Sélecteurs de destinations** identiques au funnel principal
+- **Étapes streamlinées** : locations → shipping-date → container-details → minimum-volume → offer-type → announcement-text → contact
+- **Interface contact épurée** avec composant téléphone professionnel
+- **Indicatifs DOM-TOM** : Support complet France, Réunion, Guadeloupe, Martinique, Guyane, Mayotte, Nouvelle-Calédonie, Polynésie française
 - **Validation double opt-in** par email avec token unique
-- **Gestion d'annonce** via lien d'administration personnel
+- **Loader bateau animé** pendant la soumission (cohérent avec Dodomove)
+- **Page de confirmation moderne** avec feedback utilisateur optimisé
 
 ### 🔄 Cycle de vie des annonces
 - **Expiration automatique** selon la date de départ prévue
@@ -57,22 +61,59 @@ Outil de mise en relation pour le partage de conteneurs entre la France métropo
 - **International** : Maurice, France métropolitaine
 - **Tous les couples** de territoires supportés (DOM-TOM ↔ Métropole, DOM-TOM ↔ DOM-TOM, etc.)
 
+### 🔧 Améliorations techniques récentes
+
+#### Interface contact optimisée
+- **Suppression des éléments superflus** : Aperçu profil, engagement, informations d'utilisation
+- **CTA unique** : Un seul bouton "Finaliser mon annonce" pour éviter la confusion
+- **Messages de validation épurés** : Suppression des "✓ Parfait !" et "✓ Email valide"
+- **Titre cohérent** : Alignement avec le design Dodomove
+
+#### Composant téléphone professionnel
+- **Indicatifs DOM-TOM complets** : France (+33), Réunion (+262), Guadeloupe (+590), Martinique (+596), Guyane (+594), Mayotte (+262), Nouvelle-Calédonie (+687), Polynésie française (+689)
+- **Formatage automatique** : Adaptation selon le pays sélectionné
+- **Validation patterns** : Contrôles spécifiques par territoire
+- **Dropdown intelligent** : Auto-scroll et positionnement adaptatif
+- **Conversion internationale** : Format +33612345678 pour l'envoi
+
+#### Résolution erreurs d'hydratation
+- **Gestion côté serveur/client** : États `isMounted` pour éviter les différences de rendu
+- **Placeholders contextuels** : Affichage uniquement au focus pour FloatingInput
+- **Rendu fallback** : Version désactivée côté serveur pour PhoneInput
+
+#### Navigation streamlinée
+- **7 étapes optimisées** : Suppression de l'étape récap redondante
+- **Passage direct** : Contact → Confirmation sans étape intermédiaire
+- **Store mis à jour** : ProposeStore adapté à la nouvelle navigation
+- **Loader maritime** : Bateau animé pendant la soumission (identique Dodomove)
+
+#### Système de soumission via backend centralisé
+- **API de soumission** : `/api/submit-announcement` utilise le backend Railway
+- **Backend centralisé** : Routes `/api/partage/*` sur dodomove-backend
+- **Sauvegarde Airtable** : Table `DodoPartage - Annonces` via Railway
+- **Emails automatiques** : Confirmation via Resend (backend Railway)
+- **Références uniques** : Génération automatique `PARTAGE-XXXXXX-XXXXXX`
+- **Logs centralisés** : Traçabilité complète frontend + backend
+- **Sécurité** : Clés API côté serveur uniquement
+
 ## Architecture technique
 
 ### Intégration écosystème Dodomove
 ```
 partage.dodomove.fr (ce projet)
-    ↓ (utilise)
-dodomove-backend (backend centralisé)
-    ↓ (stockage)
-Airtable + Emails via Resend
+    ↓ (API calls)
+dodomove-backend (backend centralisé Railway)
+    ↓ (stockage + emails)
+Airtable + Resend
 ```
 
 ### Cohérence graphique
 - **Même design system** que dodomove-funnel
 - **Polices** : Roboto Slab (titres) + Lato (corps de texte)
 - **Palette couleur** : Bleus Dodomove + Orange signature (#F47D6C)
-- **Composants UI** : FloatingSelect, CardRadioGroup, FloatingInput réutilisés
+- **Composants UI** : FloatingSelect, CardRadioGroup, FloatingInput, PhoneInput réutilisés
+- **Loader maritime** : Bateau animé identique au funnel Dodomove
+- **Interface épurée** : Suppression des éléments superflus pour une UX optimale
 
 ## Structure du projet
 
@@ -80,14 +121,30 @@ Airtable + Emails via Resend
 src/
 ├── app/                    # Pages et routes Next.js 15
 │   ├── page.tsx           # Listing des annonces (accueil)
-│   ├── deposer/           # Formulaire de dépôt d'annonce
-│   ├── api/               # API routes (submit, validation, etc.)
+│   ├── funnel/propose/    # Funnel de dépôt d'annonce (7 étapes)
+│   │   ├── locations/     # Étape 1: Sélection destinations
+│   │   ├── shipping-date/ # Étape 2: Date d'expédition
+│   │   ├── container-details/ # Étape 3: Détails conteneur
+│   │   ├── minimum-volume/ # Étape 4: Volume minimum
+│   │   ├── offer-type/    # Étape 5: Type d'offre
+│   │   ├── announcement-text/ # Étape 6: Texte annonce
+│   │   ├── contact/       # Étape 7: Coordonnées (épurée)
+│   │   └── confirmation/  # Page finale avec loader bateau
+│   ├── validation-success/ # Page succès après validation email
+│   ├── validation-error/  # Page erreur validation email
+│   ├── api/               # API routes Next.js
+│   │   ├── submit-announcement/ # Soumission annonce → backend
+│   │   └── validate-announcement/ # Validation email → backend
 │   └── globals.css        # Styles globaux (cohérents avec funnel)
 ├── components/            # Composants React
 │   ├── ui/               # Composants UI réutilisables
+│   │   ├── FloatingInput.tsx  # Champ avec placeholder au focus
+│   │   ├── PhoneInput.tsx     # Téléphone avec indicatifs DOM-TOM
+│   │   └── SubmissionLoader.tsx # Loader bateau animé
 │   ├── partage/          # Composants spécifiques DodoPartage
 │   └── layout/           # Header, Footer, Navigation
 ├── store/                # Gestion d'état Zustand
+│   └── proposeStore.ts   # Store du funnel (7 étapes)
 ├── utils/                # Fonctions utilitaires
 └── docs/                 # Documentation technique
 ```
@@ -155,11 +212,17 @@ npm run dev  # http://localhost:3000
 
 ## Workflows utilisateur
 
-### Déposer une annonce
-1. Remplir le formulaire (pays départ/arrivée, volume, date, etc.)
-2. Recevoir email de validation avec lien unique
-3. Cliquer sur le lien → Annonce publiée
-4. Gérer l'annonce via lien d'administration
+### Déposer une annonce (Funnel optimisé 7 étapes + validation)
+1. **Destinations** : Sélectionner départ et arrivée (DOM-TOM ↔ Métropole)
+2. **Date d'expédition** : Choisir la date de départ prévue
+3. **Conteneur** : Type (20/40 pieds) et volume disponible
+4. **Volume minimum** : Quantité minimale pour partager
+5. **Type d'offre** : Gratuit ou avec participation aux frais
+6. **Description** : Texte libre pour décrire l'annonce
+7. **Contact** : Email + téléphone avec indicatifs DOM-TOM
+8. **Confirmation** : Loader bateau → Soumission au backend centralisé
+9. **Email de validation** : Réception d'un email avec lien unique
+10. **Validation** : Clic sur le lien → Annonce publiée et visible
 
 ### Contacter un annonceur
 1. Parcourir les annonces avec filtres
@@ -173,14 +236,29 @@ npm run dev  # http://localhost:3000
 2. Proposition de prolonger/modifier/supprimer
 3. Masquage automatique si aucune action
 
-## Prochaines étapes
+## État d'avancement
 
-- [ ] Mise en place de l'interface de listing
-- [ ] Développement du formulaire de dépôt
-- [ ] Intégration avec le backend centralisé
-- [ ] Système de filtrage avancé
-- [ ] Workflows d'emails automatiques
-- [ ] Tests utilisateurs et optimisations
+### ✅ Fonctionnalités terminées
+- [x] **Funnel de dépôt d'annonce** : 7 étapes optimisées et fonctionnelles
+- [x] **Interface contact épurée** : Suppression des éléments superflus
+- [x] **Composant téléphone professionnel** : Indicatifs DOM-TOM complets
+- [x] **Loader bateau animé** : Cohérent avec l'écosystème Dodomove
+- [x] **Page de confirmation moderne** : Feedback utilisateur optimisé
+- [x] **Navigation fluide** : Suppression de l'étape récap, passage direct à confirmation
+- [x] **Gestion d'état Zustand** : Store proposeStore avec 7 étapes
+- [x] **Cohérence graphique** : Design system aligné sur Dodomove
+- [x] **Backend centralisé** : Intégration complète avec dodomove-backend Railway
+- [x] **Sauvegarde Airtable** : Table `DodoPartage - Annonces` via backend
+- [x] **Emails automatiques** : Confirmation via Resend avec design cohérent
+- [x] **Références uniques** : Génération et traçabilité des annonces
+
+### 🚧 Prochaines étapes
+- [ ] Mise en place de l'interface de listing des annonces
+- [ ] Intégration avec le backend centralisé Dodomove
+- [ ] Système de filtrage avancé pour les annonces
+- [ ] Workflows d'emails automatiques (validation, notifications)
+- [ ] Tests utilisateurs et optimisations UX
+- [ ] Système d'alertes email pour les utilisateurs
 
 ## Documentation
 

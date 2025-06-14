@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface Option {
   value: string;
   label: string;
+  emoji?: string;
 }
 
 interface FloatingSelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
@@ -35,8 +36,8 @@ const FloatingSelect = React.forwardRef<HTMLSelectElement, FloatingSelectProps>(
       const rect = selectRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       
-      // Hauteur estimée du dropdown
-      const dropdownHeight = Math.min(options.length * 56 + 16, 300);
+      // Hauteur estimée du dropdown (nombre d'options * hauteur par option + padding)
+      const dropdownHeight = Math.min(options.length * 56 + 16, 300); // max-h-64 = 16rem = 256px
       
       // Espace disponible en bas et en haut
       const spaceBelow = viewportHeight - rect.bottom;
@@ -47,10 +48,24 @@ const FloatingSelect = React.forwardRef<HTMLSelectElement, FloatingSelectProps>(
         return 'top';
       }
       
+      // Par défaut, ouvrir vers le bas
       return 'bottom';
     };
-    
-    // Fermer le menu déroulant lorsqu'on clique en dehors
+
+    const toggleMenu = () => {
+      setIsOpen(!isOpen);
+      if (!isOpen) {
+        setDropdownPosition(calculateDropdownPosition());
+      }
+    };
+
+    const selectOption = (optionValue: string) => {
+      onChange({ target: { value: optionValue } });
+      setIsOpen(false);
+      setIsFocused(false);
+    };
+
+    // Fermer le menu si on clique à l'extérieur
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
@@ -58,47 +73,17 @@ const FloatingSelect = React.forwardRef<HTMLSelectElement, FloatingSelectProps>(
           setIsFocused(false);
         }
       };
-      
-      document.addEventListener('mousedown', handleClickOutside);
+
+      if (isOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+      }
+
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
-    }, []);
-    
-    // Mettre à jour la position du dropdown quand il s'ouvre
-    useEffect(() => {
-      if (isOpen) {
-        const position = calculateDropdownPosition();
-        setDropdownPosition(position);
-        
-        // Scroll pour s'assurer que le dropdown est visible
-        if (selectRef.current && position === 'bottom') {
-          setTimeout(() => {
-            selectRef.current?.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest',
-              inline: 'nearest'
-            });
-          }, 50);
-        }
-      }
-    }, [isOpen, options.length]);
-    
-    // Gérer la sélection d'option
-    const handleOptionSelect = (optValue: string) => {
-      onChange({ target: { value: optValue } } as any);
-      setIsOpen(false);
-    };
-    
-    // Gérer l'ouverture/fermeture du menu
-    const toggleMenu = () => {
-      setIsOpen(!isOpen);
-      if (!isOpen) {
-        setIsFocused(true);
-      }
-    };
+    }, [isOpen]);
 
-    // Animation variants pour le menu déroulant
+    // Animation variants pour le menu déroulant avec position dynamique
     const dropdownVariants = {
       hidden: { 
         opacity: 0,
@@ -149,6 +134,7 @@ const FloatingSelect = React.forwardRef<HTMLSelectElement, FloatingSelectProps>(
           tabIndex={0}
           onFocus={() => setIsFocused(true)}
           onBlur={(e) => {
+            // Ne pas perdre le focus si on clique sur la liste déroulante
             if (!isOpen && !selectRef.current?.contains(e.relatedTarget as Node)) {
               setIsFocused(false);
             }
@@ -170,7 +156,14 @@ const FloatingSelect = React.forwardRef<HTMLSelectElement, FloatingSelectProps>(
         >
           <div className="flex items-center justify-between w-full">
             <div className="truncate font-['Lato'] flex-1">
-              {selectedOption ? selectedOption.label : 'Veuillez sélectionner une option'}
+              {selectedOption ? (
+                <span>
+                  {selectedOption.emoji && `${selectedOption.emoji} `}
+                  {selectedOption.label}
+                </span>
+              ) : (
+                <span className="text-gray-400">Sélectionner un lieu</span>
+              )}
             </div>
             <span className={`text-gray-400 transform transition-transform duration-200 flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -199,49 +192,39 @@ const FloatingSelect = React.forwardRef<HTMLSelectElement, FloatingSelectProps>(
           </div>
         )}
         
-        {/* Liste déroulante personnalisée */}
+        {/* Liste déroulante personnalisée avec positionnement intelligent */}
         <AnimatePresence>
           {isOpen && (
-            <motion.div 
-              id={`${selectId}-listbox`}
-              className={`absolute z-50 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-64 overflow-auto
-                ${dropdownPosition === 'bottom' ? 'mt-1' : 'mb-1 bottom-full'}`}
-              role="listbox"
+            <motion.div
+              variants={dropdownVariants}
               initial="hidden"
               animate="visible"
               exit="hidden"
-              variants={dropdownVariants}
+              className={`absolute left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto
+                ${dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'}`}
+              id={`${selectId}-listbox`}
+              role="listbox"
+              aria-labelledby={`${selectId}-label`}
             >
-              {options.map((opt, index) => (
+              {options.map((option, index) => (
                 <div
-                  key={opt.value}
-                  className={`px-6 py-3.5 hover:bg-blue-50 cursor-pointer transition-colors flex items-center 
-                    ${opt.value === value ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'}
-                    ${index < options.length - 1 ? 'border-b border-gray-100' : ''}`}
-                  onClick={() => handleOptionSelect(opt.value)}
+                  key={option.value}
+                  className={`px-4 py-4 cursor-pointer hover:bg-gray-50 transition-colors duration-150 font-['Lato']
+                    ${value === option.value ? 'bg-blue-50 text-blue-700' : 'text-gray-900'}
+                    ${index === 0 ? 'rounded-t-xl' : ''}
+                    ${index === options.length - 1 ? 'rounded-b-xl' : 'border-b border-gray-100'}
+                  `}
+                  onClick={() => selectOption(option.value)}
                   role="option"
-                  aria-selected={opt.value === value}
+                  aria-selected={value === option.value}
                 >
-                  <span className="font-['Lato']">
-                    {opt.label}
-                  </span>
-                  {opt.value === value && (
-                    <span className="ml-auto text-blue-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </span>
-                  )}
+                  {option.emoji && `${option.emoji} `}
+                  {option.label}
                 </div>
               ))}
             </motion.div>
           )}
         </AnimatePresence>
-        
-        {/* Ring de focus */}
-        {isFocused && !error && (
-          <div className="absolute inset-0 rounded-xl pointer-events-none ring-2 ring-blue-200" />
-        )}
       </div>
     );
   }
