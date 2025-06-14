@@ -14,19 +14,7 @@ export default function RecapStep() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Mapping des IDs d'objets vers les libellés
-  const itemLabels: Record<string, string> = {
-    'documents': 'Documents & paperasse',
-    'clothes': 'Vêtements & linge',
-    'electronics': 'Électronique',
-    'kitchenware': 'Ustensiles de cuisine',
-    'decoration': 'Décoration & objets',
-    'sports': 'Équipement de sport',
-    'small-furniture': 'Petits meubles',
-    'appliances': 'Électroménager',
-    'large-furniture': 'Gros mobilier',
-    'vehicles': 'Véhicules'
-  };
+
 
   // Formatage de la date
   const formatDate = (dateString: string) => {
@@ -220,32 +208,46 @@ export default function RecapStep() {
           </div>
         </div>
 
-        {/* 4. Objets acceptés */}
+        {/* 4. Informations conteneur */}
         <div className="bg-white border-2 border-purple-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Package className="w-5 h-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Objets acceptés</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Conteneur</h3>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleEditStep('/funnel/propose/allowed-items')}
+              onClick={() => handleEditStep('/funnel/propose/container-details')}
               icon={<Edit3 className="w-4 h-4" />}
             >
               Modifier
             </Button>
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            {formData.allowedItems.map((itemId) => (
-              <span
-                key={itemId}
-                className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
-              >
-                {itemLabels[itemId] || itemId}
-              </span>
-            ))}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">📦</span>
+              <div>
+                <div className="font-medium text-gray-900">
+                  Conteneur {formData.container.type} pieds
+                </div>
+                <div className="text-sm text-gray-600">
+                  {formData.container.availableVolume} m³ disponibles
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">📏</span>
+              <div>
+                <div className="font-medium text-gray-900">
+                  Volume minimum
+                </div>
+                <div className="text-sm text-gray-600">
+                  {formData.container.minimumVolume} m³ requis
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Home, Mail, RefreshCw } from 'lucide-react';
@@ -53,7 +53,7 @@ const defaultError: ErrorInfo = {
   showRetryButton: true,
 };
 
-export default function ValidationErrorPage() {
+function ValidationErrorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [errorInfo, setErrorInfo] = useState<ErrorInfo>(defaultError);
@@ -226,4 +226,16 @@ export default function ValidationErrorPage() {
       </motion.div>
     </div>
   );
-} 
+}
+
+export default function ValidationErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
+      </div>
+    }>
+      <ValidationErrorContent />
+    </Suspense>
+  );
+}

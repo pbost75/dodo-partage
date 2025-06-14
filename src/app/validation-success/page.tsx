@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, Home, Eye, Mail } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-export default function ValidationSuccessPage() {
+function ValidationSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [announcementRef, setAnnouncementRef] = useState<string | null>(null);
@@ -165,4 +165,16 @@ export default function ValidationSuccessPage() {
       </motion.div>
     </div>
   );
-} 
+}
+
+export default function ValidationSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <ValidationSuccessContent />
+    </Suspense>
+  );
+}
