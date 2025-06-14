@@ -4,63 +4,57 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
-    const announcementId = searchParams.get('id');
 
-    // Validation des paramètres
-    if (!token || !announcementId) {
-      return NextResponse.json(
-        { error: 'Token ou ID d\'annonce manquant' },
-        { status: 400 }
-      );
+    if (!token) {
+      return NextResponse.redirect('/validation-error?reason=missing-token');
     }
 
-    // TODO: Intégration avec le backend centralisé Dodomove
-    // En attendant la mise en place d'Airtable, on simule la validation
-    
-    console.log('Validation demandée pour:', { token, announcementId });
-    
-    // Simulation d'un délai de traitement
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Validation basique du format du token et de l'ID
-    if (token.length < 10 || !announcementId.startsWith('temp_')) {
-      console.log('Token ou ID invalide');
-      return NextResponse.redirect(new URL('/validation-error', request.url));
-    }
-    
-    // TODO: Quand le backend sera prêt, décommenter et adapter :
-    /*
+    console.log('🔍 Validation du token:', token);
+
+    // Envoyer la demande de validation au backend centralisé
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://web-production-7b738.up.railway.app';
     
-    const response = await fetch(`${backendUrl}/api/partage/validate-announcement`, {
-      method: 'POST',
+    const response = await fetch(`${backendUrl}/api/partage/validate-announcement?token=${encodeURIComponent(token)}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        token,
-        announcementId,
-      }),
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Erreur validation backend:', errorData);
+      const errorData = await response.json().catch(() => ({ error: 'Erreur de validation' }));
+      console.error('❌ Erreur de validation:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
       
-      return NextResponse.redirect(new URL('/validation-error', request.url));
+      // Redirection vers page d'erreur avec le détail
+      if (response.status === 404) {
+        return NextResponse.redirect('/validation-error?reason=token-not-found');
+      } else if (response.status === 410) {
+        return NextResponse.redirect('/validation-error?reason=token-expired');
+      } else {
+        return NextResponse.redirect('/validation-error?reason=validation-failed');
+      }
     }
 
     const result = await response.json();
-    */
+    console.log('✅ Validation réussie:', result.data?.reference);
 
-    // Rediriger vers une page de succès
-    return NextResponse.redirect(new URL('/validation-success', request.url));
+    // Redirection vers page de succès avec les informations
+    const successUrl = new URL('/validation-success', request.url);
+    if (result.data?.reference) {
+      successUrl.searchParams.set('ref', result.data.reference);
+    }
+    
+    return NextResponse.redirect(successUrl.toString());
 
   } catch (error) {
-    console.error('Erreur lors de la validation:', error);
+    console.error('❌ Erreur lors de la validation:', error);
     
-    // Rediriger vers une page d'erreur
-    return NextResponse.redirect(new URL('/validation-error', request.url));
+    // Redirection vers page d'erreur générique
+    return NextResponse.redirect('/validation-error?reason=server-error');
   }
 }
 

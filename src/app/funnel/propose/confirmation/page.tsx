@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle, Mail, Home } from 'lucide-react';
+import { CheckCircle, Mail, Home, AlertCircle } from 'lucide-react';
 import { useProposeStore } from '@/store/proposeStore';
 import Button from '@/components/ui/Button';
 import SubmissionLoader from '@/components/ui/SubmissionLoader';
@@ -15,7 +15,7 @@ export default function ConfirmationPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
-  const [isDuplicateProtection, setIsDuplicateProtection] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<any>(null);
 
   // Redirection si pas de données
   useEffect(() => {
@@ -56,11 +56,15 @@ export default function ConfirmationPage() {
       if (!response.ok) {
         const errorData = await response.json();
         
-        // Cas spécial : Protection anti-doublons (429)
+        // Cas spécial : Annonce potentielle déjà créée (429)
         if (response.status === 429) {
-          console.log('⚠️ Protection anti-doublons activée - Annonce probablement déjà créée');
+          console.log('⚠️ Annonce potentiellement déjà créée - Considéré comme succès');
           // Considérer comme un succès car l'annonce a été créée
-          setIsDuplicateProtection(true);
+          setSubmissionResult({
+            success: true,
+            message: 'Annonce déjà créée',
+            isDuplicate: true
+          });
           setIsSubmitted(true);
           return;
         }
@@ -71,6 +75,7 @@ export default function ConfirmationPage() {
       const result = await response.json();
       console.log('✅ Annonce soumise avec succès:', result);
       
+      setSubmissionResult(result);
       setIsSubmitted(true);
     } catch (error) {
       console.error('❌ Erreur lors de la soumission:', error);
@@ -79,8 +84,6 @@ export default function ConfirmationPage() {
       setIsSubmitting(false);
     }
   };
-
-
 
   const handleGoHome = () => {
     router.push('/');
@@ -102,7 +105,7 @@ export default function ConfirmationPage() {
         >
           <div className="max-w-2xl w-full text-center">
             <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
-              <span className="text-4xl">⚠️</span>
+              <AlertCircle className="w-12 h-12 text-red-600" />
             </div>
             
             <h1 className="text-3xl font-bold text-blue-900 font-['Roboto_Slab'] mb-4">
@@ -111,14 +114,13 @@ export default function ConfirmationPage() {
             
             <div className="space-y-6 mb-8">
               <p className="text-lg text-gray-700">
-                Une erreur s'est produite lors de la soumission
+                Une erreur s'est produite lors de la soumission de votre annonce
               </p>
               
-              <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-                <h3 className="font-semibold text-yellow-900 mb-2">🚧 Mode développement</h3>
-                <p className="text-sm text-yellow-800">
-                  Le système de stockage Airtable n'est pas encore configuré. Votre funnel fonctionne parfaitement, 
-                  il suffit d'attendre l'intégration avec le backend centralisé.
+              <div className="bg-red-50 rounded-xl p-4 border border-red-200">
+                <h3 className="font-semibold text-red-900 mb-2">Détails de l'erreur</h3>
+                <p className="text-sm text-red-800">
+                  {error}
                 </p>
               </div>
               
@@ -184,9 +186,9 @@ export default function ConfirmationPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-3xl font-bold text-blue-900 font-['Roboto_Slab'] mb-4"
+            className="text-4xl font-bold text-blue-900 font-['Roboto_Slab'] mb-4"
           >
-            ⛵ Annonce créée avec succès !
+            ⛵ Bien reçu !
           </motion.h1>
 
           {/* Message de confirmation */}
@@ -196,41 +198,44 @@ export default function ConfirmationPage() {
             transition={{ delay: 0.6 }}
             className="space-y-6 mb-8"
           >
-            <p className="text-lg text-gray-700">
-              Votre annonce a été enregistrée
-            </p>
-            
-            {isDuplicateProtection && (
-              <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">🛡️</span>
-                  <span className="font-medium text-orange-900">Protection anti-doublons activée</span>
+            {/* Information importante sur la validation email */}
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+              <div className="text-left space-y-3">
+                <div className="flex items-start gap-3">
+                  <Mail className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-blue-800">
+                    Un email a été envoyé à <strong>{formData.contact.email}</strong> avec un lien pour valider votre annonce.
+                  </p>
                 </div>
-                <p className="text-sm text-orange-800">
-                  Votre annonce a déjà été créée avec succès. Vous devriez avoir reçu un email de confirmation à <strong>{formData.contact.email}</strong>.
-                </p>
+                <div className="bg-blue-100 rounded-lg p-3">
+                  <p className="text-sm text-blue-900 font-medium">
+                    ⚠️ Important : Votre annonce ne sera visible qu'après validation
+                  </p>
+                </div>
               </div>
-            )}
-            
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-              <div className="flex items-center gap-3 mb-2">
-                <Mail className="w-5 h-5 text-blue-600" />
-                <span className="font-medium text-blue-900">Email de confirmation envoyé</span>
-              </div>
-              <p className="text-sm text-blue-800">
-                Un email a été envoyé à <strong>{formData.contact.email}</strong> avec un lien pour valider votre annonce.
-              </p>
             </div>
 
             {/* Prochaines étapes */}
-            <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-              <h3 className="font-semibold text-yellow-900 mb-3 text-left">📝 Prochaines étapes</h3>
-              <ul className="text-sm text-yellow-800 space-y-2 text-left">
-                <li>1. Vérifiez votre boîte email (et les spams)</li>
-                <li>2. Cliquez sur le lien de validation</li>
-                <li>3. Votre annonce sera publiée et visible</li>
-                <li>4. Vous recevrez les demandes de contact par email</li>
-              </ul>
+            <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
+              <h3 className="font-semibold text-yellow-900 mb-4 text-left text-lg">📋 Prochaines étapes</h3>
+              <div className="text-left space-y-3">
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">1</span>
+                  <p className="text-yellow-800">Vérifiez votre boîte email (et les spams)</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">2</span>
+                  <p className="text-yellow-800">Cliquez sur le lien de validation dans l'email</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">3</span>
+                  <p className="text-yellow-800">Votre annonce sera publiée et visible sur la plateforme</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">4</span>
+                  <p className="text-yellow-800">Vous recevrez les demandes de contact par email</p>
+                </div>
+              </div>
             </div>
           </motion.div>
 
