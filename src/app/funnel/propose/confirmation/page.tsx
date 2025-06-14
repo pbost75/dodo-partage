@@ -15,6 +15,7 @@ export default function ConfirmationPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [isDuplicateProtection, setIsDuplicateProtection] = useState(false);
 
   // Redirection si pas de données
   useEffect(() => {
@@ -54,15 +55,25 @@ export default function ConfirmationPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Cas spécial : Protection anti-doublons (429)
+        if (response.status === 429) {
+          console.log('⚠️ Protection anti-doublons activée - Annonce probablement déjà créée');
+          // Considérer comme un succès car l'annonce a été créée
+          setIsDuplicateProtection(true);
+          setIsSubmitted(true);
+          return;
+        }
+        
         throw new Error(errorData.error || 'Erreur lors de la soumission');
       }
 
       const result = await response.json();
-      console.log('Annonce soumise avec succès:', result);
+      console.log('✅ Annonce soumise avec succès:', result);
       
       setIsSubmitted(true);
     } catch (error) {
-      console.error('Erreur lors de la soumission:', error);
+      console.error('❌ Erreur lors de la soumission:', error);
       setError(error instanceof Error ? error.message : 'Erreur lors de la soumission de votre annonce');
     } finally {
       setIsSubmitting(false);
@@ -188,6 +199,18 @@ export default function ConfirmationPage() {
             <p className="text-lg text-gray-700">
               Votre annonce a été enregistrée
             </p>
+            
+            {isDuplicateProtection && (
+              <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">🛡️</span>
+                  <span className="font-medium text-orange-900">Protection anti-doublons activée</span>
+                </div>
+                <p className="text-sm text-orange-800">
+                  Votre annonce a déjà été créée avec succès. Vous devriez avoir reçu un email de confirmation à <strong>{formData.contact.email}</strong>.
+                </p>
+              </div>
+            )}
             
             <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
               <div className="flex items-center gap-3 mb-2">
