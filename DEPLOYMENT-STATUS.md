@@ -1,25 +1,27 @@
 # 🚀 Statut du déploiement DodoPartage
 
-## ✅ Ce qui est fait
+## ✅ État actuel - Déploiement fonctionnel
 
-### Backend centralisé (Railway)
-- ✅ **Code modifié** : Nouvelles routes DodoPartage ajoutées
-- ✅ **Commit & Push** : Modifications poussées vers GitHub
-- 🔄 **Déploiement en cours** : Railway redéploie automatiquement
+### Backend centralisé (Railway) 
+- ✅ **Déploiement actif** : Routes DodoPartage opérationnelles
+- ✅ **Intégration Airtable** : Table `DodoPartage - Annonces` configurée
+- ✅ **Emails automatiques** : Resend configuré avec design cohérent
+- ✅ **Logs centralisés** : Traçabilité complète des opérations
 
-### Frontend (Local)
-- ✅ **Code modifié** : Utilise maintenant le backend centralisé
-- ✅ **Tests créés** : API de test de connexion disponible
-- ✅ **Nettoyage** : Anciens fichiers Airtable supprimés
+### Frontend (Local/Vercel)
+- ✅ **Backend centralisé** : Intégration complète avec Railway
+- ✅ **Funnel 8 étapes** : Navigation optimisée avec récapitulatif
+- ✅ **Tests fonctionnels** : APIs de test disponibles
+- ✅ **Système d'alertes** : Notifications email actives
 
-## 🧪 Tests à faire (dans 2-3 minutes)
+## 🧪 Tests de fonctionnement
 
-### 1. Vérifier que Railway a fini le déploiement
+### 1. Test backend centralisé
 ```bash
 # Test général du backend
 curl https://web-production-7b738.up.railway.app/health
 
-# Test spécifique DodoPartage (nouvelles routes)
+# Test spécifique DodoPartage
 curl https://web-production-7b738.up.railway.app/api/partage/test
 ```
 
@@ -35,85 +37,104 @@ curl https://web-production-7b738.up.railway.app/api/partage/test
 }
 ```
 
-### 2. Tester le frontend
+### 2. Test depuis le frontend
 ```bash
 # Démarrer le serveur local
 npm run dev
 
-# Tester la connexion backend depuis le frontend
+# Tester la connexion backend
 http://localhost:3000/api/test-backend
+
+# Tester les alertes email
+npm run test:email-alerts
 ```
 
-### 3. Tester le formulaire complet
-1. Va sur `http://localhost:3000/funnel/propose/locations`
-2. Remplis toutes les étapes
-3. Vérifie que la confirmation fonctionne
-4. Regarde les logs dans le terminal
+### 3. Test du formulaire complet
+1. `http://localhost:3000/funnel/propose/locations`
+2. Remplir toutes les 8 étapes du funnel
+3. Vérifier la soumission et l'email de confirmation
+4. Contrôler les données dans Airtable
 
-## 🗃️ Configuration Airtable nécessaire
+## 🗃️ Configuration Airtable
 
-Une fois que les tests passent, il faut créer la table dans Airtable :
+### Table opérationnelle : `DodoPartage - Annonces`
 
-### Nom de la table : `DodoPartage - Announcement`
-
-### Variables Railway à vérifier :
+### Variables Railway configurées :
 ```bash
-AIRTABLE_PARTAGE_TABLE_NAME=DodoPartage - Announcement
+AIRTABLE_API_KEY=pat...
+AIRTABLE_BASE_ID=app...
+AIRTABLE_PARTAGE_TABLE_NAME=DodoPartage - Annonces
+RESEND_API_KEY=re_...
 ```
 
-## 📧 Configuration email
+## 📧 Système d'emails
 
-Les emails utilisent déjà la configuration Resend existante :
-- ✅ **Expéditeur** : `DodoPartage <pierre.bost.pro@resend.dev>`
-- ✅ **Design** : Cohérent avec l'écosystème Dodomove
-- ✅ **Contenu** : Récapitulatif complet + référence unique
+### Configuration active :
+- ✅ **Expéditeur** : `DodoPartage <support@dodomove.fr>`
+- ✅ **Templates** : Design cohérent avec l'écosystème Dodomove
+- ✅ **Types d'emails** :
+  - Confirmation de soumission d'annonce
+  - Validation email avec token unique
+  - Alertes automatiques pour nouvelles annonces
+  - Notifications de contact entre utilisateurs
 
-## 🔍 Debugging
+## 🔍 Statut des fonctionnalités
 
-### Si les tests échouent :
+### ✅ Fonctionnalités actives
+- **Funnel complet** : 8 étapes opérationnelles
+- **Soumission d'annonces** : Backend centralisé + Airtable
+- **Emails automatiques** : Confirmation + validation
+- **Système d'alertes** : Notifications pour nouvelles annonces
+- **Tests intégrés** : API de test backend + alertes
 
-#### Backend non accessible
+### 🔄 En développement
+- **Page d'accueil** : Listing des annonces avec filtres
+- **Système de contact** : Interface utilisateur pour contacter les annonceurs
+- **Modération** : Validation et signalement des annonces
+
+### 📋 Prochaines étapes
+- **Interface listing** : Affichage des annonces validées
+- **Filtres avancés** : Recherche par destination, volume, date
+- **Système de contact** : Formulaire sécurisé entre utilisateurs
+- **Optimisations UX** : Amélioration des performances et accessibilité
+
+## 📊 Logs et monitoring
+
+### Backend Railway (Dashboard)
+```
+✅ POST /api/partage/submit-announcement
+✅ GET /api/partage/test  
+✅ POST /api/partage/contact-announcement
+✅ Airtable: Enregistrements créés automatiquement
+✅ Resend: Emails envoyés avec succès
+```
+
+### Frontend (Terminal npm run dev)
+```
+✅ Données validées et envoyées au backend
+✅ Référence unique générée (PARTAGE-XXXXXX-XXXXXX)
+✅ Confirmation de soumission reçue
+✅ Navigation fluide dans le funnel 8 étapes
+```
+
+## 🚀 Déploiement en production
+
+### Variables d'environnement Vercel
 ```bash
-# Vérifier le statut Railway
-curl https://web-production-7b738.up.railway.app/health
+NEXT_PUBLIC_BACKEND_URL=https://web-production-7b738.up.railway.app
+NEXT_PUBLIC_DODOMOVE_URL=https://dodomove.fr
+NEXT_PUBLIC_FUNNEL_URL=https://devis.dodomove.fr
+NEXT_PUBLIC_APP_URL=https://partage.dodomove.fr
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-VWE8386BQC
 ```
 
-#### Routes DodoPartage non trouvées
-- Railway n'a pas encore fini le déploiement
-- Attendre 2-3 minutes et retester
-
-#### Erreur Airtable
-- Table `DodoPartage - Annonces` pas encore créée
-- Colonnes manquantes ou mal nommées
-
-## 🎯 Prochaines étapes
-
-1. **Attendre le déploiement Railway** (2-3 minutes)
-2. **Tester les nouvelles routes** avec les commandes ci-dessus
-3. **Créer la table Airtable** si les tests passent
-4. **Tester le formulaire complet** end-to-end
-5. **Vérifier la réception d'emails** de confirmation
-
-## 📊 Logs à surveiller
-
-### Railway (Dashboard)
-```
-POST /api/partage/submit-announcement appelé
-📤 Envoi vers Airtable...
-✅ Annonce enregistrée dans Airtable
-📧 Envoi de l'email de confirmation...
-✅ Email envoyé avec succès
-```
-
-### Frontend (Terminal)
-```
-📥 Données reçues pour soumission
-📤 Envoi vers le backend centralisé...
-✅ Annonce soumise avec succès via le backend centralisé
-```
+### Domaine cible
+- **URL** : `partage.dodomove.fr`
+- **SSL** : Certificat automatique via Vercel
+- **CDN** : Distribution mondiale des assets
 
 ---
 
-**Status actuel** : 🔄 En attente du déploiement Railway (estimé 2-3 minutes)
+**Status actuel** : ✅ **Opérationnel** - Backend + Frontend intégrés et fonctionnels
 
-**Prochaine action** : Tester `curl https://web-production-7b738.up.railway.app/api/partage/test` 
+**Prochaine action** : Développement de l'interface de listing des annonces 
