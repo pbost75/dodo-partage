@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus } from 'lucide-react';
+import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
 import AnnouncementCard from '@/components/partage/AnnouncementCard';
 import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
@@ -13,6 +13,7 @@ import Card from '@/components/ui/Card';
 import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import { useRouter } from 'next/navigation';
+import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
 
 interface FilterState {
   type: string;
@@ -38,6 +39,22 @@ export default function HomePage() {
   const [appliedDeparture, setAppliedDeparture] = useState<string>('');
   const [appliedDestination, setAppliedDestination] = useState<string>('');
   const [appliedDates, setAppliedDates] = useState<string[]>([]);
+
+  // Hook pour récupérer les annonces depuis le backend
+  const {
+    announcements,
+    loading,
+    error,
+    total,
+    stats,
+    applyFilters,
+    refresh,
+    isEmpty,
+    hasError
+  } = useAnnouncements({
+    type: 'all', // Récupérer toutes les annonces par défaut
+    status: 'all' // Toutes les annonces (published + pending) pour le développement
+  });
 
   // Options des pays avec leurs emojis
   const countryOptions = [
@@ -72,265 +89,70 @@ export default function HomePage() {
     return normalizedInput;
   };
 
-  // Données d'exemple pour les annonces
-  const sampleAnnouncements = [
-    {
-      id: '1',
-      type: 'offer' as const,
-      title: 'Conteneur partagé vers la Réunion',
-      departure: 'France métropolitaine',
-      departureCity: 'Le Havre (76600)',
-      arrival: 'Réunion',
-      arrivalCity: 'Port-Est (97470)',
-      volume: '2.5 m³',
-      volumeCategory: '1-3',
-      date: '15 mars 2024',
-      price: '150€',
-      items: ['Mobilier', 'Électroménager', 'Cartons'],
-      author: 'Jean',
-      publishedAt: 'Publié il y a 2 heures',
-      description: 'Bonjour ! Je fais un déménagement vers Saint-Denis de la Réunion et j\'ai encore de la place disponible dans mon conteneur 20 pieds. J\'ai réservé environ 8m³ mais je n\'utilise que 5.5m³, donc il me reste 2.5m³ disponibles. Le conteneur partira du port du Havre le 15 mars avec arrivée prévue début avril. Je peux prendre du mobilier léger, de l\'électroménager standard, des cartons et des affaires personnelles. Tout sera bien protégé avec du film plastique et des sangles. Je m\'occupe de toute la logistique côté français, vous n\'avez qu\'à déposer vos affaires à mon garde-meuble près de Rouen. N\'hésitez pas à me contacter pour organiser une visite et voir l\'espace disponible.'
-    },
-    {
-      id: '2',
-      type: 'request' as const,
-      title: 'Recherche place pour véhicule moto',
-      departure: 'France métropolitaine',
-      departureCity: 'Marseille (Port)',
-      arrival: 'Martinique',
-      arrivalCity: 'Fort-de-France',
-      volume: '3 m³',
-      volumeCategory: '3-5',
-      date: 'Avril 2024',
-      items: ['Véhicule', 'Outillage', 'Équipement'],
-      author: 'Marie',
-      publishedAt: 'Publié il y a 5 heures',
-      description: 'Salut tout le monde ! Je cherche une place dans un conteneur pour expédier ma moto Yamaha MT-07 vers Fort-de-France en Martinique. C\'est une moto de 180kg environ, elle rentre dans 3m³ avec quelques outils et équipements de moto. Je suis très flexible sur les dates, n\'importe quand en avril ou mai ça me va parfaitement. J\'ai déjà fait le nécessaire pour les papiers douanes et j\'ai l\'habitude des expéditions. Je peux me déplacer partout en France métropolitaine pour déposer la moto. Si vous avez de la place et que ça vous intéresse, on peut discuter du tarif. Je suis quelqu\'un de sérieux et ponctuel, références disponibles !'
-    },
-    {
-      id: '3',
-      type: 'offer' as const,
-      title: 'Groupage Guadeloupe - Place disponible',
-      departure: 'Bordeaux',
-      departureCity: 'Bordeaux (33000)',
-      arrival: 'Guadeloupe',
-      arrivalCity: 'Pointe-à-Pitre',
-      volume: '1.8 m³',
-      volumeCategory: '1-3',
-      date: '28 février 2024',
-      price: '120€',
-      items: ['Cartons', 'Effets personnels', 'Livres'],
-      author: 'Pierre',
-      publishedAt: 'Publié il y a 1 jour',
-      description: 'Hello ! J\'organise un groupage vers Pointe-à-Pitre en Guadeloupe pour fin février. Mon conteneur part du port de Bordeaux le 28 février avec une arrivée prévue mi-mars. J\'ai encore 1.8m³ de disponible, parfait pour des cartons d\'affaires personnelles, des livres, des vêtements, du matériel informatique léger, etc. Attention, pas d\'électroménager lourd ni de mobilier volumineux pour cet envoi. Je propose un tarif de 67€/m³ soit 120€ pour les 1.8m³ restants. Le conteneur est assuré tous risques et j\'ai déjà fait plusieurs expéditions sans problème. Récupération possible dans tout le Sud-Ouest ou livraison directe à mon entrepôt près de Bordeaux.'
-    },
-    {
-      id: '4',
-      type: 'offer' as const,
-      title: 'Conteneur familial vers Mayotte',
-      departure: 'Lyon',
-      departureCity: 'Lyon (69000)',
-      arrival: 'Mayotte',
-      arrivalCity: 'Longoni',
-      volume: '4.2 m³',
-      volumeCategory: '3-5',
-      date: '20 mars 2024',
-      price: '280€',
-      items: ['Mobilier', 'Électroménager', 'Cartons', 'Jouets'],
-      author: 'Sophie',
-      publishedAt: 'Publié il y a 3 heures',
-      description: 'Coucou ! Ma famille et moi déménageons vers Mamoudzou à Mayotte pour le travail de mon mari. Nous avons réservé un conteneur 20 pieds qui part de Marseille le 20 mars. Après avoir calculé, il nous reste environ 4.2m³ de place libre que nous souhaitons partager pour réduire les coûts. Nous acceptons du mobilier (pas trop lourd), de l\'électroménager, des cartons d\'affaires personnelles, des jouets pour enfants, des vêtements, etc. Notre conteneur est assuré et nous avons fait appel à un professionnel pour l\'emballage. Le trajet dure environ 4-5 semaines avec escale. Nous pouvons récupérer vos affaires dans la région lyonnaise ou vous pouvez les déposer directement chez notre transitaire à Marseille. Prix négociable selon le volume exact !'
-    },
-    {
-      id: '5',
-      type: 'request' as const,
-      title: 'Besoin place pour matériel médical',
-      departure: 'Paris',
-      departureCity: 'Paris (75000)',
-      arrival: 'Guyane',
-      arrivalCity: 'Dégrad des Cannes',
-      volume: '1.5 m³',
-      volumeCategory: '1-3',
-      date: 'Mai 2024',
-      items: ['Équipement', 'Appareils électroniques'],
-      author: 'Dr. Martin',
-      publishedAt: 'Publié il y a 6 heures',
-      description: 'Bonjour, je suis médecin et je m\'installe en Guyane française à Cayenne pour ouvrir un cabinet. J\'ai besoin d\'expédier du matériel médical spécialisé : échographe portable, matériel de consultation, quelques appareils électroniques médicaux. Le tout représente environ 1.5m³ et c\'est du matériel fragile et précieux qui nécessite un transport soigné. J\'ai toutes les autorisations nécessaires pour l\'exportation de matériel médical. Je cherche quelqu\'un de sérieux avec un conteneur assuré et qui prend soin des affaires. Je suis flexible sur les dates, n\'importe quand entre mai et juillet. Budget jusqu\'à 200€ pour ce volume. Je peux gérer la récupération et l\'emballage spécialisé de mon côté.'
-    },
-    {
-      id: '6',
-      type: 'offer' as const,
-      title: 'Retour Martinique vers France',
-      departure: 'Martinique',
-      departureCity: 'Fort-de-France (97200)',
-      arrival: 'France métropolitaine',
-      arrivalCity: 'Le Havre (76600)',
-      volume: '3.5 m³',
-      volumeCategory: '3-5',
-      date: '10 avril 2024',
-      price: '200€',
-      items: ['Mobilier', 'Cartons', 'Effets personnels'],
-      author: 'Claire',
-      publishedAt: 'Publié il y a 8 heures',
-      description: 'Salut ! Situation un peu particulière : je rentre en métropole après 3 ans en Martinique et j\'ai un conteneur qui part de Fort-de-France vers Le Havre le 10 avril. J\'ai calculé large et il me reste 3.5m³ disponibles. Si ça peut aider quelqu\'un qui veut récupérer des affaires ou faire venir de la famille, pourquoi pas ! Je peux prendre du mobilier léger, des cartons, des souvenirs, de l\'artisanat local, des produits du terroir bien emballés (rhum, épices, etc.), des vêtements. Pas d\'électroménager ou de trucs trop lourds par contre. Le conteneur arrivera vers début mai en métropole. Je propose 57€/m³ soit 200€ pour tout l\'espace restant, ou possibilité de partager si vous avez moins. Récupération possible dans tout le centre de la Martinique.'
-    },
-    {
-      id: '7',
-      type: 'offer' as const,
-      title: 'Groupage économique vers La Réunion',
-      departure: 'Marseille',
-      departureCity: 'Marseille (13000)',
-      arrival: 'Réunion',
-      arrivalCity: 'Port-Est (97470)',
-      volume: '5.8 m³',
-      volumeCategory: '5-10',
-      date: '25 mars 2024',
-      price: '350€',
-      items: ['Cartons', 'Effets personnels', 'Mobilier', 'Électroménager'],
-      author: 'Thomas',
-      publishedAt: 'Publié il y a 12 heures',
-      description: 'Hey ! Je monte un groupage économique vers Saint-Pierre à La Réunion. J\'ai négocié un super tarif avec un transitaire pro et j\'ai réservé un conteneur 20 pieds qui part de Marseille le 25 mars. Après ma propre cargaison, il me reste 5.8m³ à partager entre plusieurs personnes pour faire baisser les coûts de tout le monde. J\'accepte un peu de tout : cartons d\'affaires perso, petit mobilier, électroménager pas trop lourd, matériel informatique, livres, vêtements, etc. Seule condition : tout doit être bien emballé et étiqueté. J\'ai l\'habitude, c\'est mon 4ème groupage ! Le conteneur est assuré tous risques et le transitaire est très fiable. Tarif de 60€/m³ négociable selon le volume. Récupération dans toute la région PACA ou livraison directe au port. Arrivée prévue mi-avril à La Réunion.'
-    },
-    {
-      id: '8',
-      type: 'request' as const,
-      title: 'Recherche espace pour outils professionnels',
-      departure: 'Lyon',
-      departureCity: 'Lyon (69000)',
-      arrival: 'Nouvelle-Calédonie',
-      arrivalCity: 'Nouméa (98800)',
-      volume: '2.8 m³',
-      volumeCategory: '1-3',
-      date: 'Juin 2024',
-      items: ['Outillage', 'Équipement'],
-      author: 'Julien',
-      publishedAt: 'Publié il y a 4 heures',
-      description: 'Salut les amis ! Je suis artisan plombier et je pars m\'installer en Nouvelle-Calédonie à Nouméa pour rejoindre une entreprise locale. J\'ai besoin d\'expédier mes outils professionnels : caisse à outils complète, matériel de soudure, tuyauterie, outillage électroportatif, etc. C\'est du matériel de qualité que j\'ai accumulé pendant 15 ans de métier et qui vaut cher, donc je cherche quelqu\'un de sérieux avec un conteneur bien assuré. Le tout fait environ 2.8m³ une fois bien rangé dans des caisses solides. Je peux être flexible sur les dates, juin ou juillet ça m\'arrange. Budget jusqu\'à 300€ pour ce transport. Si vous avez de la place dans un conteneur vers Nouméa ou même vers n\'importe quel port de Nouvelle-Calédonie, contactez-moi ! Je peux me déplacer dans toute la région Rhône-Alpes pour déposer mes affaires.'
-    },
-    {
-      id: '9',
-      type: 'offer' as const,
-      title: 'Déménagement complet vers les Antilles',
-      departure: 'Toulouse',
-      departureCity: 'Toulouse (31000)',
-      arrival: 'Martinique',
-      arrivalCity: 'Fort-de-France (97200)',
-      volume: '6.5 m³',
-      volumeCategory: '5-10',
-      date: '12 juin 2024',
-      price: '390€',
-      items: ['Mobilier', 'Électroménager', 'Cartons', 'Effets personnels', 'Livres', 'Appareils électroniques'],
-      author: 'Isabelle',
-      publishedAt: 'Publié il y a 4 heures',
-      description: 'Bonjour à tous ! Je propose de partager les frais de mon conteneur 20 pieds pour un déménagement complet vers la Martinique. Mon mari a obtenu une mutation à Fort-de-France et nous déménageons en famille avec nos deux enfants. J\'ai encore pas mal de place disponible (environ 6.5 m³) dans mon conteneur qui partira de Toulouse mi-juin via le port de Bordeaux. C\'est parfait si vous avez du mobilier, des appareils électroménagers, des cartons ou même des effets personnels à expédier. Le conteneur est sécurisé avec assurance tous risques et j\'ai fait appel à un déménageur professionnel agréé pour les DOM-TOM. Je peux également prendre en charge les démarches administratives si vous le souhaitez car j\'ai l\'habitude maintenant. Les objets sont bien protégés pendant le transport maritime qui dure environ 3 semaines. N\'hésitez pas à me contacter pour plus d\'informations sur les modalités pratiques, les tarifs exacts selon le volume ou si vous avez des questions spécifiques sur le processus d\'expédition. Je suis très flexible sur les dates de récupération de vos affaires avant le départ et je peux me déplacer dans tout le Sud-Ouest.'
-    },
-    {
-      id: '10',
-      type: 'request' as const,
-      title: 'Étudiant cherche place pour ses affaires',
-      departure: 'France métropolitaine',
-      departureCity: 'Nantes (44000)',
-      arrival: 'Guadeloupe',
-      arrivalCity: 'Pointe-à-Pitre (97110)',
-      volume: '1.2 m³',
-      volumeCategory: '1-3',
-      date: 'Août 2024',
-      items: ['Cartons', 'Livres', 'Effets personnels', 'Appareils électroniques'],
-      author: 'Emma',
-      publishedAt: 'Publié il y a 7 heures',
-      description: 'Coucou ! Je suis étudiante en master et je pars faire mon stage de fin d\'études en Guadeloupe pendant 6 mois. J\'aimerais emporter quelques affaires personnelles : mes livres de cours, mon ordinateur portable, des vêtements pour 6 mois, quelques souvenirs de famille, mon appareil photo, etc. Le tout tiendrait dans 3-4 gros cartons soit environ 1.2m³. Je cherche quelqu\'un de sympa qui aurait un peu de place dans son conteneur vers Pointe-à-Pitre. Comme je suis étudiante, mon budget est serré mais je peux aller jusqu\'à 100€ pour ce petit volume. Je suis super flexible sur les dates, tout l\'été me va ! Je peux récupérer les affaires partout en France métropolitaine pendant les vacances universitaires. Si quelqu\'un peut m\'aider, ce serait génial ! J\'ai des références de mes précédentes colocations et je suis quelqu\'un de sérieux et reconnaissant.'
-    },
-    {
-      id: '11',
-      type: 'offer' as const,
-      title: 'Espace disponible vers Mayotte',
-      departure: 'Paris',
-      departureCity: 'Paris (75000)',
-      arrival: 'Mayotte',
-      arrivalCity: 'Longoni (97615)',
-      volume: '2.1 m³',
-      volumeCategory: '1-3',
-      date: '5 mai 2024',
-      price: '145€',
-      items: ['Cartons', 'Effets personnels', 'Livres', 'Vêtements'],
-      author: 'Ahmed',
-      publishedAt: 'Publié il y a 1 jour',
-      description: 'Salam ! Je retourne à Mayotte après mes études en métropole et j\'ai un petit conteneur qui part du Havre le 5 mai vers Mamoudzou. J\'ai optimisé mes affaires et il me reste 2.1m³ de libre. Je peux prendre des cartons pas trop lourds, des effets personnels, des livres, des vêtements, du matériel informatique léger, des cadeaux pour la famille, etc. Pas de mobilier ni d\'électroménager par contre, j\'ai pas la place. Mon transitaire est quelqu\'un de confiance, ça fait des années qu\'il bosse avec ma famille. Transport maritime sécurisé avec suivi. Je propose 70€/m³ donc 145€ pour tout l\'espace ou possibilité de partager. Récupération possible en région parisienne ou livraison directe chez le transitaire au Havre. J\'ai de la famille qui peut réceptionner à Mayotte si besoin.'
-    },
-    {
-      id: '12',
-      type: 'offer' as const,
-      title: 'Retour Guyane vers métropole',
-      departure: 'Guyane',
-      departureCity: 'Cayenne (97300)',
-      arrival: 'France métropolitaine',
-      arrivalCity: 'Bordeaux (33000)',
-      volume: '4.8 m³',
-      volumeCategory: '3-5',
-      date: '18 avril 2024',
-      price: '280€',
-      items: ['Mobilier', 'Cartons', 'Effets personnels', 'Objets fragiles'],
-      author: 'Valérie',
-      publishedAt: 'Publié il y a 15 heures',
-      description: 'Bonjour ! Après 5 années formidables en Guyane, nous rentrons en métropole. Notre conteneur part de Cayenne le 18 avril vers Bordeaux avec arrivée prévue début mai. Nous avons calculé large et il nous reste 4.8m³ de place libre. Si ça peut rendre service à quelqu\'un qui veut faire venir des affaires de famille ou récupérer des souvenirs, nous serions ravis de partager ! Nous pouvons prendre du petit mobilier, des cartons d\'affaires personnelles, de l\'artisanat local, des hamacs, du matériel de camping/pêche, des objets fragiles bien emballés. Nous avons l\'habitude des transports longue distance et nous emballons tout avec soin. Le conteneur est assuré tous risques. Tarif de 58€/m³ soit 280€ pour tout l\'espace, négociable selon volume. Récupération possible dans toute la région de Cayenne et Saint-Laurent du Maroni.'
-    }
-  ];
+  // Fonction pour filtrer les annonces localement (optimisation UI)
+  const getFilteredAnnouncements = () => {
+    if (!announcements || announcements.length === 0) return [];
 
-  // Filtrer les annonces
-  const filteredAnnouncements = sampleAnnouncements.filter(announcement => {
-    // Filtre par type
-    if (announcement.type !== filters.type) {
-      return false;
-    }
-
-    // Filtre par volume (si des volumes sont sélectionnés)
-    if (filters.volumes.length > 0) {
-      if (!filters.volumes.includes(announcement.volumeCategory)) {
+    return announcements.filter(announcement => {
+      // Filtre par type d'annonce
+      if (filters.type !== 'all' && announcement.type !== filters.type) {
         return false;
       }
-    }
 
-    // Filtre par lieu de départ (filtres appliqués uniquement)
-    if (appliedDeparture && normalizeLocation(announcement.departure) !== appliedDeparture) {
-      return false;
-    }
+      // Filtre par volumes sélectionnés
+      if (filters.volumes.length > 0) {
+        const matchesVolume = filters.volumes.includes(announcement.volumeCategory);
+        if (!matchesVolume) return false;
+      }
 
-    // Filtre par destination (filtres appliqués uniquement)
-    if (appliedDestination && normalizeLocation(announcement.arrival) !== appliedDestination) {
-      return false;
-    }
+      // Filtre par départ appliqué
+      if (appliedDeparture) {
+        const departureMatch = 
+          announcement.departure.toLowerCase().includes(appliedDeparture.toLowerCase()) ||
+          announcement.departureCity.toLowerCase().includes(appliedDeparture.toLowerCase());
+        if (!departureMatch) return false;
+      }
 
-    // Filtre par dates (filtres appliqués uniquement) - pour l'instant on accepte toutes les dates
-    // TODO: Implémenter la logique de dates si nécessaire
+      // Filtre par destination appliquée
+      if (appliedDestination) {
+        const destinationMatch = 
+          announcement.arrival.toLowerCase().includes(appliedDestination.toLowerCase()) ||
+          announcement.arrivalCity.toLowerCase().includes(appliedDestination.toLowerCase());
+        if (!destinationMatch) return false;
+      }
 
-    return true;
-  });
+      return true;
+    });
+  };
 
-  // Annonces à afficher (avec pagination)
+  const filteredAnnouncements = getFilteredAnnouncements();
   const displayedAnnouncements = filteredAnnouncements.slice(0, displayedCount);
+  const hasMoreAnnouncements = filteredAnnouncements.length > displayedCount;
 
   const handleFiltersChange = (newFilters: FilterState) => {
+    console.log('🔧 Changement de filtres:', newFilters);
     setFilters(newFilters);
-    setDisplayedCount(4); // Reset à 4 annonces quand les filtres changent
   };
 
   const loadMoreAnnouncements = () => {
-    setDisplayedCount(prev => prev + 4);
+    setDisplayedCount(prev => Math.min(prev + 4, filteredAnnouncements.length));
   };
 
-  // Fonction pour effectuer la recherche
   const handleSearch = () => {
-    setDisplayedCount(4); // Reset la pagination lors d'une nouvelle recherche
+    console.log('🔍 Recherche avec:', { 
+      departure: searchDeparture, 
+      destination: searchDestination 
+    });
+    
     // Appliquer les filtres de recherche
     setAppliedDeparture(searchDeparture);
     setAppliedDestination(searchDestination);
     setAppliedDates(searchDates);
+    
+    // Réinitialiser le nombre d'annonces affichées
+    setDisplayedCount(4);
   };
 
-  // Logique pour afficher le bouton "Voir plus"
-  const shouldShowLoadMore = displayedAnnouncements.length >= 4 && filteredAnnouncements.length > displayedCount;
-
-  // Fonction pour ouvrir l'alerte avec les filtres actuels
   const handleCreateAlert = () => {
     setIsAlertModalOpen(true);
   };
@@ -342,15 +164,99 @@ export default function HomePage() {
   const router = useRouter();
 
   const handleChoice = (choice: 'cherche' | 'propose') => {
+    setIsChoiceModalOpen(false);
     if (choice === 'propose') {
-      // Rediriger vers le funnel "Je propose de la place"
       router.push('/funnel/propose/locations');
-    } else if (choice === 'cherche') {
-      // TODO: Rediriger vers le funnel "Je cherche de la place" (à créer)
-      console.log('Funnel "Je cherche" pas encore implémenté');
-      // Pour l'instant, on peut rediriger vers une page temporaire ou rester sur la page d'accueil
+    } else {
+      // TODO: Implémenter le funnel "cherche"
+      console.log('Funnel "cherche" pas encore implémenté');
     }
   };
+
+  // Composant de chargement
+  const LoadingState = () => (
+    <div className="space-y-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+          <div className="flex gap-6">
+            <div className="w-20 h-20 bg-gray-200 rounded-xl flex-shrink-0"></div>
+            <div className="flex-1 space-y-3">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+            </div>
+            <div className="text-right space-y-2">
+              <div className="h-6 bg-gray-200 rounded w-16"></div>
+              <div className="h-3 bg-gray-200 rounded w-12"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Composant d'erreur
+  const ErrorState = () => (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+      <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-red-900 mb-2">
+        Erreur de chargement
+      </h3>
+      <p className="text-red-700 mb-4">
+        {error || 'Impossible de récupérer les annonces pour le moment.'}
+      </p>
+      <Button
+        variant="outline"
+        onClick={refresh}
+        icon={<RefreshCw className="w-4 h-4" />}
+        className="border-red-300 text-red-700 hover:bg-red-50"
+      >
+        Réessayer
+      </Button>
+    </div>
+  );
+
+  // Composant d'état vide
+  const EmptyState = () => (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+        <MapPin className="w-8 h-8 text-gray-400" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        Aucune annonce trouvée
+      </h3>
+      <p className="text-gray-600 mb-4">
+        {appliedDeparture || appliedDestination || filters.volumes.length > 0
+          ? 'Aucune annonce ne correspond à vos critères de recherche.'
+          : 'Il n\'y a pas encore d\'annonces publiées.'}
+      </p>
+      <div className="space-y-2">
+        <Button
+          variant="primary"
+          onClick={handleCreateAnnouncement}
+          icon={<Plus className="w-4 h-4" />}
+        >
+          Déposer une annonce
+        </Button>
+        {(appliedDeparture || appliedDestination || filters.volumes.length > 0) && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setAppliedDeparture('');
+              setAppliedDestination('');
+              setSearchDeparture('');
+              setSearchDestination('');
+              setFilters({ type: 'offer', volumes: [] });
+              setDisplayedCount(4);
+            }}
+            className="text-gray-600"
+          >
+            Effacer les filtres
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -542,7 +448,13 @@ export default function HomePage() {
             </div>
 
             {/* Liste des annonces */}
-            {filteredAnnouncements.length > 0 ? (
+            {loading ? (
+              <LoadingState />
+            ) : error ? (
+              <ErrorState />
+            ) : isEmpty ? (
+              <EmptyState />
+            ) : (
               <div className="space-y-4 sm:space-y-6">
                 {displayedAnnouncements.map((announcement, index) => (
                   <motion.div
@@ -555,32 +467,10 @@ export default function HomePage() {
                   </motion.div>
                 ))}
               </div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="text-center py-12"
-              >
-                <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Filter className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucune annonce trouvée</h3>
-                <p className="text-gray-600 mb-6">
-                  Essayez de modifier vos critères de recherche ou consultez toutes les annonces.
-                </p>
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={() => setFilters({ type: 'offer', volumes: [] })}
-                >
-                  Voir toutes les annonces
-                </Button>
-              </motion.div>
             )}
 
             {/* Load More Button */}
-            {shouldShowLoadMore && (
+            {hasMoreAnnouncements && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

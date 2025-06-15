@@ -137,7 +137,7 @@ PORT=8080
 | `arrival_postal_code` | Single line text | Code postal d'arrivée |
 | `arrival_display_name` | Single line text | Nom complet du lieu d'arrivée |
 | `shipping_date` | Date | Date prévue d'expédition |
-| `shipping_date_formatted` | Single line text | Date formatée en français |
+| `shipping_date_formatted` | Single line text | ⚠️ **OBSOLÈTE** - Formatage côté frontend |
 | `container_type` | Single line text | "20_feet" ou "40_feet" |
 | `container_available_volume` | Number | Volume disponible dans le conteneur |
 | `container_minimum_volume` | Number | Volume minimum pour partager |

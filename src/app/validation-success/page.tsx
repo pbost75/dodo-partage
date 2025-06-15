@@ -43,16 +43,16 @@ function ValidationSuccessContent() {
         </p>
 
         {/* Bouton d'action unique */}
-        <Button
-          onClick={handleViewAnnouncements}
-          fullWidth
-          size="lg"
+          <Button
+            onClick={handleViewAnnouncements}
+            fullWidth
+            size="lg"
           className="bg-[#F47D6C] hover:bg-[#e05a48] text-white font-medium text-lg py-4"
-        >
+          >
           <span className="mr-3 text-xl">👁️</span>
-          Voir toutes les annonces
-        </Button>
-
+            Voir toutes les annonces
+          </Button>
+          
         {/* Message de remerciement minimaliste */}
         <div className="mt-8 pt-6 border-t border-gray-100">
           <p className="text-sm text-gray-500">

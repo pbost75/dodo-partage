@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Ship, MapPin, Home, Zap, Package, Car, Wrench, Shirt, Book, Wine, Laptop, Gamepad2, Anchor } from 'lucide-react';
+import { Ship, Anchor } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import ContactModal from './ContactModal';
 
 interface AnnouncementProps {
   id: string;
@@ -21,6 +22,7 @@ interface AnnouncementProps {
 }
 
 const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
+  id,
   type,
   departure,
   departureCity,
@@ -32,8 +34,10 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
   author,
   publishedAt,
   description,
+  price,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   
   // Limite de caractères pour l'affichage tronqué
   const CHAR_LIMIT = 100;
@@ -59,25 +63,7 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
     </div>
   );
 
-  // Mapping des objets vers des pictogrammes minimalistes avec cercles
-  const getItemIcon = (item: string) => {
-    const iconMap: Record<string, React.ReactNode> = {
-      'Mobilier': <Home className="w-3 h-3" />,
-      'Électroménager': <Zap className="w-3 h-3" />,
-      'Cartons': <Package className="w-3 h-3" />,
-      'Véhicule': <Car className="w-3 h-3" />,
-      'Outillage': <Wrench className="w-3 h-3" />,
-      'Effets personnels': <Shirt className="w-3 h-3" />,
-      'Livres': <Book className="w-3 h-3" />,
-      'Objets fragiles': <Wine className="w-3 h-3" />,
-      'Appareils électroniques': <Laptop className="w-3 h-3" />,
-      'Vêtements': <Shirt className="w-3 h-3" />,
-      'Jouets': <Gamepad2 className="w-3 h-3" />,
-      'Instruments de musique': <Package className="w-3 h-3" />,
-      'Équipement': <Wrench className="w-3 h-3" />,
-    };
-    return iconMap[item] || <Package className="w-3 h-3" />;
-  };
+
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 p-4 sm:p-6">
@@ -151,22 +137,15 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
           </p>
         </div>
 
-        {/* Pictogrammes */}
-        <div className="flex items-center justify-center gap-2 mb-4">
-          {items.slice(0, 4).map((item, index) => (
-            <div
-              key={index}
-              className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-600"
-              title={item}
-            >
-              {getItemIcon(item)}
-            </div>
-          ))}
-          {items.length > 4 && (
-            <span className="text-xs text-gray-500 ml-1">
-              +{items.length - 4}
-            </span>
-          )}
+        {/* Étiquette type d'offre */}
+        <div className="flex justify-center mb-4">
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+            price 
+              ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+              : 'bg-green-50 text-green-700 border border-green-200'
+          }`}>
+            {price ? '💰 Participation aux frais' : '🎁 Gratuit'}
+          </span>
         </div>
 
         {/* Footer mobile */}
@@ -174,6 +153,7 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setIsContactModalOpen(true)}
             className="w-full border-2 border-[#F47D6C] text-[#F47D6C] bg-white hover:bg-[#F47D6C] hover:text-white py-3 shadow-none transition-all duration-200 font-medium"
           >
             {type === 'offer' ? 'Contacter' : 'Proposer'}
@@ -258,22 +238,15 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
 
           {/* Footer */}
           <div className="flex items-center justify-between">
-            {/* Pictogrammes des objets autorisés */}
-            <div className="flex items-center gap-2">
-              {items.slice(0, 4).map((item, index) => (
-                <div
-                  key={index}
-                  className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-600"
-                  title={item}
-                >
-                  {getItemIcon(item)}
-                </div>
-              ))}
-              {items.length > 4 && (
-                <span className="text-xs text-gray-500 ml-1">
-                  +{items.length - 4}
-                </span>
-              )}
+            {/* Étiquette type d'offre */}
+            <div className="flex items-center">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                price 
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                  : 'bg-green-50 text-green-700 border border-green-200'
+              }`}>
+                {price ? '💰 Participation aux frais' : '🎁 Gratuit'}
+              </span>
             </div>
 
             {/* Auteur et action */}
@@ -285,6 +258,7 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setIsContactModalOpen(true)}
                 className="border-2 border-[#F47D6C] text-[#F47D6C] bg-white hover:bg-[#F47D6C] hover:text-white px-4 py-2 shadow-none transition-all duration-200"
               >
                 {type === 'offer' ? 'Contacter' : 'Proposer'}
@@ -293,6 +267,21 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Modal de contact */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        announcement={{
+          id,
+          type,
+          departure,
+          arrival,
+          volume,
+          date,
+          author
+        }}
+      />
     </div>
   );
 };
