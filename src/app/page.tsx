@@ -121,8 +121,8 @@ export default function HomePage() {
         if (!destinationMatch) return false;
       }
 
-      return true;
-    });
+    return true;
+  });
   };
 
   const filteredAnnouncements = getFilteredAnnouncements();

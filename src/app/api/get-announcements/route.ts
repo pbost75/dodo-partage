@@ -12,11 +12,9 @@ interface AnnouncementFromBackend {
   departure_country: string;
   departure_city: string;
   departure_postal_code: string;
-  departure_display_name: string;
   arrival_country: string;
   arrival_city: string;
   arrival_postal_code: string;
-  arrival_display_name: string;
   shipping_date: string;
   shipping_date_formatted: string;
   container_type: string;
