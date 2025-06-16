@@ -10,7 +10,6 @@ import {
   Calendar, 
   Package, 
   MapPin,
-  User,
   Clock,
   Copy,
   Check
@@ -352,16 +351,11 @@ export default function AnnouncementDetailPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 
                 {/* Informations auteur */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">par {announcement.author}</div>
-                    <div className="text-sm text-gray-500 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {announcement.publishedAt}
-                    </div>
+                <div className="flex flex-col gap-2">
+                  <div className="font-medium text-gray-900">par {announcement.author}</div>
+                  <div className="text-sm text-gray-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {announcement.publishedAt}
                   </div>
                 </div>
 
@@ -490,16 +484,11 @@ export default function AnnouncementDetailPage() {
 
               {/* Card Contact */}
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">par {announcement.author}</div>
-                    <div className="text-sm text-gray-500 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {announcement.publishedAt}
-                    </div>
+                <div className="mb-4">
+                  <div className="font-medium text-gray-900 mb-2">par {announcement.author}</div>
+                  <div className="text-sm text-gray-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {announcement.publishedAt}
                   </div>
                 </div>
 

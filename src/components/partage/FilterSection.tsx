@@ -14,7 +14,7 @@ import {
 
 interface FilterState {
   type: string;
-  volumes: string[];
+  minVolume: string; // Changé de volumes[] à minVolume string
 }
 
 interface FilterSectionProps {
@@ -26,7 +26,7 @@ interface FilterSectionProps {
 const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobileClose, onFiltersChange }) => {
   const [filters, setFilters] = useState<FilterState>({
     type: 'offer', // "Propose" sélectionné par défaut
-    volumes: []
+    minVolume: 'all' // Tous volumes par défaut
   });
 
   const filterOptions = {
@@ -48,41 +48,46 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
         iconColor: 'text-green-600'
       }
     ],
-    volume: [
+    minVolume: [
       { 
-        value: '0-1', 
-        label: '< 1 m³', 
+        value: 'all', 
+        label: 'Tous volumes', 
+        icon: Package,
+        bgColor: 'bg-gray-100',
+        iconColor: 'text-gray-600',
+        description: 'Afficher toutes les annonces'
+      },
+      { 
+        value: '1', 
+        label: 'Min 1 m³', 
         icon: Smartphone,
         bgColor: 'bg-purple-100',
-        iconColor: 'text-purple-600'
+        iconColor: 'text-purple-600',
+        description: 'Au moins 1m³ disponible'
       },
       { 
-        value: '1-3', 
-        label: '1-3 m³', 
+        value: '3', 
+        label: 'Min 3 m³', 
         icon: Archive,
         bgColor: 'bg-orange-100',
-        iconColor: 'text-orange-600'
+        iconColor: 'text-orange-600',
+        description: 'Au moins 3m³ disponible'
       },
       { 
-        value: '3-5', 
-        label: '3-5 m³', 
+        value: '5', 
+        label: 'Min 5 m³', 
         icon: BookOpen,
         bgColor: 'bg-emerald-100',
-        iconColor: 'text-emerald-600'
+        iconColor: 'text-emerald-600',
+        description: 'Au moins 5m³ disponible'
       },
       { 
-        value: '5-10', 
-        label: '5-10 m³', 
-        icon: Armchair,
-        bgColor: 'bg-amber-100',
-        iconColor: 'text-amber-600'
-      },
-      { 
-        value: '10+', 
-        label: '10+ m³', 
+        value: '10', 
+        label: 'Min 10 m³', 
         icon: Truck,
         bgColor: 'bg-red-100',
-        iconColor: 'text-red-600'
+        iconColor: 'text-red-600',
+        description: 'Au moins 10m³ disponible'
       }
     ]
   };
@@ -99,21 +104,19 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
   const handleVolumeChange = (value: string) => {
     const newFilters = {
       ...filters,
-      volumes: filters.volumes.includes(value) 
-        ? filters.volumes.filter(v => v !== value)
-        : [...filters.volumes, value]
+      minVolume: value
     };
     setFilters(newFilters);
     onFiltersChange?.(newFilters);
   };
 
   const clearAllFilters = () => {
-    const newFilters = { type: 'offer', volumes: [] };
+    const newFilters = { type: 'offer', minVolume: 'all' };
     setFilters(newFilters);
     onFiltersChange?.(newFilters);
   };
 
-  const activeFilterCount = filters.volumes.length + (filters.type !== 'offer' ? 1 : 0);
+  const activeFilterCount = (filters.minVolume !== 'all' ? 1 : 0) + (filters.type !== 'offer' ? 1 : 0);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
@@ -199,15 +202,15 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
           </div>
         </div>
 
-        {/* Volume - Checkboxes */}
+        {/* Volume minimum - Radio buttons */}
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-[#F47D6C] rounded-full"></span>
-            Volume <span className="text-xs font-normal text-gray-400">(sélection multiple)</span>
+            Volume minimum disponible
           </h4>
           <div className="space-y-2">
-            {filterOptions.volume.map((option) => {
-              const isSelected = filters.volumes.includes(option.value);
+            {filterOptions.minVolume.map((option) => {
+              const isSelected = filters.minVolume === option.value;
               const IconComponent = option.icon;
               return (
                 <label
@@ -222,23 +225,22 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                 >
                   <div className="flex items-center">
                     <input
-                      type="checkbox"
+                      type="radio"
+                      name="minVolume"
                       value={option.value}
                       checked={isSelected}
                       onChange={(e) => handleVolumeChange(e.target.value)}
                       className="sr-only"
                     />
                     <div className={`
-                      w-4 h-4 rounded border transition-all duration-200 flex items-center justify-center
+                      w-4 h-4 rounded-full border transition-all duration-200 flex items-center justify-center
                       ${isSelected 
                         ? 'border-[#F47D6C] bg-[#F47D6C]' 
                         : 'border-gray-300 bg-white group-hover:border-gray-400'
                       }
                     `}>
                       {isSelected && (
-                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                       )}
                     </div>
                   </div>
@@ -247,6 +249,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 text-sm">{option.label}</div>
+                    <div className="text-xs text-gray-500">{option.description}</div>
                   </div>
                 </label>
               );

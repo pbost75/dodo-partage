@@ -59,6 +59,27 @@ export function useAnnouncements(initialFilters: AnnouncementFilters = {}) {
   const [stats, setStats] = useState<ApiResponse['stats']>();
   const [filters, setFilters] = useState<AnnouncementFilters>(initialFilters);
 
+  // Fonction pour normaliser les noms de lieux (correspondant à la page d'accueil)
+  const normalizeLocation = (location: string): string => {
+    const locationMap: Record<string, string[]> = {
+      'france': ['france métropolitaine', 'métropole', 'hexagone'],
+      'reunion': ['réunion', 'la réunion'],
+      'martinique': ['martinique'],
+      'guadeloupe': ['guadeloupe'],
+      'guyane': ['guyane', 'guyane française'],
+      'mayotte': ['mayotte'],
+      'nouvelle-caledonie': ['nouvelle-calédonie', 'nouvelle caledonie', 'nouméa']
+    };
+
+    const normalizedInput = location.toLowerCase();
+    for (const [key, variations] of Object.entries(locationMap)) {
+      if (variations.some(variation => normalizedInput.includes(variation))) {
+        return key;
+      }
+    }
+    return normalizedInput;
+  };
+
   // Fonction pour récupérer les annonces
   const fetchAnnouncements = useCallback(async (searchFilters: AnnouncementFilters = {}) => {
     try {
@@ -67,17 +88,21 @@ export function useAnnouncements(initialFilters: AnnouncementFilters = {}) {
 
       console.log('🔍 Récupération des annonces avec filtres:', searchFilters);
 
-      // Construction des paramètres de requête
+      // Construction des paramètres de requête avec normalisation
       const queryParams = new URLSearchParams();
       
       if (searchFilters.type && searchFilters.type !== 'all') {
         queryParams.append('type', searchFilters.type);
       }
       if (searchFilters.departure) {
-        queryParams.append('departure', searchFilters.departure);
+        const normalizedDeparture = normalizeLocation(searchFilters.departure);
+        queryParams.append('departure', normalizedDeparture);
+        console.log('🔄 Départ normalisé:', searchFilters.departure, '→', normalizedDeparture);
       }
       if (searchFilters.arrival) {
-        queryParams.append('arrival', searchFilters.arrival);
+        const normalizedArrival = normalizeLocation(searchFilters.arrival);
+        queryParams.append('arrival', normalizedArrival);
+        console.log('🔄 Arrivée normalisée:', searchFilters.arrival, '→', normalizedArrival);
       }
       if (searchFilters.volumeMin) {
         queryParams.append('volumeMin', searchFilters.volumeMin);

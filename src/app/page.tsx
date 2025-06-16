@@ -17,7 +17,7 @@ import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncem
 
 interface FilterState {
   type: string;
-  volumes: string[];
+  minVolume: string;
 }
 
 export default function HomePage() {
@@ -26,7 +26,7 @@ export default function HomePage() {
   const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     type: 'offer',
-    volumes: []
+    minVolume: 'all'
   });
   const [displayedCount, setDisplayedCount] = useState(4); // Afficher 4 annonces par défaut
 
@@ -99,26 +99,63 @@ export default function HomePage() {
         return false;
       }
 
-      // Filtre par volumes sélectionnés
-      if (filters.volumes.length > 0) {
-        const matchesVolume = filters.volumes.includes(announcement.volumeCategory);
-        if (!matchesVolume) return false;
+      // Filtre par volume minimum
+      // Logique : filtrer par volume minimum disponible
+      if (filters.minVolume !== 'all') {
+        const volumeNum = parseFloat(announcement.volume.replace(' m³', ''));
+        const minVolumeRequired = parseFloat(filters.minVolume);
+        
+        if (volumeNum < minVolumeRequired) {
+          return false;
+        }
       }
 
-      // Filtre par départ appliqué
+      // Filtre par départ appliqué (avec normalisation)
       if (appliedDeparture) {
+        const normalizedAnnouncementDeparture = normalizeLocation(announcement.departure);
+        const normalizedAnnouncementDepartureCity = normalizeLocation(announcement.departureCity);
         const departureMatch = 
-          announcement.departure.toLowerCase().includes(appliedDeparture.toLowerCase()) ||
-          announcement.departureCity.toLowerCase().includes(appliedDeparture.toLowerCase());
+          normalizedAnnouncementDeparture.includes(appliedDeparture) ||
+          normalizedAnnouncementDepartureCity.includes(appliedDeparture);
         if (!departureMatch) return false;
       }
 
-      // Filtre par destination appliquée
+      // Filtre par destination appliquée (avec normalisation)
       if (appliedDestination) {
+        const normalizedAnnouncementArrival = normalizeLocation(announcement.arrival);
+        const normalizedAnnouncementArrivalCity = normalizeLocation(announcement.arrivalCity);
         const destinationMatch = 
-          announcement.arrival.toLowerCase().includes(appliedDestination.toLowerCase()) ||
-          announcement.arrivalCity.toLowerCase().includes(appliedDestination.toLowerCase());
+          normalizedAnnouncementArrival.includes(appliedDestination) ||
+          normalizedAnnouncementArrivalCity.includes(appliedDestination);
         if (!destinationMatch) return false;
+      }
+
+      // Filtre par dates appliquées (période sélectionnée)
+      if (appliedDates.length > 0) {
+        // L'annonce a une date de shipping au format "2025-12-18"
+        const announcementDate = announcement.date; // Format frontend: "18 décembre 2025"
+        
+        // Parser le format date du frontend pour extraire mois/année
+        const dateMatch = announcementDate.match(/(\d{1,2})\s+([a-zA-Zàâäéèêëïîôöùûüÿç]+)\s+(\d{4})/);
+        if (dateMatch) {
+          const [, day, monthName, year] = dateMatch;
+          
+          // Mapping des noms de mois français
+          const monthsMap: Record<string, string> = {
+            'janvier': 'Janvier', 'février': 'Février', 'mars': 'Mars', 'avril': 'Avril',
+            'mai': 'Mai', 'juin': 'Juin', 'juillet': 'Juillet', 'août': 'Août',
+            'septembre': 'Septembre', 'octobre': 'Octobre', 'novembre': 'Novembre', 'décembre': 'Décembre'
+          };
+          
+          const normalizedMonth = monthsMap[monthName.toLowerCase()];
+          if (normalizedMonth) {
+            const announcementMonthYear = `${normalizedMonth} ${year}`;
+            
+            // Vérifier si ce mois/année est dans la période sélectionnée
+            const dateMatches = appliedDates.includes(announcementMonthYear);
+            if (!dateMatches) return false;
+          }
+        }
       }
 
     return true;
@@ -144,9 +181,25 @@ export default function HomePage() {
       destination: searchDestination 
     });
     
-    // Appliquer les filtres de recherche
-    setAppliedDeparture(searchDeparture);
-    setAppliedDestination(searchDestination);
+    // Normaliser les termes de recherche avant application
+    const normalizedDeparture = searchDeparture ? normalizeLocation(searchDeparture) : '';
+    const normalizedDestination = searchDestination ? normalizeLocation(searchDestination) : '';
+    
+    console.log('🔄 Recherche normalisée:', { 
+      departure: `${searchDeparture} → ${normalizedDeparture}`, 
+      destination: `${searchDestination} → ${normalizedDestination}` 
+    });
+    
+    // Appliquer les filtres via le hook (qui fera l'appel API)
+    applyFilters({
+      departure: normalizedDeparture,
+      arrival: normalizedDestination,
+      status: 'published'
+    });
+    
+    // Aussi appliquer les filtres localement pour l'affichage immédiat
+    setAppliedDeparture(normalizedDeparture);
+    setAppliedDestination(normalizedDestination);
     setAppliedDates(searchDates);
     
     // Réinitialiser le nombre d'annonces affichées
@@ -226,7 +279,7 @@ export default function HomePage() {
         Aucune annonce trouvée
       </h3>
       <p className="text-gray-600 mb-4">
-        {appliedDeparture || appliedDestination || filters.volumes.length > 0
+        {appliedDeparture || appliedDestination || appliedDates.length > 0 || filters.minVolume !== 'all'
           ? 'Aucune annonce ne correspond à vos critères de recherche.'
           : 'Il n\'y a pas encore d\'annonces publiées.'}
       </p>
@@ -238,15 +291,17 @@ export default function HomePage() {
         >
           Déposer une annonce
         </Button>
-        {(appliedDeparture || appliedDestination || filters.volumes.length > 0) && (
+        {(appliedDeparture || appliedDestination || appliedDates.length > 0 || filters.minVolume !== 'all') && (
           <Button
             variant="ghost"
             onClick={() => {
               setAppliedDeparture('');
               setAppliedDestination('');
+              setAppliedDates([]);
               setSearchDeparture('');
               setSearchDestination('');
-              setFilters({ type: 'offer', volumes: [] });
+              setSearchDates([]);
+              setFilters({ type: 'offer', minVolume: 'all' });
               setDisplayedCount(4);
             }}
             className="text-gray-600"
@@ -260,13 +315,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Barre de recherche principale style BlaBlaCar */}
-      <div className="bg-gradient-to-br from-[#243163] to-[#1e2951] shadow-sm">
+      {/* Header bleu simplifié */}
+      <div className="bg-gradient-to-br from-[#243163] to-[#1e2951] relative">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {/* Header avec logo/navigation */}
-          <div className="flex items-center justify-between py-4 sm:py-4">
+          <div className="flex items-center justify-between py-6 sm:py-8">
             <div className="flex items-center gap-8">
-              <div className="text-lg sm:text-2xl font-bold text-white font-inter">
+              <div className="text-xl sm:text-3xl font-bold text-white font-inter">
                 DodoPartage
               </div>
             </div>
@@ -274,67 +329,79 @@ export default function HomePage() {
               <Button variant="outline" size="sm" className="hidden sm:inline-flex text-xs sm:text-sm px-2 sm:px-4 border-white/20 text-white hover:bg-white/10 hover:border-white/40">
                 ➕ Publier un trajet
               </Button>
-              <div className="w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-[#F47D6C] flex items-center justify-center text-white text-sm font-semibold">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#F47D6C] flex items-center justify-center text-white text-sm font-semibold">
                 👤
               </div>
             </div>
           </div>
 
-          {/* Barre de recherche */}
-          <div className="pb-5 sm:pb-6">
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
-              <div className="flex flex-col gap-4 sm:gap-4 lg:flex-row lg:gap-0">
-                {/* Départ */}
-                <div className="flex-1 lg:pr-3">
-                  <CountrySelect
-                    label="Départ"
-                    value={searchDeparture}
-                    onChange={setSearchDeparture}
-                    options={countryOptions}
-                    placeholder="Sélectionnez un départ"
-                    className="relative"
-                  />
-                </div>
+          {/* Titre principal */}
+          <div className="text-center pb-20 sm:pb-24">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 font-roboto-slab">
+              Partagez vos conteneurs de déménagement
+            </h1>
+            <p className="text-lg sm:text-xl text-white/90 font-light max-w-3xl mx-auto">
+              Trouvez facilement de l'espace dans un conteneur ou proposez le vôtre entre la métropole et les DOM-TOM
+            </p>
+          </div>
+        </div>
+      </div>
 
-                {/* Flèche de direction */}
-                <div className="flex lg:px-2 items-center justify-center py-1 sm:py-2 lg:py-2">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  </div>
-                </div>
+      {/* Barre de recherche flottante à cheval */}
+      <div className="relative -mt-12 sm:-mt-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+            <div className="flex flex-col gap-4 sm:gap-4 lg:flex-row lg:gap-0">
+              {/* Départ */}
+              <div className="flex-1 lg:pr-3">
+                <CountrySelect
+                  label="Départ"
+                  value={searchDeparture}
+                  onChange={setSearchDeparture}
+                  options={countryOptions}
+                  placeholder="Sélectionnez un départ"
+                  className="relative"
+                />
+              </div>
 
-                {/* Destination */}
-                <div className="flex-1 lg:pl-3 lg:border-r border-gray-200 lg:pr-6">
-                  <CountrySelect
-                    label="Destination"
-                    value={searchDestination}
-                    onChange={setSearchDestination}
-                    options={countryOptions}
-                    placeholder="Sélectionnez une destination"
-                    className="relative"
-                  />
+              {/* Flèche de direction */}
+              <div className="flex lg:px-2 items-center justify-center py-1 sm:py-2 lg:py-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 </div>
+              </div>
 
-                {/* Date */}
-                <div className="flex-1 lg:px-4 lg:pr-6">
-                  <MonthPicker
-                    selectedMonths={searchDates}
-                    onMonthsChange={setSearchDates}
-                    placeholder="Peu importe"
-                  />
-                </div>
+              {/* Destination */}
+              <div className="flex-1 lg:pl-3 lg:border-r border-gray-200 lg:pr-6">
+                <CountrySelect
+                  label="Destination"
+                  value={searchDestination}
+                  onChange={setSearchDestination}
+                  options={countryOptions}
+                  placeholder="Sélectionnez une destination"
+                  className="relative"
+                />
+              </div>
 
-                {/* Bouton rechercher */}
-                <div className="flex items-end lg:items-center pt-3 sm:pt-2 lg:pt-0">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="w-full lg:w-auto bg-[#F47D6C] hover:bg-[#e66b5a] border-0 px-6 sm:px-8 text-sm sm:text-base h-12 sm:h-auto"
-                    onClick={handleSearch}
-                  >
-                    Rechercher
-                  </Button>
-                </div>
+              {/* Date */}
+              <div className="flex-1 lg:px-4 lg:pr-6">
+                <MonthPicker
+                  selectedMonths={searchDates}
+                  onMonthsChange={setSearchDates}
+                  placeholder="Peu importe"
+                />
+              </div>
+
+              {/* Bouton rechercher */}
+              <div className="flex items-end lg:items-center pt-3 sm:pt-2 lg:pt-0">
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="w-full lg:w-auto bg-[#F47D6C] hover:bg-[#e66b5a] border-0 px-6 sm:px-8 text-sm sm:text-base h-12 sm:h-auto shadow-lg"
+                  onClick={handleSearch}
+                >
+                  Rechercher
+                </Button>
               </div>
             </div>
           </div>
@@ -342,7 +409,7 @@ export default function HomePage() {
       </div>
 
       {/* Layout principal avec sidebar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-4 sm:pb-8">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           {/* Bouton pour ouvrir les filtres sur mobile */}
           <div className="lg:hidden mb-2">

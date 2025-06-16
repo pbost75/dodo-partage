@@ -65,11 +65,13 @@ const CountrySelect: React.FC<CountrySelectProps> = ({
       }
     };
     
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
   
   // Mettre à jour la position du dropdown quand il s'ouvre
   useEffect(() => {
@@ -114,17 +116,15 @@ const CountrySelect: React.FC<CountrySelectProps> = ({
     <div className={`relative ${className}`} ref={selectRef}>
       {/* Structure EXACTEMENT identique à MonthPicker */}
       <div
-        onClick={toggleMenu}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleMenu();
+        }}
         className="flex items-center gap-3 cursor-pointer"
         role="combobox"
         aria-expanded={isOpen}
         tabIndex={0}
-        onFocus={() => setIsOpen(true)}
-        onBlur={(e) => {
-          if (!isOpen && !selectRef.current?.contains(e.relatedTarget as Node)) {
-            setIsOpen(false);
-          }
-        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -185,7 +185,11 @@ const CountrySelect: React.FC<CountrySelectProps> = ({
                 className={`px-4 py-3.5 hover:bg-blue-50 cursor-pointer transition-colors flex items-center gap-3
                   ${option.value === value ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'}
                   ${index < options.length - 1 ? 'border-b border-gray-100' : ''}`}
-                onClick={() => handleOptionSelect(option.value)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleOptionSelect(option.value);
+                }}
                 role="option"
                 aria-selected={option.value === value}
               >
