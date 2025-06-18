@@ -159,7 +159,7 @@ function ValidationErrorContent() {
             <div className="text-left space-y-2">
               <p className="text-yellow-800">• Vérifiez votre dossier spam/courrier indésirable</p>
               <p className="text-yellow-800">• L'email peut prendre quelques minutes à arriver</p>
-              <p className="text-yellow-800">• L'expéditeur est DodoPartage &lt;pierre.bost.pro@resend.dev&gt;</p>
+                              <p className="text-yellow-800">• L'expéditeur est DodoPartage &lt;noreply@dodomove.fr&gt;</p>
             </div>
           </div>
         </motion.div>
