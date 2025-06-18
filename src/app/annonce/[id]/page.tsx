@@ -30,6 +30,7 @@ interface AnnouncementDetail {
   volume: string;
   volumeCategory: string;
   date: string;
+  year: string;
   price?: string;
   items: string[];
   author: string;
@@ -275,7 +276,7 @@ export default function AnnouncementDetailPage() {
                         ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                         : 'bg-green-50 text-green-700 border border-green-200'
                     }`}>
-                      {announcement.price ? '💰 Participation aux frais' : '🎁 Gratuit'}
+                      {announcement.price ? 'Participation aux frais' : 'Gratuit'}
                     </span>
                   </div>
                 </div>
@@ -330,7 +331,7 @@ export default function AnnouncementDetailPage() {
               <div className="mt-4 flex items-center gap-2 text-gray-600">
                 <Calendar className="w-4 h-4" />
                 <span className="font-medium">Date prévue:</span>
-                <span>{announcement.date}</span>
+                <span>{announcement.date} {announcement.year}</span>
               </div>
             </div>
 
@@ -466,7 +467,7 @@ export default function AnnouncementDetailPage() {
                       ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                       : 'bg-green-50 text-green-700 border border-green-200'
                   }`}>
-                    {announcement.price ? '💰 Participation aux frais' : '🎁 Gratuit'}
+                    {announcement.price ? 'Participation aux frais' : 'Gratuit'}
                   </span>
                 </div>
               </div>
@@ -478,7 +479,7 @@ export default function AnnouncementDetailPage() {
                   <span className="font-semibold text-gray-900">Date prévue</span>
                 </div>
                 <p className="text-lg font-medium text-gray-700">
-                  {announcement.date}
+                  {announcement.date} {announcement.year}
                 </p>
               </div>
 

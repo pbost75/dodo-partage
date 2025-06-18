@@ -38,6 +38,7 @@ interface AnnouncementFormatted {
   volume: string;
   volumeCategory: string;
   date: string;
+  year: string;
   price?: string;
   items: string[];
   author: string;
@@ -193,16 +194,36 @@ function formatShippingDate(dateString: string): string {
   
   try {
     const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    };
     
-    return date.toLocaleDateString('fr-FR', options);
+    // Mapping des mois en abréviations françaises
+    const monthsAbbr = [
+      'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui',
+      'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'
+    ];
+    
+    const day = date.getDate();
+    const month = monthsAbbr[date.getMonth()];
+    const year = date.getFullYear();
+    
+    // Format : "18 Déc" (jour + mois abrégé)
+    // L'année sera affichée séparément dans le composant
+    return `${day} ${month}`;
   } catch (error) {
     console.warn('Erreur lors du formatage de la date:', dateString, error);
     return dateString; // Retourner la date brute en cas d'erreur
+  }
+}
+
+// Fonction pour extraire l'année de la date de transport
+function formatShippingYear(dateString: string): string {
+  if (!dateString) return '';
+  
+  try {
+    const date = new Date(dateString);
+    return date.getFullYear().toString();
+  } catch (error) {
+    console.warn('Erreur lors du formatage de l\'année:', dateString, error);
+    return '';
   }
 }
 
@@ -305,6 +326,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         volume: `${announcement.container_available_volume} m³`,
         volumeCategory: getVolumeCategory(announcement.container_available_volume),
         date: formatShippingDate(announcement.shipping_date),
+        year: formatShippingYear(announcement.shipping_date),
         price: announcement.offer_type === 'paid' ? 'Prix à négocier' : undefined,
         items,
         author: announcement.contact_first_name,

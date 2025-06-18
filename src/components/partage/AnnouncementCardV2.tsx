@@ -13,6 +13,7 @@ interface AnnouncementProps {
   arrivalCity?: string;
   volume: string;
   date: string;
+  year: string;
   items: string[];
   author: string;
   publishedAt: string;
@@ -29,6 +30,7 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
   arrivalCity,
   volume,
   date,
+  year,
   items,
   author,
   publishedAt,
@@ -70,7 +72,12 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
             <div className="w-16 h-16 bg-[#F47D6C]/10 rounded-lg flex flex-col items-center justify-center border border-[#F47D6C]/20 flex-shrink-0">
               <Ship className="w-4 h-4 text-[#F47D6C] mb-1" />
               <div className="text-xs font-semibold text-[#F47D6C] text-center leading-tight px-1">
-                {date.includes('-') ? 'Période' : date.split(' ').slice(0, 2).join(' ')}
+                {date.includes('-') ? 'Période' : (
+                  <>
+                    <div>{date}</div>
+                    <div className="text-[10px] opacity-75">{year}</div>
+                  </>
+                )}
               </div>
             </div>
             
@@ -143,7 +150,12 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
           <div className="flex-shrink-0 w-20 h-20 bg-[#F47D6C]/10 rounded-xl flex flex-col items-center justify-center border border-[#F47D6C]/20 self-start">
             <Ship className="w-6 h-6 text-[#F47D6C] mb-1" />
             <div className="text-xs font-semibold text-[#F47D6C] text-center leading-tight px-1">
-              {date.includes('-') ? 'Période' : date.split(' ').slice(0, 2).join(' ')}
+              {date.includes('-') ? 'Période' : (
+                <>
+                  <div>{date}</div>
+                  <div className="text-[10px] opacity-75">{year}</div>
+                </>
+              )}
             </div>
           </div>
 
