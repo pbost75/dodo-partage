@@ -448,37 +448,49 @@ export default function HomePage() {
                 />
               )}
               
-              {/* Contenu des filtres avec animation améliorée */}
-              <motion.div 
-                initial={{ x: '100%' }}
-                animate={{ x: isMobileFiltersOpen ? 0 : '100%' }}
-                transition={{ 
-                  type: "spring", 
-                  damping: 25, 
-                  stiffness: 300,
-                  duration: 0.4
-                }}
-                className="fixed top-0 right-0 h-full w-96 max-w-[90vw] bg-white lg:relative lg:w-auto lg:h-auto lg:bg-transparent lg:transform-none overflow-y-auto shadow-2xl lg:shadow-none"
-              >
-                {/* Header mobile avec bouton fermer */}
-                <div className="lg:hidden flex items-center justify-between p-6 pb-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-                  <h3 className="text-xl font-semibold text-gray-900">Filtres</h3>
-                  <button
-                    onClick={() => setIsMobileFiltersOpen(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5 text-gray-500" />
-                  </button>
-                </div>
-                
-                <div className="p-6 lg:p-0">
-                  <FilterSection 
-                    isMobile={isMobileFiltersOpen} 
-                    onMobileClose={() => setIsMobileFiltersOpen(false)} 
-                    onFiltersChange={handleFiltersChange}
-                  />
-                </div>
-              </motion.div>
+              {/* Version DESKTOP - Layout normal sans animation */}
+              <div className="hidden lg:block">
+                <FilterSection 
+                  isMobile={false} 
+                  onMobileClose={() => {}} 
+                  onFiltersChange={handleFiltersChange}
+                />
+              </div>
+              
+              {/* Version MOBILE - Avec animation Framer Motion */}
+              {isMobileFiltersOpen && (
+                <motion.div 
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ 
+                    type: "spring", 
+                    damping: 25, 
+                    stiffness: 300,
+                    duration: 0.4
+                  }}
+                  className="lg:hidden fixed top-0 right-0 h-full w-96 max-w-[90vw] bg-white overflow-y-auto shadow-2xl"
+                >
+                  {/* Header mobile avec bouton fermer */}
+                  <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+                    <h3 className="text-xl font-semibold text-gray-900">Filtres</h3>
+                    <button
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+                  
+                  <div className="p-6">
+                    <FilterSection 
+                      isMobile={true} 
+                      onMobileClose={() => setIsMobileFiltersOpen(false)} 
+                      onFiltersChange={handleFiltersChange}
+                    />
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
 
