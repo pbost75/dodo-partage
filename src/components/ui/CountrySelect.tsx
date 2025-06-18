@@ -152,15 +152,15 @@ const CountrySelect: React.FC<CountrySelectProps> = ({
           <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
             {label}
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full">
             <span 
-              className="text-sm sm:text-lg font-medium text-gray-900 truncate font-inter"
+              className="text-sm sm:text-lg font-medium text-gray-900 truncate font-inter flex-1 min-w-0"
             >
               {selectedOption ? selectedOption.label : placeholder}
             </span>
-            <span className={`text-gray-400 transform transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            <span className={`text-gray-400 transform transition-transform duration-200 flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6"/>
               </svg>
             </span>
           </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, ChevronDown, X } from 'lucide-react';
+import { Calendar, ChevronDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface MonthPickerProps {
   selectedMonths: string[];
@@ -136,13 +136,13 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
           <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">
             Période
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full">
             <span 
-              className="text-sm sm:text-lg font-medium text-gray-900 truncate font-inter"
+              className="text-sm sm:text-lg font-medium text-gray-900 truncate font-inter flex-1 min-w-0"
             >
               {getDisplayText()}
             </span>
-            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
         </div>
       </div>
@@ -184,16 +184,16 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => setCurrentYear(currentYear - 1)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              ←
+              <ChevronLeft className="w-4 h-4 text-gray-600" />
             </button>
             <span className="font-semibold text-gray-900">{currentYear}</span>
             <button
               onClick={() => setCurrentYear(currentYear + 1)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              →
+              <ChevronRight className="w-4 h-4 text-gray-600" />
             </button>
           </div>
 

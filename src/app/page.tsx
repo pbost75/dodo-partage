@@ -350,46 +350,52 @@ export default function HomePage() {
       {/* Barre de recherche flottante à cheval */}
       <div className="relative -mt-12 sm:-mt-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 p-3 sm:p-4 lg:p-6">
             <div className="flex flex-col gap-4 sm:gap-4 lg:flex-row lg:gap-0">
-              {/* Départ */}
+              {/* Départ - Mobile: carte délimitée */}
               <div className="flex-1 lg:pr-3">
-                <CountrySelect
-                  label="Départ"
-                  value={searchDeparture}
-                  onChange={setSearchDeparture}
-                  options={countryOptions}
-                  placeholder="Sélectionnez un départ"
-                  className="relative"
-                />
+                <div className="lg:border-none border border-gray-200 rounded-lg p-3 lg:p-0">
+                  <CountrySelect
+                    label="Départ"
+                    value={searchDeparture}
+                    onChange={setSearchDeparture}
+                    options={countryOptions}
+                    placeholder="Sélectionnez un départ"
+                    className="relative"
+                  />
+                </div>
               </div>
 
-              {/* Flèche de direction */}
-              <div className="flex lg:px-2 items-center justify-center py-1 sm:py-2 lg:py-2">
+              {/* Flèche de direction - cachée sur mobile */}
+              <div className="hidden lg:flex lg:px-2 items-center justify-center py-1 sm:py-2 lg:py-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center justify-center">
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 </div>
               </div>
 
-              {/* Destination */}
+              {/* Destination - Mobile: carte délimitée */}
               <div className="flex-1 lg:pl-3 lg:border-r border-gray-200 lg:pr-6">
-                <CountrySelect
-                  label="Destination"
-                  value={searchDestination}
-                  onChange={setSearchDestination}
-                  options={countryOptions}
-                  placeholder="Sélectionnez une destination"
-                  className="relative"
-                />
+                <div className="lg:border-none border border-gray-200 rounded-lg p-3 lg:p-0">
+                  <CountrySelect
+                    label="Destination"
+                    value={searchDestination}
+                    onChange={setSearchDestination}
+                    options={countryOptions}
+                    placeholder="Sélectionnez une destination"
+                    className="relative"
+                  />
+                </div>
               </div>
 
-              {/* Date */}
+              {/* Date - Mobile: carte délimitée */}
               <div className="flex-1 lg:px-4 lg:pr-6">
-                <MonthPicker
-                  selectedMonths={searchDates}
-                  onMonthsChange={setSearchDates}
-                  placeholder="Peu importe"
-                />
+                <div className="lg:border-none border border-gray-200 rounded-lg p-3 lg:p-0">
+                  <MonthPicker
+                    selectedMonths={searchDates}
+                    onMonthsChange={setSearchDates}
+                    placeholder="Peu importe"
+                  />
+                </div>
               </div>
 
               {/* Bouton rechercher */}
