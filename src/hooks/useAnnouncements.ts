@@ -13,6 +13,7 @@ export interface Announcement {
   volume: string;
   volumeCategory: string;
   date: string;
+  year: string;
   price?: string;
   items: string[];
   author: string;
