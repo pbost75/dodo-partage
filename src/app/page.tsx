@@ -12,11 +12,12 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
+import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import { useRouter } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
 
 interface FilterState {
-  type: string;
+  priceType: string; // Gratuit, payant ou tous
   minVolume: string;
 }
 
@@ -25,9 +26,12 @@ export default function HomePage() {
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
-    type: 'offer',
+    priceType: 'all',
     minVolume: 'all'
   });
+  
+  // État pour le toggle "Propose" vs "Cherche"
+  const [announcementType, setAnnouncementType] = useState<'offer' | 'request'>('offer');
   const [displayedCount, setDisplayedCount] = useState(4); // Afficher 4 annonces par défaut
 
   // États pour la barre de recherche
@@ -94,9 +98,20 @@ export default function HomePage() {
     if (!announcements || announcements.length === 0) return [];
 
     return announcements.filter(announcement => {
-      // Filtre par type d'annonce
-      if (filters.type !== 'all' && announcement.type !== filters.type) {
+      // Filtre par type d'annonce (maintenant géré par le toggle)
+      if (announcement.type !== announcementType) {
         return false;
+      }
+      
+      // Filtre par type de prix
+      if (filters.priceType !== 'all') {
+        const isAnnouncementFree = !announcement.price || announcement.price === 'Gratuit';
+        if (filters.priceType === 'free' && !isAnnouncementFree) {
+          return false;
+        }
+        if (filters.priceType === 'paid' && isAnnouncementFree) {
+          return false;
+        }
       }
 
       // Filtre par volume minimum
@@ -301,7 +316,8 @@ export default function HomePage() {
               setSearchDeparture('');
               setSearchDestination('');
               setSearchDates([]);
-              setFilters({ type: 'offer', minVolume: 'all' });
+              setFilters({ priceType: 'all', minVolume: 'all' });
+              setAnnouncementType('offer');
               setDisplayedCount(4);
             }}
             className="text-gray-600"
@@ -417,35 +433,33 @@ export default function HomePage() {
       {/* Layout principal avec sidebar */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-4 sm:pb-8">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
-          {/* Bouton pour ouvrir les filtres sur mobile */}
-          <div className="lg:hidden mb-2">
-            <button
-              onClick={() => setIsMobileFiltersOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
-            >
-              <Filter className="w-4 h-4" />
-              <span>Filtres</span>
-            </button>
-          </div>
-
           {/* Sidebar filtres - gauche */}
           <div className={`lg:w-80 flex-shrink-0 ${isMobileFiltersOpen ? 'fixed inset-0 z-50 lg:relative lg:inset-auto' : 'hidden lg:block'}`}>
             <div className="lg:sticky lg:top-6">
-              {/* Overlay mobile */}
+              {/* Overlay mobile avec animation */}
               {isMobileFiltersOpen && (
-                <div 
-                  className="fixed inset-0 bg-black bg-opacity-50 lg:hidden transition-opacity duration-300" 
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="fixed inset-0 bg-black bg-opacity-50 lg:hidden" 
                   onClick={() => setIsMobileFiltersOpen(false)} 
                 />
               )}
               
-              {/* Contenu des filtres */}
-              <div className={`
-                fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white lg:relative lg:w-auto lg:h-auto lg:bg-transparent 
-                transform transition-transform duration-300 ease-out lg:transform-none
-                ${isMobileFiltersOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
-                overflow-y-auto shadow-xl lg:shadow-none
-              `}>
+              {/* Contenu des filtres avec animation améliorée */}
+              <motion.div 
+                initial={{ x: '100%' }}
+                animate={{ x: isMobileFiltersOpen ? 0 : '100%' }}
+                transition={{ 
+                  type: "spring", 
+                  damping: 25, 
+                  stiffness: 300,
+                  duration: 0.4
+                }}
+                className="fixed top-0 right-0 h-full w-96 max-w-[90vw] bg-white lg:relative lg:w-auto lg:h-auto lg:bg-transparent lg:transform-none overflow-y-auto shadow-2xl lg:shadow-none"
+              >
                 {/* Header mobile avec bouton fermer */}
                 <div className="lg:hidden flex items-center justify-between p-6 pb-4 border-b border-gray-200 bg-white sticky top-0 z-10">
                   <h3 className="text-xl font-semibold text-gray-900">Filtres</h3>
@@ -464,7 +478,7 @@ export default function HomePage() {
                     onFiltersChange={handleFiltersChange}
                   />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
 
@@ -517,6 +531,25 @@ export default function HomePage() {
                     ➕ Déposer une annonce
                   </Button>
                 </motion.div>
+              </div>
+              
+              {/* Toggle Switch et bouton Filtres sur la même ligne (mobile) */}
+              <div className="mt-6 flex items-center justify-between sm:justify-start gap-4">
+                <ToggleSwitch
+                  value={announcementType}
+                  onChange={setAnnouncementType}
+                  className="shadow-sm"
+                />
+                
+                {/* Bouton filtres visible uniquement sur mobile */}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-[#F47D6C]/30 hover:text-[#F47D6C] transition-all duration-200 shadow-sm"
+                >
+                  <Filter className="w-4 h-4" />
+                  <span>Filtres</span>
+                </motion.button>
               </div>
             </div>
 
@@ -571,7 +604,7 @@ export default function HomePage() {
         initialFilters={{
           departure: appliedDeparture,
           destination: appliedDestination,
-          type: filters.type === 'offer' ? 'offer' : filters.type === 'request' ? 'request' : 'all'
+          type: announcementType
         }}
       />
 

@@ -124,13 +124,9 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
 
           {/* Footer compact avec badge et auteur sur la même ligne */}
           <div className="flex items-center justify-between">
-            {/* Étiquette type d'offre */}
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              price 
-                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                : 'bg-green-50 text-green-700 border border-green-200'
-            }`}>
-              {price ? '💰 Participation aux frais' : '🎁 Gratuit'}
+            {/* Étiquette type d'offre discrète */}
+            <span className="inline-flex items-center px-2 py-1 rounded text-xs text-gray-500 bg-gray-50">
+              {price ? 'Participation aux frais' : 'Gratuit'}
             </span>
 
             {/* Auteur */}
@@ -204,14 +200,10 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
 
             {/* Footer */}
             <div className="flex items-center justify-between">
-              {/* Étiquette type d'offre */}
+              {/* Étiquette type d'offre discrète */}
               <div className="flex items-center">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                  price 
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                    : 'bg-green-50 text-green-700 border border-green-200'
-                }`}>
-                  {price ? '💰 Participation aux frais' : '🎁 Gratuit'}
+                <span className="inline-flex items-center px-2.5 py-1 rounded text-xs text-gray-500 bg-gray-50">
+                  {price ? 'Participation aux frais' : 'Gratuit'}
                 </span>
               </div>
 

@@ -9,12 +9,14 @@ import {
   Archive, 
   BookOpen, 
   Armchair, 
-  Truck 
+  Truck,
+  Euro,
+  Gift
 } from 'lucide-react';
 
 interface FilterState {
-  type: string;
-  minVolume: string; // Changé de volumes[] à minVolume string
+  priceType: string; // Gratuit, payant ou tous
+  minVolume: string; // Volume minimum
 }
 
 interface FilterSectionProps {
@@ -25,27 +27,35 @@ interface FilterSectionProps {
 
 const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobileClose, onFiltersChange }) => {
   const [filters, setFilters] = useState<FilterState>({
-    type: 'offer', // "Propose" sélectionné par défaut
+    priceType: 'all', // Tous les types de prix par défaut
     minVolume: 'all' // Tous volumes par défaut
   });
 
   const filterOptions = {
-    type: [
+    priceType: [
       { 
-        value: 'offer', 
-        label: 'Propose', 
+        value: 'all', 
+        label: 'Tous types', 
         icon: Package, 
-        description: 'J\'offre de la place',
-        bgColor: 'bg-blue-100',
-        iconColor: 'text-blue-600'
+        description: 'Gratuit et payant',
+        bgColor: 'bg-gray-100',
+        iconColor: 'text-gray-600'
       },
       { 
-        value: 'request', 
-        label: 'Cherche', 
-        icon: Search, 
-        description: 'Je recherche de la place',
+        value: 'free', 
+        label: 'Gratuit', 
+        icon: Gift, 
+        description: 'Sans contrepartie financière',
         bgColor: 'bg-green-100',
         iconColor: 'text-green-600'
+      },
+      { 
+        value: 'paid', 
+        label: 'Payant', 
+        icon: Euro, 
+        description: 'Participation aux frais',
+        bgColor: 'bg-blue-100',
+        iconColor: 'text-blue-600'
       }
     ],
     minVolume: [
@@ -92,10 +102,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
     ]
   };
 
-  const handleTypeChange = (value: string) => {
+  const handlePriceTypeChange = (value: string) => {
     const newFilters = {
       ...filters,
-      type: value
+      priceType: value
     };
     setFilters(newFilters);
     onFiltersChange?.(newFilters);
@@ -111,12 +121,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
   };
 
   const clearAllFilters = () => {
-    const newFilters = { type: 'offer', minVolume: 'all' };
+    const newFilters = { priceType: 'all', minVolume: 'all' };
     setFilters(newFilters);
     onFiltersChange?.(newFilters);
   };
 
-  const activeFilterCount = (filters.minVolume !== 'all' ? 1 : 0) + (filters.type !== 'offer' ? 1 : 0);
+  const activeFilterCount = (filters.minVolume !== 'all' ? 1 : 0) + (filters.priceType !== 'all' ? 1 : 0);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
@@ -148,21 +158,21 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
       )}
 
       <div className="space-y-8">
-        {/* Type d'annonce - Radio buttons */}
+        {/* Type de prix - Radio buttons */}
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
-            Type d'annonce
+            Type de prix
           </h4>
           <div className="space-y-2">
-            {filterOptions.type.map((option) => {
+            {filterOptions.priceType.map((option) => {
               const IconComponent = option.icon;
               return (
                 <label
                   key={option.value}
                   className={`
                     flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer group
-                    ${filters.type === option.value 
+                    ${filters.priceType === option.value 
                       ? 'border-[#F47D6C]/30 bg-[#F47D6C]/5' 
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }
@@ -171,27 +181,29 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                   <div className="flex items-center">
                     <input
                       type="radio"
-                      name="announcementType"
+                      name="priceType"
                       value={option.value}
-                      checked={filters.type === option.value}
-                      onChange={(e) => handleTypeChange(e.target.value)}
+                      checked={filters.priceType === option.value}
+                      onChange={(e) => handlePriceTypeChange(e.target.value)}
                       className="sr-only"
                     />
                     <div className={`
                       w-4 h-4 rounded-full border transition-all duration-200 flex items-center justify-center
-                      ${filters.type === option.value 
+                      ${filters.priceType === option.value 
                         ? 'border-[#F47D6C] bg-[#F47D6C]' 
                         : 'border-gray-300 bg-white group-hover:border-gray-400'
                       }
                     `}>
-                      {filters.type === option.value && (
+                      {filters.priceType === option.value && (
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                       )}
                     </div>
                   </div>
-                  <div className={`w-8 h-8 rounded-full ${option.bgColor} flex items-center justify-center flex-shrink-0`}>
+                  
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${option.bgColor}`}>
                     <IconComponent className={`w-4 h-4 ${option.iconColor}`} />
                   </div>
+                  
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 text-sm">{option.label}</div>
                     <div className="text-xs text-gray-500">{option.description}</div>
@@ -205,19 +217,18 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
         {/* Volume minimum - Radio buttons */}
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[#F47D6C] rounded-full"></span>
+            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>
             Volume minimum disponible
           </h4>
           <div className="space-y-2">
             {filterOptions.minVolume.map((option) => {
-              const isSelected = filters.minVolume === option.value;
               const IconComponent = option.icon;
               return (
                 <label
                   key={option.value}
                   className={`
                     flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer group
-                    ${isSelected 
+                    ${filters.minVolume === option.value 
                       ? 'border-[#F47D6C]/30 bg-[#F47D6C]/5' 
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }
@@ -228,25 +239,27 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                       type="radio"
                       name="minVolume"
                       value={option.value}
-                      checked={isSelected}
+                      checked={filters.minVolume === option.value}
                       onChange={(e) => handleVolumeChange(e.target.value)}
                       className="sr-only"
                     />
                     <div className={`
                       w-4 h-4 rounded-full border transition-all duration-200 flex items-center justify-center
-                      ${isSelected 
+                      ${filters.minVolume === option.value 
                         ? 'border-[#F47D6C] bg-[#F47D6C]' 
                         : 'border-gray-300 bg-white group-hover:border-gray-400'
                       }
                     `}>
-                      {isSelected && (
+                      {filters.minVolume === option.value && (
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                       )}
                     </div>
                   </div>
-                  <div className={`w-8 h-8 rounded-full ${option.bgColor} flex items-center justify-center flex-shrink-0`}>
+                  
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${option.bgColor}`}>
                     <IconComponent className={`w-4 h-4 ${option.iconColor}`} />
                   </div>
+                  
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 text-sm">{option.label}</div>
                     <div className="text-xs text-gray-500">{option.description}</div>
