@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Fonction pour récupérer les données de l'annonce pour les métadonnées
