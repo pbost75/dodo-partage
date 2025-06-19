@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     });
 
     console.log('📥 Réponse backend:', response.status, response.statusText);
+    console.log('📥 Headers backend:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       // Essayer de parser la réponse JSON pour avoir plus de détails
@@ -63,10 +64,15 @@ export async function GET(request: NextRequest) {
     // Succès - parser la réponse
     let result;
     try {
-      result = await response.json();
+      const responseText = await response.text();
+      console.log('📄 Réponse backend brute:', responseText);
+      
+      result = JSON.parse(responseText);
       console.log('✅ Validation réussie:', result.data?.reference || 'Pas de référence');
+      console.log('🔍 Réponse complète parsée:', JSON.stringify(result, null, 2));
     } catch (parseError) {
       console.error('❌ Erreur parsing réponse succès:', parseError);
+      console.error('📄 Texte de réponse brut qui a causé l\'erreur:', await response.text());
       return NextResponse.redirect(`${baseUrl}/validation-error?reason=server-error`);
     }
 
