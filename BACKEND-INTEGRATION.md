@@ -131,11 +131,9 @@ PORT=8080
 | `departure_country` | Single line text | Pays de départ |
 | `departure_city` | Single line text | Ville de départ |
 | `departure_postal_code` | Single line text | Code postal de départ |
-| `departure_display_name` | Single line text | Nom complet du lieu de départ |
 | `arrival_country` | Single line text | Pays d'arrivée |
 | `arrival_city` | Single line text | Ville d'arrivée |
 | `arrival_postal_code` | Single line text | Code postal d'arrivée |
-| `arrival_display_name` | Single line text | Nom complet du lieu d'arrivée |
 | `shipping_date` | Date | Date prévue d'expédition |
 | `shipping_date_formatted` | Single line text | ⚠️ **OBSOLÈTE** - Formatage côté frontend |
 | `container_type` | Single line text | "20_feet" ou "40_feet" |
@@ -144,6 +142,9 @@ PORT=8080
 | `offer_type` | Single select | "free" ou "paid" |
 | `announcement_text` | Long text | Description détaillée de l'annonce |
 | `announcement_text_length` | Number | Longueur du texte d'annonce |
+
+**Note** : Les champs `departure_display_name` et `arrival_display_name` ont été supprimés car ils étaient vides. 
+La localisation complète est reconstruite côté backend à partir des champs `*_country`, `*_city` et `*_postal_code`.
 
 ## 🔍 Debugging et logs
 

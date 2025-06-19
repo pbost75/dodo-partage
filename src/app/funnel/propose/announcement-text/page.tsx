@@ -39,7 +39,7 @@ export default function AnnouncementTextStep() {
       free: [
         `🚢 Bonjour ! Transport ${departureStr} → ${arrivalStr} ${dateStr} en conteneur ${containerType} pieds.
 
-J'ai ${availableVolume} m³ de disponible et je propose un partage gratuit par solidarité. J'accepte : vos affaires personnelles.
+Il me reste ${availableVolume} m³. Je propose gratuitement cet espace pour transporter vos affaires personnelles.
 
 N'hésitez pas à me contacter pour qu'on organise ça ensemble !`,
 
@@ -50,7 +50,7 @@ ${availableVolume} m³ libre que je partage gratuitement par entraide. J'accepte
 Contactez-moi pour organiser le transport !`
       ],
       paid: [
-        `🚢 Bonjour ! Transport ${departureStr} → ${arrivalStr} ${dateStr} en conteneur ${containerType} pieds.
+        `🚢 Bonjour ! Transport prévu ${departureStr} → ${arrivalStr} ${dateStr} en conteneur ${containerType} pieds.
 
 J'ai ${availableVolume} m³ de disponible et je cherche quelqu'un pour partager les frais. J'accepte : vos affaires personnelles.
 

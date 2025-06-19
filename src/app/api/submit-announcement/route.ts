@@ -125,6 +125,19 @@ export async function POST(request: NextRequest) {
       // Ajout d'informations sur le conteneur en texte
       containerTypeDisplay: data.container.type === '20' ? '20 pieds' : '40 pieds',
       
+      // Ajout de champs compatibles pour l'email - format simple pour le backend
+      departureCountry: data.departure.country,
+      departureCity: data.departure.city,
+      departurePostalCode: data.departure.postalCode,
+      
+      arrivalCountry: data.arrival.country,
+      arrivalCity: data.arrival.city,
+      arrivalPostalCode: data.arrival.postalCode,
+      
+      // Pour compatibilité avec les templates email (construction du nom complet)
+      departureLocation: data.departure.displayName || `${data.departure.city}, ${data.departure.country}`,
+      arrivalLocation: data.arrival.displayName || `${data.arrival.city}, ${data.arrival.country}`,
+      
       // Ajout du statut initial
       status: 'pending_validation',
       

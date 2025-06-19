@@ -4,15 +4,19 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
+    const baseUrl = new URL(request.url).origin;
 
     if (!token) {
-      return NextResponse.redirect('/validation-error?reason=missing-token');
+      console.log('❌ Token manquant dans la requête');
+      return NextResponse.redirect(`${baseUrl}/validation-error?reason=missing-token`);
     }
 
     console.log('🔍 Validation du token:', token);
 
     // Envoyer la demande de validation au backend centralisé
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://web-production-7b738.up.railway.app';
+    
+    console.log('📤 Appel backend:', `${backendUrl}/api/partage/validate-announcement?token=${token}`);
     
     const response = await fetch(`${backendUrl}/api/partage/validate-announcement?token=${encodeURIComponent(token)}`, {
       method: 'GET',
@@ -21,40 +25,75 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    console.log('📥 Réponse backend:', response.status, response.statusText);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Erreur de validation' }));
+      // Essayer de parser la réponse JSON pour avoir plus de détails
+      let errorData;
+      try {
+        errorData = await response.json();
+        console.log('📄 Détails erreur backend:', errorData);
+      } catch (parseError) {
+        console.log('⚠️ Impossible de parser la réponse backend, utilisation du statut HTTP');
+        errorData = { error: `Erreur ${response.status}` };
+      }
+      
       console.error('❌ Erreur de validation:', {
         status: response.status,
         statusText: response.statusText,
         error: errorData
       });
       
-      // Redirection vers page d'erreur avec le détail
+      // Redirection vers page d'erreur avec le détail approprié
       if (response.status === 404) {
-        return NextResponse.redirect('/validation-error?reason=token-not-found');
+        console.log('🔄 Redirection: token non trouvé');
+        return NextResponse.redirect(`${baseUrl}/validation-error?reason=token-not-found`);
       } else if (response.status === 410) {
-        return NextResponse.redirect('/validation-error?reason=token-expired');
+        console.log('🔄 Redirection: token expiré');
+        return NextResponse.redirect(`${baseUrl}/validation-error?reason=token-expired`);
+      } else if (response.status === 400) {
+        console.log('🔄 Redirection: token invalide');
+        return NextResponse.redirect(`${baseUrl}/validation-error?reason=token-invalid`);
       } else {
-        return NextResponse.redirect('/validation-error?reason=validation-failed');
+        console.log('🔄 Redirection: erreur de validation générique');
+        return NextResponse.redirect(`${baseUrl}/validation-error?reason=validation-failed`);
       }
     }
 
-    const result = await response.json();
-    console.log('✅ Validation réussie:', result.data?.reference);
+    // Succès - parser la réponse
+    let result;
+    try {
+      result = await response.json();
+      console.log('✅ Validation réussie:', result.data?.reference || 'Pas de référence');
+    } catch (parseError) {
+      console.error('❌ Erreur parsing réponse succès:', parseError);
+      return NextResponse.redirect(`${baseUrl}/validation-error?reason=server-error`);
+    }
 
     // Redirection vers page de succès avec les informations
-    const successUrl = new URL('/validation-success', request.url);
+    const successUrl = new URL('/validation-success', baseUrl);
     if (result.data?.reference) {
       successUrl.searchParams.set('ref', result.data.reference);
     }
     
+    console.log('🔄 Redirection succès vers:', successUrl.toString());
     return NextResponse.redirect(successUrl.toString());
 
   } catch (error) {
-    console.error('❌ Erreur lors de la validation:', error);
+    console.error('❌ Erreur grave lors de la validation:', error);
+    
+    // Log détaillé pour le debugging
+    if (error instanceof Error) {
+      console.error('Détails:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+    }
     
     // Redirection vers page d'erreur générique
-    return NextResponse.redirect('/validation-error?reason=server-error');
+    const baseUrl = new URL(request.url).origin;
+    return NextResponse.redirect(`${baseUrl}/validation-error?reason=server-error`);
   }
 }
 

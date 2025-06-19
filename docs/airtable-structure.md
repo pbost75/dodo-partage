@@ -265,3 +265,147 @@ const validateAlertRecord = (record) => {
 
 **🔄 Dernière mise à jour :** Janvier 2024
 **👤 Responsable :** Équipe DodoPartage 
+
+## 📊 Table principale : `DodoPartage - Announcement`
+
+### 🗃️ Configuration actuelle de la base
+
+**Base ID** : `appyuDiWXUzpy9DTT`  
+**Table** : `DodoPartage - Announcement`  
+**Environnement** : Production via backend centralisé Railway
+
+## 📋 Colonnes et types de données
+
+### Informations générales
+| Colonne | Type | Obligatoire | Description |
+|---------|------|-------------|-------------|
+| `reference` | Single line text | ✅ | Référence unique (PARTAGE-XXXXXX-XXXXXX) |
+| `created_at` | Date | ✅ | Date de création de l'annonce |
+| `status` | Single select | ✅ | pending_validation, published, expired |
+
+### Contact
+| Colonne | Type | Obligatoire | Description |
+|---------|------|-------------|-------------|
+| `contact_first_name` | Single line text | ✅ | Prénom du contact |
+| `contact_email` | Email | ✅ | Email du contact |
+| `contact_phone` | Phone number | ❌ | Téléphone du contact |
+
+### Localisation
+| Colonne | Type | Obligatoire | Description |
+|---------|------|-------------|-------------|
+| `departure_country` | Single line text | ✅ | Pays de départ |
+| `departure_city` | Single line text | ✅ | Ville de départ |
+| `departure_postal_code` | Single line text | ❌ | Code postal de départ |
+| `arrival_country` | Single line text | ✅ | Pays d'arrivée |
+| `arrival_city` | Single line text | ✅ | Ville d'arrivée |
+| `arrival_postal_code` | Single line text | ❌ | Code postal d'arrivée |
+
+### Transport
+| Colonne | Type | Obligatoire | Description |
+|---------|------|-------------|-------------|
+| `shipping_date` | Date | ✅ | Date prévue d'expédition |
+| `container_type` | Single line text | ✅ | "20" ou "40" (pieds) |
+| `container_available_volume` | Number | ✅ | Volume disponible dans le conteneur |
+| `container_minimum_volume` | Number | ✅ | Volume minimum pour partager |
+
+### Offre
+| Colonne | Type | Obligatoire | Description |
+|---------|------|-------------|-------------|
+| `offer_type` | Single select | ✅ | "free" ou "paid" |
+| `announcement_text` | Long text | ✅ | Description détaillée de l'annonce |
+| `announcement_text_length` | Number | ✅ | Longueur du texte d'annonce |
+
+### Champs obsolètes supprimés
+| Ancienne colonne | Raison de suppression | Alternative |
+|------------------|----------------------|-------------|
+| `departure_display_name` | ❌ Toujours vide | Reconstruction : `${city}, ${country}` |
+| `arrival_display_name` | ❌ Toujours vide | Reconstruction : `${city}, ${country}` |
+| `shipping_date_formatted` | ❌ Redondant | Formatage côté frontend/email |
+
+## 🔄 Évolutions récentes
+
+### ✅ Janvier 2024 - Suppression des champs display_name
+- **Problème** : Les champs `departure_display_name` et `arrival_display_name` étaient systématiquement vides
+- **Solution** : Suppression de ces champs d'Airtable
+- **Impact** : Le nom complet du lieu est maintenant reconstruit dynamiquement :
+  ```javascript
+  // Frontend → Backend
+  departureLocation = displayName || `${city}, ${country}`
+  arrivalLocation = displayName || `${city}, ${country}`
+  ```
+
+### ⚙️ Configuration backend adaptée
+Le backend Railway reconstruit automatiquement les noms de lieux pour :
+- ✅ **Emails** : Affichage correct des trajets
+- ✅ **Logs** : Traçabilité complète
+- ✅ **API** : Réponses cohérentes
+
+## 📧 Impact sur les emails
+
+### Templates mis à jour
+Les templates d'email utilisent maintenant :
+```javascript
+// Variables disponibles dans les emails
+{
+  departureLocation: "Paris, France",    // Reconstruit
+  arrivalLocation: "Fort-de-France, Martinique", // Reconstruit
+  
+  // Détails séparés si nécessaire
+  departureCountry: "France",
+  departureCity: "Paris",
+  arrivalCountry: "Martinique", 
+  arrivalCity: "Fort-de-France"
+}
+```
+
+## 🧪 Tests et validation
+
+### Vérification de l'intégrité des données
+```bash
+# Test complet du flux
+npm run test:validation
+
+# Test spécifique backend
+npm run test:backend
+```
+
+### Points de contrôle
+- ✅ Aucun champ display_name envoyé vers Airtable
+- ✅ Reconstruction correcte des noms de lieux
+- ✅ Emails contiennent les bonnes informations
+- ✅ Pas d'erreurs dans les logs Railway
+
+## 🚀 Déploiement
+
+Cette modification est **rétrocompatible** car :
+- Les anciens champs étaient vides
+- La reconstruction utilise les champs existants
+- Aucun changement d'API publique
+
+### Checklist de déploiement
+- [x] Documentation mise à jour
+- [x] Code frontend adapté 
+- [x] Tests passants
+- [x] Logs backend propres
+- [x] Emails fonctionnels
+
+## 📞 Support
+
+### Vérification rapide
+```bash
+# Vérifier qu'aucune erreur liée aux display_name
+curl -s http://localhost:3000/api/submit-announcement -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'
+```
+
+### En cas de problème
+1. **Vérifier les logs Railway** (pas d'erreur sur les champs manquants)
+2. **Tester la création d'annonce** (workflow complet)
+3. **Vérifier l'email reçu** (lieux corrects)
+4. **Consulter Airtable** (pas de colonnes vides)
+
+---
+
+**Dernière mise à jour** : Janvier 2024  
+**Version** : 2.0 (suppression display_name) 
