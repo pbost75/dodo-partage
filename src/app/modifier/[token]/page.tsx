@@ -24,7 +24,7 @@ export default function ModifyAnnouncementPage() {
         
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error('Token de modification invalide ou expiré');
+            throw new Error('Token de modification invalide, expiré, ou cette annonce a été créée avant l\'implémentation des fonctionnalités de gestion. Veuillez contacter support@dodomove.fr pour modifier votre annonce.');
           } else {
             throw new Error('Erreur lors du chargement de l\'annonce');
           }
