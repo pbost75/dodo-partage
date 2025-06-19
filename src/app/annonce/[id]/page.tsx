@@ -67,8 +67,10 @@ export default function AnnouncementDetailPage() {
           throw new Error(result.error || 'Annonce non trouvée');
         }
 
-        // Trouver l'annonce par référence (car l'URL contient la référence, pas l'ID)
-        const foundAnnouncement = result.data.find((ann: AnnouncementDetail) => ann.reference === params.id);
+        // Trouver l'annonce par référence OU par ID (pour compatibilité avec les anciennes URLs)
+        const foundAnnouncement = result.data.find((ann: AnnouncementDetail) => 
+          ann.reference === params.id || ann.id === params.id
+        );
         if (!foundAnnouncement) {
           throw new Error('Annonce non trouvée');
         }
