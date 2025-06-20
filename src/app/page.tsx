@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
@@ -14,7 +14,7 @@ import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import DeletedNotification from '@/components/partage/DeletedNotification';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
 
 interface FilterState {
@@ -22,7 +22,9 @@ interface FilterState {
   minVolume: string;
 }
 
-export default function HomePage() {
+function HomePageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
@@ -31,9 +33,6 @@ export default function HomePage() {
     minVolume: 'all'
   });
 
-  // Hook pour navigation
-  // Les toasts sont maintenant gérés par le contexte global
-  
   // État pour le toggle "Propose" vs "Cherche"
   const [announcementType, setAnnouncementType] = useState<'offer' | 'request'>('offer');
   const [displayedCount, setDisplayedCount] = useState(4); // Afficher 4 annonces par défaut
@@ -47,6 +46,49 @@ export default function HomePage() {
   const [appliedDeparture, setAppliedDeparture] = useState<string>('');
   const [appliedDestination, setAppliedDestination] = useState<string>('');
   const [appliedDates, setAppliedDates] = useState<string[]>([]);
+
+  // Fonction helper pour mettre à jour l'URL avec l'état actuel
+  const updateURLWithCurrentState = (currentFilters?: FilterState, currentType?: 'offer' | 'request') => {
+    const params = new URLSearchParams();
+    
+    if (appliedDeparture) params.set('departure', appliedDeparture);
+    if (appliedDestination) params.set('destination', appliedDestination);
+    if (appliedDates.length > 0) params.set('dates', appliedDates.join(','));
+    
+    const typeToUse = currentType || announcementType;
+    params.set('type', typeToUse);
+    
+    const filtersToUse = currentFilters || filters;
+    if (filtersToUse.priceType !== 'all') params.set('priceType', filtersToUse.priceType);
+    if (filtersToUse.minVolume !== 'all') params.set('minVolume', filtersToUse.minVolume);
+    
+    const url = params.toString() ? `/?${params.toString()}` : '/';
+    router.push(url, { scroll: false });
+  };
+
+  // Initialiser les états depuis les URL parameters au chargement
+  useEffect(() => {
+    const departure = searchParams.get('departure') || '';
+    const destination = searchParams.get('destination') || '';
+    const dates = searchParams.get('dates') ? searchParams.get('dates')!.split(',') : [];
+    const type = searchParams.get('type') as 'offer' | 'request' || 'offer';
+    const priceType = searchParams.get('priceType') || 'all';
+    const minVolume = searchParams.get('minVolume') || 'all';
+
+    // Mettre à jour tous les états
+    setSearchDeparture(departure);
+    setSearchDestination(destination);
+    setSearchDates(dates);
+    setAppliedDeparture(departure);
+    setAppliedDestination(destination);
+    setAppliedDates(dates);
+    setAnnouncementType(type);
+    setFilters({ priceType, minVolume });
+
+    console.log('🔄 États restaurés depuis URL:', {
+      departure, destination, dates, type, priceType, minVolume
+    });
+  }, [searchParams]);
 
   // Hook pour récupérer les annonces depuis le backend
   const {
@@ -63,8 +105,6 @@ export default function HomePage() {
     type: 'all', // Récupérer toutes les annonces par défaut
     status: 'all' // Toutes les annonces (published + pending) pour le développement
   });
-
-
 
   // Options des pays avec leurs emojis
   const countryOptions = [
@@ -190,6 +230,17 @@ export default function HomePage() {
   const handleFiltersChange = (newFilters: FilterState) => {
     console.log('🔧 Changement de filtres:', newFilters);
     setFilters(newFilters);
+    
+    // Mettre à jour l'URL avec les nouveaux filtres
+    updateURLWithCurrentState(newFilters, announcementType);
+  };
+
+  const handleAnnouncementTypeChange = (newType: 'offer' | 'request') => {
+    console.log('🔄 Changement type annonce:', newType);
+    setAnnouncementType(newType);
+    
+    // Mettre à jour l'URL avec le nouveau type
+    updateURLWithCurrentState(filters, newType);
   };
 
   const loadMoreAnnouncements = () => {
@@ -210,6 +261,19 @@ export default function HomePage() {
       departure: `${searchDeparture} → ${normalizedDeparture}`, 
       destination: `${searchDestination} → ${normalizedDestination}` 
     });
+    
+    // Sauvegarder les paramètres dans l'URL pour préserver l'état
+    const params = new URLSearchParams();
+    if (normalizedDeparture) params.set('departure', normalizedDeparture);
+    if (normalizedDestination) params.set('destination', normalizedDestination);
+    if (searchDates.length > 0) params.set('dates', searchDates.join(','));
+    params.set('type', announcementType);
+    if (filters.priceType !== 'all') params.set('priceType', filters.priceType);
+    if (filters.minVolume !== 'all') params.set('minVolume', filters.minVolume);
+    
+    // Mettre à jour l'URL sans recharger la page
+    const url = params.toString() ? `/?${params.toString()}` : '/';
+    router.push(url, { scroll: false });
     
     // Appliquer les filtres via le hook (qui fera l'appel API)
     applyFilters({
@@ -234,8 +298,6 @@ export default function HomePage() {
   const handleCreateAnnouncement = () => {
     setIsChoiceModalOpen(true);
   };
-
-  const router = useRouter();
 
   const handleChoice = (choice: 'cherche' | 'propose') => {
     setIsChoiceModalOpen(false);
@@ -325,6 +387,9 @@ export default function HomePage() {
               setFilters({ priceType: 'all', minVolume: 'all' });
               setAnnouncementType('offer');
               setDisplayedCount(4);
+              
+              // Nettoyer l'URL également
+              router.push('/', { scroll: false });
             }}
             className="text-gray-600"
           >
@@ -555,7 +620,7 @@ export default function HomePage() {
               <div className="mt-6 flex items-center justify-between sm:justify-start gap-4">
                 <ToggleSwitch
                   value={announcementType}
-                  onChange={setAnnouncementType}
+                  onChange={handleAnnouncementTypeChange}
                   className="shadow-sm"
                 />
                 
@@ -587,7 +652,10 @@ export default function HomePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                   >
-                    <AnnouncementCardV2 {...announcement} />
+                    <AnnouncementCardV2 
+                      {...announcement} 
+                      searchParams={searchParams.toString()} 
+                    />
                   </motion.div>
                 ))}
               </div>
@@ -717,6 +785,14 @@ export default function HomePage() {
         <DeletedNotification />
       </React.Suspense>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <HomePageContent />
+    </Suspense>
   );
 }
 

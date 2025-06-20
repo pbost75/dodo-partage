@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { 
   Ship, 
   Anchor, 
@@ -42,6 +42,7 @@ interface AnnouncementDetail {
 export default function AnnouncementDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +136,18 @@ export default function AnnouncementDetailPage() {
     }
   };
 
+  // Fonction intelligente pour le retour
+  const handleBackNavigation = () => {
+    const params = searchParams.toString();
+    if (params) {
+      // Si on a des paramètres de recherche, retourner à la page d'accueil avec ces paramètres
+      router.push(`/?${params}`);
+    } else {
+      // Sinon, utiliser le retour historique classique
+      router.back();
+    }
+  };
+
   // États de chargement et d'erreur
   if (loading) {
     return (
@@ -171,7 +184,7 @@ export default function AnnouncementDetailPage() {
         <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <button
-              onClick={() => router.back()}
+              onClick={handleBackNavigation}
               className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -211,7 +224,7 @@ export default function AnnouncementDetailPage() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => router.back()}
+              onClick={handleBackNavigation}
               className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />

@@ -22,7 +22,11 @@ interface AnnouncementProps {
   price?: string;
 }
 
-const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
+interface AnnouncementCardV2Props extends AnnouncementProps {
+  searchParams?: string; // Paramètres de recherche à préserver
+}
+
+const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
   id,
   reference,
   type,
@@ -38,6 +42,7 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
   publishedAt,
   description,
   price,
+  searchParams = '',
 }) => {
   // Limite de caractères pour l'affichage tronqué
   const CHAR_LIMIT = 100;
@@ -63,8 +68,13 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
     </div>
   );
 
+  // Construire l'URL de détail avec les paramètres de recherche
+  const detailUrl = searchParams 
+    ? `/annonce/${reference}?${searchParams}`
+    : `/annonce/${reference}`;
+
   return (
-    <Link href={`/annonce/${reference}`} className="block">
+    <Link href={detailUrl} className="block">
       <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 p-4 sm:p-6 cursor-pointer">
         {/* Version Mobile Optimisée */}
         <div className="sm:hidden">
