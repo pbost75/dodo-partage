@@ -103,7 +103,7 @@ function HomePageContent() {
     hasError
   } = useAnnouncements({
     type: 'all', // Récupérer toutes les annonces par défaut
-    status: 'all' // Toutes les annonces (published + pending) pour le développement
+    status: 'published' // Uniquement les annonces validées pour l'affichage public
   });
 
   // Options des pays avec leurs emojis
