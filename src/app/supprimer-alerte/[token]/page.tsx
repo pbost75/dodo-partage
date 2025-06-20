@@ -118,7 +118,7 @@ export default function DeleteAlertPage() {
             Supprimer l'alerte
           </h1>
           <p className="text-gray-600 mt-2">
-            Nous sommes désolés de vous voir partir
+            Aidez-nous à comprendre pourquoi vous supprimez cette alerte
           </p>
         </div>
 
