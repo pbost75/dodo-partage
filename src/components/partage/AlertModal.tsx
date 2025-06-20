@@ -167,11 +167,34 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
 
     setIsSubmitting(true);
     try {
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Appel à l'API pour créer l'alerte
+      const response = await fetch('/api/create-alert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: formData.type,
+          departure: locations.find(l => l.value === formData.departure)?.label || formData.departure,
+          arrival: locations.find(l => l.value === formData.destination)?.label || formData.destination,
+          volume_min: formData.volumeMin,
+          email: formData.email
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erreur lors de la création de l\'alerte');
+      }
+
+      const result = await response.json();
+      console.log('✅ Alerte créée avec succès:', result);
+      
       setStep('success');
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('❌ Erreur lors de la création de l\'alerte:', error);
+      // TODO: Afficher un message d'erreur à l'utilisateur
+      alert('Erreur lors de la création de l\'alerte. Veuillez réessayer.');
     } finally {
       setIsSubmitting(false);
     }
