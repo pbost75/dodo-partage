@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto_Slab, Inter, Lato } from 'next/font/google'
 import "./globals.css";
+import { ToastProvider } from '@/contexts/ToastContext';
 
 const robotoSlab = Roboto_Slab({
   subsets: ['latin'],
@@ -35,7 +36,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${robotoSlab.variable} ${inter.variable} ${lato.variable}`}>
-      <body className="font-lato">{children}</body>
+      <body className="font-lato">
+        <ToastProvider>
+          {children}
+        </ToastProvider>
+      </body>
     </html>
   )
 }

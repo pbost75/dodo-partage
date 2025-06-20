@@ -13,6 +13,7 @@ import Card from '@/components/ui/Card';
 import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
+import DeletedNotification from '@/components/partage/DeletedNotification';
 import { useRouter } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
 
@@ -29,6 +30,9 @@ export default function HomePage() {
     priceType: 'all',
     minVolume: 'all'
   });
+
+  // Hook pour navigation
+  // Les toasts sont maintenant gérés par le contexte global
   
   // État pour le toggle "Propose" vs "Cherche"
   const [announcementType, setAnnouncementType] = useState<'offer' | 'request'>('offer');
@@ -59,6 +63,8 @@ export default function HomePage() {
     type: 'all', // Récupérer toutes les annonces par défaut
     status: 'all' // Toutes les annonces (published + pending) pour le développement
   });
+
+
 
   // Options des pays avec leurs emojis
   const countryOptions = [
@@ -705,6 +711,11 @@ export default function HomePage() {
           </p>
         </div>
       </footer>
+
+      {/* Notification de suppression avec Suspense */}
+      <React.Suspense fallback={null}>
+        <DeletedNotification />
+      </React.Suspense>
     </div>
   );
 }
