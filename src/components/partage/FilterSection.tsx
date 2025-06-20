@@ -23,13 +23,21 @@ interface FilterSectionProps {
   isMobile?: boolean;
   onMobileClose?: () => void;
   onFiltersChange?: (filters: FilterState) => void;
+  filters?: FilterState; // Filtres reçus depuis la page parent
 }
 
-const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobileClose, onFiltersChange }) => {
+const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobileClose, onFiltersChange, filters: externalFilters }) => {
   const [filters, setFilters] = useState<FilterState>({
     priceType: 'all', // Tous les types de prix par défaut
     minVolume: 'all' // Tous volumes par défaut
   });
+
+  // Synchroniser l'état local avec les filtres externes (depuis l'URL)
+  React.useEffect(() => {
+    if (externalFilters) {
+      setFilters(externalFilters);
+    }
+  }, [externalFilters]);
 
   const filterOptions = {
     priceType: [

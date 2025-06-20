@@ -525,6 +525,7 @@ function HomePageContent() {
                   isMobile={false} 
                   onMobileClose={() => {}} 
                   onFiltersChange={handleFiltersChange}
+                  filters={filters}
                 />
               </div>
               
@@ -558,6 +559,7 @@ function HomePageContent() {
                       isMobile={true} 
                       onMobileClose={() => setIsMobileFiltersOpen(false)} 
                       onFiltersChange={handleFiltersChange}
+                      filters={filters}
                     />
                   </div>
                 </motion.div>
