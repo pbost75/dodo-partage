@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('📭 Nouvelle demande de désactivation d\'alerte email');
+    console.log('🗑️ Nouvelle demande de suppression d\'alerte email');
 
     // Récupération des données du formulaire
     const body = await request.json();
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Token de désactivation manquant' 
+          error: 'Token de suppression manquant' 
         },
         { status: 400 }
       );
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Appel au backend centralisé
-    const response = await fetch(`${backendUrl}/api/partage/deactivate-alert`, {
+    const response = await fetch(`${backendUrl}/api/partage/delete-alert`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,11 +62,11 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await response.json();
-    console.log('✅ Alerte désactivée avec succès via le backend centralisé:', result);
+    console.log('✅ Alerte supprimée avec succès via le backend centralisé:', result);
 
     return NextResponse.json({
       success: true,
-      message: 'Alerte désactivée avec succès !',
+      message: 'Alerte supprimée avec succès !',
       data: {
         email: result.data?.email,
         reason: result.data?.reason
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Erreur serveur lors de la désactivation d\'alerte:', error);
+    console.error('❌ Erreur serveur lors de la suppression d\'alerte:', error);
     
     return NextResponse.json(
       { 
@@ -98,21 +98,21 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Méthode GET pour redirection vers la page de désactivation
+// Méthode GET pour redirection vers la page de suppression
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
 
     if (!token) {
-      return new NextResponse(generateErrorHtml('Token de désactivation manquant dans l\'URL'), {
+      return new NextResponse(generateErrorHtml('Token de suppression manquant dans l\'URL'), {
         status: 400,
         headers: { 'Content-Type': 'text/html; charset=utf-8' }
       });
     }
 
-    // Rediriger vers la page de désactivation avec le token
-    const redirectUrl = `/desactiver-alerte/${token}`;
+    // Rediriger vers la page de suppression avec le token
+    const redirectUrl = `/supprimer-alerte/${token}`;
     
     return NextResponse.redirect(new URL(redirectUrl, request.url));
 

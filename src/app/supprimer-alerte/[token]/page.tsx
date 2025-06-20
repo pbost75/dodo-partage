@@ -6,13 +6,13 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, Check, X, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-interface DeactivationReason {
+interface DeletionReason {
   value: string;
   label: string;
   description: string;
 }
 
-const deactivationReasons: DeactivationReason[] = [
+const deletionReasons: DeletionReason[] = [
   {
     value: 'found_solution',
     label: 'J\'ai trouvé une solution',
@@ -40,7 +40,7 @@ const deactivationReasons: DeactivationReason[] = [
   }
 ];
 
-export default function DeactivateAlertPage() {
+export default function DeleteAlertPage() {
   const params = useParams();
   const router = useRouter();
   const token = params.token as string;
@@ -78,15 +78,15 @@ export default function DeactivateAlertPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erreur lors de la désactivation');
+        throw new Error(errorData.error || 'Erreur lors de la suppression');
       }
 
       const result = await response.json();
-      console.log('✅ Alerte désactivée:', result);
+      console.log('✅ Alerte supprimée:', result);
       
       setStep('success');
     } catch (error) {
-      console.error('❌ Erreur désactivation:', error);
+      console.error('❌ Erreur suppression:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Une erreur est survenue');
       setStep('error');
     } finally {
@@ -101,7 +101,7 @@ export default function DeactivateAlertPage() {
   };
 
   const getSelectedReasonLabel = () => {
-    const reason = deactivationReasons.find(r => r.value === selectedReason);
+    const reason = deletionReasons.find(r => r.value === selectedReason);
     return reason ? reason.label : '';
   };
 
@@ -115,7 +115,7 @@ export default function DeactivateAlertPage() {
             <AlertTriangle className="w-8 h-8 text-orange-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 font-['Roboto_Slab']">
-            Désactiver l'alerte
+            Supprimer l'alerte
           </h1>
           <p className="text-gray-600 mt-2">
             Nous sommes désolés de vous voir partir
@@ -130,14 +130,14 @@ export default function DeactivateAlertPage() {
             className="bg-white rounded-xl shadow-lg p-6"
           >
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Pourquoi souhaitez-vous désactiver cette alerte ?
+              Pourquoi souhaitez-vous supprimer cette alerte ?
             </h2>
             <p className="text-sm text-gray-600 mb-6">
               Votre retour nous aide à améliorer notre service.
             </p>
 
             <div className="space-y-3">
-              {deactivationReasons.map((reason) => (
+              {deletionReasons.map((reason) => (
                 <motion.div
                   key={reason.value}
                   whileHover={{ scale: 1.02 }}
@@ -238,7 +238,7 @@ export default function DeactivateAlertPage() {
             </button>
 
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Confirmez la désactivation
+              Confirmez la suppression
             </h2>
 
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
@@ -246,7 +246,7 @@ export default function DeactivateAlertPage() {
                 <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-orange-800 font-medium">
-                    Vous êtes sur le point de désactiver votre alerte
+                    Vous êtes sur le point de supprimer votre alerte
                   </p>
                   <p className="text-sm text-orange-700 mt-1">
                     Vous ne recevrez plus de notifications pour les nouvelles opportunités correspondant à vos critères.
@@ -276,7 +276,7 @@ export default function DeactivateAlertPage() {
                 loading={isSubmitting}
                 className="flex-1 bg-red-600 hover:bg-red-700"
               >
-                Désactiver définitivement
+                Supprimer définitivement
               </Button>
             </div>
           </motion.div>
@@ -294,11 +294,11 @@ export default function DeactivateAlertPage() {
             </div>
             
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Alerte désactivée avec succès
+              Alerte supprimée avec succès
             </h2>
             
             <p className="text-gray-600 mb-6">
-              Votre alerte a été désactivée. Vous ne recevrez plus de notifications par email pour cette alerte.
+              Votre alerte a été supprimée. Vous ne recevrez plus de notifications par email pour cette alerte.
             </p>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -328,7 +328,7 @@ export default function DeactivateAlertPage() {
             </div>
             
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Erreur lors de la désactivation
+              Erreur lors de la suppression
             </h2>
             
             <p className="text-gray-600 mb-4">
