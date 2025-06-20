@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         volume_min: volume_min,
         status: 'Active',
         confirmationEmailSent: result.data?.confirmationEmailSent || true,
-        unsubscribeToken: result.data?.unsubscribeToken
+        deleteToken: result.data?.deleteToken
       },
       backend: {
         used: 'centralized',
