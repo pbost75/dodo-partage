@@ -175,8 +175,8 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
         },
         body: JSON.stringify({
           type: formData.type,
-          departure: locations.find(l => l.value === formData.departure)?.label || formData.departure,
-          arrival: locations.find(l => l.value === formData.destination)?.label || formData.destination,
+          departure: formData.departure, // Envoyer la value directement (ex: "france")
+          arrival: formData.destination, // Envoyer la value directement (ex: "reunion")
           volume_min: formData.volumeMin,
           email: formData.email
         }),
