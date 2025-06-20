@@ -6,6 +6,7 @@ import { Ship, Anchor } from 'lucide-react';
 
 interface AnnouncementProps {
   id: string;
+  reference: string;
   type: 'offer' | 'request';
   departure: string;
   departureCity?: string;
@@ -23,6 +24,7 @@ interface AnnouncementProps {
 
 const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
   id,
+  reference,
   type,
   departure,
   departureCity,
@@ -62,7 +64,7 @@ const AnnouncementCardV2: React.FC<AnnouncementProps> = ({
   );
 
   return (
-    <Link href={`/annonce/${id}`} className="block">
+    <Link href={`/annonce/${reference}`} className="block">
       <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 p-4 sm:p-6 cursor-pointer">
         {/* Version Mobile Optimisée */}
         <div className="sm:hidden">
