@@ -10,7 +10,8 @@
     "test:backend": "curl -s http://localhost:3000/api/test-backend | jq .",
     "test:email-alerts": "node scripts/test-email-alerts.js",
     "test:validation": "node scripts/test-validation-flow.js",
-    "test:email-validation": "node scripts/test-email-validation.js"
+    "test:email-validation": "node scripts/test-email-validation.js",
+    "debug:deleted-announcements": "node scripts/debug-deleted-announcements.js"
   },
   "dependencies": {
     "framer-motion": "^12.15.0",

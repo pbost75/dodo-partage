@@ -14,6 +14,7 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  showEmojis?: boolean;
 }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -21,7 +22,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   value,
   onChange,
   placeholder = "Sélectionner...",
-  className = ""
+  className = "",
+  showEmojis = true
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -46,44 +48,44 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   return (
     <div className={`relative ${className}`} ref={selectRef}>
-      {/* Trigger */}
+      {/* Trigger optimisé mobile */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F47D6C]/30 focus:border-[#F47D6C] font-medium text-[#F47D6C] hover:bg-gray-50 transition-colors min-w-[160px] justify-between text-sm"
+        className="inline-flex items-center gap-1.5 px-3 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F47D6C]/30 focus:border-[#F47D6C] font-medium text-[#F47D6C] hover:bg-gray-50 transition-colors w-full justify-between text-sm md:text-base"
       >
-        <span className="flex items-center gap-1.5">
-          {selectedOption?.emoji && (
-            <span className="text-sm">{selectedOption.emoji}</span>
+        <span className="flex items-center gap-1.5 truncate">
+          {showEmojis && selectedOption?.emoji && (
+            <span className="text-sm flex-shrink-0">{selectedOption.emoji}</span>
           )}
-          <span>{selectedOption?.label || placeholder}</span>
+          <span className="truncate">{selectedOption?.label || placeholder}</span>
         </span>
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown optimisé mobile */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 md:max-h-60 overflow-y-auto">
           {options.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => handleSelect(option.value)}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors ${
+              className={`w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-gray-50 transition-colors ${
                 value === option.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
               }`}
             >
-              {option.emoji && (
+              {showEmojis && option.emoji && (
                 <span className="text-sm flex-shrink-0">{option.emoji}</span>
               )}
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm">{option.label}</div>
+                <div className="font-medium text-sm md:text-base truncate">{option.label}</div>
                 {option.description && (
-                  <div className="text-xs text-gray-500">{option.description}</div>
+                  <div className="text-xs text-gray-500 truncate">{option.description}</div>
                 )}
               </div>
               {value === option.value && (
-                <Check className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
               )}
             </button>
           ))}

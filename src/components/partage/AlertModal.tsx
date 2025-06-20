@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, Check } from 'lucide-react';
+import { X, Bell, Check, Edit2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import FloatingInput from '@/components/ui/FloatingInput';
 import CustomSelect from '@/components/ui/CustomSelect';
@@ -29,12 +29,19 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [formData, setFormData] = useState<AlertFormData>({
     email: '',
-    departure: initialFilters.departure || 'france',
-    destination: initialFilters.destination || 'reunion',
-    type: initialFilters.type || 'offer',
+    departure: '',
+    destination: '',
+    type: '',
     volumeMin: 1
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // États pour contrôler l'affichage progressif des champs
+  const [editingField, setEditingField] = useState<'type' | 'departure' | 'destination' | 'volume' | null>(null);
+  const [completedFields, setCompletedFields] = useState<Set<string>>(new Set());
+  
+  // État pour gérer l'espace des dropdowns
+  const [dropdownSpacing, setDropdownSpacing] = useState<number>(0);
 
   // Empêcher le scroll de la page quand la modale est ouverte
   useEffect(() => {
@@ -48,39 +55,111 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
     };
   }, [isOpen]);
 
-  // Mise à jour automatique des filtres
+  // Initialisation correcte des filtres
   useEffect(() => {
     if (isOpen) {
-      setFormData(prev => ({
-        ...prev,
-        departure: initialFilters.departure || 'france',
-        destination: initialFilters.destination || 'reunion',
-        type: initialFilters.type || 'offer'
-      }));
+      // Créer le nouveau formData avec les filtres initiaux OU valeurs vides
+      const newFormData = {
+        email: '',
+        departure: initialFilters.departure || '',
+        destination: initialFilters.destination || '',
+        type: initialFilters.type || '',
+        volumeMin: 1
+      };
+      setFormData(newFormData);
+      
+      // Déterminer quels champs sont déjà complétés basé sur les filtres actuels
+      const completed = new Set<string>();
+      if (newFormData.type) {
+        completed.add('type');
+      }
+      if (newFormData.departure) {
+        completed.add('departure');
+      }
+      if (newFormData.destination) {
+        completed.add('destination');
+      }
+      // Ne pas marquer volumeMin comme complété par défaut
+      
+      setCompletedFields(completed);
+      
+      // Déterminer le premier champ à éditer - TOUJOURS commencer par le premier non complété
+      if (!newFormData.type) {
+        setEditingField('type');
+      } else if (!newFormData.departure) {
+        setEditingField('departure');
+      } else if (!newFormData.destination) {
+        setEditingField('destination');
+      } else {
+        // Si tous les champs précédents sont remplis, aller au volume
+        setEditingField('volume');
+      }
+      
+      // Reset de l'espacement dropdown
+      setDropdownSpacing(0);
     }
   }, [isOpen, initialFilters]);
 
+  // Calculer l'espace nécessaire pour les dropdowns
+  useEffect(() => {
+    if (editingField) {
+      // Ajouter de l'espace quand un dropdown est ouvert
+      setDropdownSpacing(240); // Espace pour les options du dropdown
+    } else {
+      setDropdownSpacing(0);
+    }
+  }, [editingField]);
+
+  // Options sans pictogrammes pour une meilleure UX mobile
   const typeOptions = [
-    { value: 'offer', label: 'proposent de la place', emoji: '📦', description: 'Conteneurs avec espace disponible' },
-    { value: 'request', label: 'cherchent de la place', emoji: '🔍', description: 'Personnes ayant besoin d\'espace' }
+    { value: 'offer', label: 'proposent de la place', description: 'Conteneurs avec espace disponible' },
+    { value: 'request', label: 'cherchent de la place', description: 'Personnes ayant besoin d\'espace' }
   ];
 
   const locations = [
-    { value: 'france', label: 'France métropolitaine', emoji: '🇫🇷', description: 'Métropole' },
-    { value: 'reunion', label: 'La Réunion', emoji: '🌺', description: 'Océan Indien' },
-    { value: 'martinique', label: 'La Martinique', emoji: '🌴', description: 'Antilles' },
-    { value: 'guadeloupe', label: 'La Guadeloupe', emoji: '🏝️', description: 'Antilles' },
-    { value: 'guyane', label: 'La Guyane', emoji: '🌿', description: 'Amérique du Sud' },
-    { value: 'mayotte', label: 'Mayotte', emoji: '🐋', description: 'Océan Indien' },
-    { value: 'nouvelle-caledonie', label: 'La Nouvelle-Calédonie', emoji: '🏖️', description: 'Pacifique' }
+    { value: 'france', label: 'France métropolitaine', description: 'Métropole' },
+    { value: 'reunion', label: 'La Réunion', description: 'Océan Indien' },
+    { value: 'martinique', label: 'La Martinique', description: 'Antilles' },
+    { value: 'guadeloupe', label: 'La Guadeloupe', description: 'Antilles' },
+    { value: 'guyane', label: 'La Guyane', description: 'Amérique du Sud' },
+    { value: 'mayotte', label: 'Mayotte', description: 'Océan Indien' },
+    { value: 'nouvelle-caledonie', label: 'La Nouvelle-Calédonie', description: 'Pacifique' }
   ];
 
   const volumes = [
-    { value: '1', label: 'peu importe', emoji: '📏', description: 'Tous volumes acceptés' },
-    { value: '2', label: '2m³ minimum', emoji: '📦', description: 'Quelques cartons' },
-    { value: '5', label: '5m³ minimum', emoji: '🏠', description: 'Mobilier moyen' },
-    { value: '10', label: '10m³ minimum', emoji: '🚚', description: 'Gros déménagement' }
+    { value: '1', label: 'peu importe', description: 'Tous volumes acceptés' },
+    { value: '2', label: '2m³ minimum', description: 'Quelques cartons' },
+    { value: '5', label: '5m³ minimum', description: 'Mobilier moyen' },
+    { value: '10', label: '10m³ minimum', description: 'Gros déménagement' }
   ];
+
+  // Fonctions pour gérer la sélection progressive
+  const handleFieldChange = (field: keyof AlertFormData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Marquer le champ comme complété
+    setCompletedFields(prev => new Set([...prev, field]));
+    
+    // Passer au champ suivant
+    if (field === 'type') {
+      setEditingField('departure');
+    } else if (field === 'departure') {
+      setEditingField('destination');
+    } else if (field === 'destination') {
+      setEditingField('volume');
+    } else if (field === 'volumeMin') {
+      setEditingField(null); // Tous les champs sont complétés
+    }
+  };
+
+  const handleEditField = (field: 'type' | 'departure' | 'destination' | 'volume') => {
+    setEditingField(field);
+  };
+
+  // Fonction pour obtenir le texte d'affichage des options
+  const getOptionLabel = (options: any[], value: string) => {
+    return options.find(opt => opt.value === value)?.label || value;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,15 +181,30 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
     setStep('form');
     setFormData({
       email: '',
-      departure: initialFilters.departure || 'france',
-      destination: initialFilters.destination || 'reunion',
-      type: initialFilters.type || 'offer',
+      departure: '',
+      destination: '',
+      type: '',
       volumeMin: 1
     });
+    setEditingField('type');
+    setCompletedFields(new Set());
+    setDropdownSpacing(0);
     onClose();
   };
 
   if (!isOpen) return null;
+
+  // Calculer la hauteur nécessaire basée sur l'état actuel
+  const calculateModalHeight = () => {
+    const baseHeight = 500; // Hauteur de base plus généreuse
+    const dropdownSpace = editingField ? 300 : 0; // Espace pour dropdown si ouvert
+    const emailSpace = editingField === null ? 200 : 0; // Espace pour email si affiché
+    const actionsSpace = editingField === null && formData.email ? 100 : 0; // Espace pour boutons
+    
+    return baseHeight + dropdownSpace + emailSpace + actionsSpace;
+  };
+
+  const modalHeight = calculateModalHeight();
 
   return (
     <AnimatePresence>
@@ -125,151 +219,277 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden"
+          className="bg-white rounded-2xl w-full max-w-md md:max-w-2xl shadow-2xl overflow-hidden"
+          style={{
+            height: `${modalHeight}px`,
+            maxHeight: '90vh',
+            minHeight: '500px' // Hauteur minimale garantie
+          }}
           onClick={e => e.stopPropagation()}
-          >
+        >
+          <div className="h-full flex flex-col">
             {step === 'form' ? (
               <>
-              {/* Header cohérent avec le projet */}
-              <div className="border-b border-gray-100 p-6 flex justify-between items-center">
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 font-['Roboto_Slab']">
-                    Créer une alerte
-                  </h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Soyez notifié(e) dès qu'une opportunité correspond à vos besoins
-                  </p>
-                </div>
+                {/* Header optimisé mobile */}
+                <div className="border-b border-gray-100 p-4 md:p-6 flex justify-between items-start flex-shrink-0">
+                  <div className="flex-1 pr-2">
+                    <h2 className="text-lg md:text-xl font-bold text-blue-900 font-['Roboto_Slab']">
+                      Créer une alerte
+                    </h2>
+                    <p className="text-xs md:text-sm text-gray-600 mt-1 leading-tight">
+                      Soyez notifié(e) dès qu'une opportunité correspond à vos besoins
+                    </p>
+                  </div>
                   <button 
                     onClick={resetAndClose}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0"
                   >
-                  <X className="w-4 h-4 text-gray-600" />
+                    <X className="w-4 h-4 text-gray-600" />
                   </button>
                 </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                {/* Formulaire à trous en langage naturel */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <div className="text-lg leading-relaxed text-gray-800 space-y-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span>Je veux être alerté(e) quand des personnes</span>
-                      <CustomSelect
-                        options={typeOptions}
-                        value={formData.type}
-                        onChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
-                      />
-                  </div>
+                <div className="flex-1 overflow-y-auto">
+                  <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4 md:space-y-6 h-full">
+                    {/* Formulaire progressif hybride */}
+                    <div className="bg-gray-50 rounded-xl p-4 md:p-6">
+                      <div className="space-y-4">
+                        {/* Construction progressive de la phrase */}
+                        <div className="text-lg leading-relaxed text-gray-800 space-y-1">
+                          <span>Je veux être alerté(e) quand des personnes </span>
+                          
+                          {/* Champ Type */}
+                          {editingField === 'type' ? (
+                            <motion.div 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="inline-block w-full mt-2 mb-1"
+                            >
+                              <CustomSelect
+                                options={typeOptions}
+                                value={formData.type}
+                                onChange={(value) => handleFieldChange('type', value)}
+                                className="w-full"
+                                showEmojis={false}
+                                placeholder="sélectionnez le type..."
+                              />
+                            </motion.div>
+                          ) : completedFields.has('type') && formData.type && (
+                            <button
+                              type="button"
+                              onClick={() => handleEditField('type')}
+                              className="inline-flex items-center gap-1 px-2 py-1 mx-0.5 my-0.5 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors"
+                            >
+                              <span className="font-medium">{getOptionLabel(typeOptions, formData.type)}</span>
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                          )}
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span>depuis</span>
-                      <CustomSelect
-                        options={locations}
-                        value={formData.departure}
-                        onChange={(value) => setFormData(prev => ({ ...prev, departure: value }))}
-                      />
-                      <span>vers</span>
-                      <CustomSelect
-                        options={locations}
-                        value={formData.destination}
-                        onChange={(value) => setFormData(prev => ({ ...prev, destination: value }))}
-                      />
-                    </div>
+                          {/* Continuation de la phrase si le type est sélectionné */}
+                          {completedFields.has('type') && formData.type && editingField !== 'type' && (
+                            <>
+                              <span> depuis </span>
+                              
+                              {/* Champ Départ */}
+                              {editingField === 'departure' ? (
+                                <motion.div 
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="inline-block w-full mt-2 mb-1"
+                                >
+                                  <CustomSelect
+                                    options={locations}
+                                    value={formData.departure}
+                                    onChange={(value) => handleFieldChange('departure', value)}
+                                    className="w-full"
+                                    showEmojis={false}
+                                    placeholder="sélectionnez le départ..."
+                                  />
+                                </motion.div>
+                              ) : completedFields.has('departure') && formData.departure && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditField('departure')}
+                                  className="inline-flex items-center gap-1 px-2 py-1 mx-0.5 my-0.5 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors"
+                                >
+                                  <span className="font-medium">{getOptionLabel(locations, formData.departure)}</span>
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
+                              )}
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span>avec un volume de</span>
-                      <CustomSelect
-                        options={volumes}
-                        value={formData.volumeMin.toString()}
-                        onChange={(value) => setFormData(prev => ({ ...prev, volumeMin: parseInt(value) }))}
-                      />
-                      <span>.</span>
-                    </div>
-                  </div>
+                              {/* Continuation si départ sélectionné */}
+                              {completedFields.has('departure') && formData.departure && editingField !== 'departure' && (
+                                <>
+                                  <span> vers </span>
+                                  
+                                  {/* Champ Destination */}
+                                  {editingField === 'destination' ? (
+                                    <motion.div 
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      className="inline-block w-full mt-2 mb-1"
+                                    >
+                                      <CustomSelect
+                                        options={locations}
+                                        value={formData.destination}
+                                        onChange={(value) => handleFieldChange('destination', value)}
+                                        className="w-full"
+                                        showEmojis={false}
+                                        placeholder="sélectionnez la destination..."
+                                      />
+                                    </motion.div>
+                                  ) : completedFields.has('destination') && formData.destination && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEditField('destination')}
+                                      className="inline-flex items-center gap-1 px-2 py-1 mx-0.5 my-0.5 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors"
+                                    >
+                                      <span className="font-medium">{getOptionLabel(locations, formData.destination)}</span>
+                                      <Edit2 className="w-3 h-3" />
+                                    </button>
+                                  )}
+
+                                  {/* Continuation si destination sélectionnée */}
+                                  {completedFields.has('destination') && formData.destination && editingField !== 'destination' && (
+                                    <>
+                                      <span> avec un volume minimum de </span>
+                                      
+                                      {/* Champ Volume */}
+                                      {editingField === 'volume' ? (
+                                        <motion.div 
+                                          initial={{ opacity: 0, y: 10 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          className="inline-block w-full mt-2 mb-1"
+                                        >
+                                          <CustomSelect
+                                            options={volumes}
+                                            value={formData.volumeMin.toString()}
+                                            onChange={(value) => handleFieldChange('volumeMin', parseInt(value))}
+                                            className="w-full"
+                                            showEmojis={false}
+                                            placeholder="sélectionnez le volume minimum..."
+                                          />
+                                        </motion.div>
+                                      ) : completedFields.has('volumeMin') && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleEditField('volume')}
+                                          className="inline-flex items-center gap-1 px-2 py-1 mx-0.5 my-0.5 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors"
+                                        >
+                                          <span className="font-medium">{getOptionLabel(volumes, formData.volumeMin.toString())}</span>
+                                          <Edit2 className="w-3 h-3" />
+                                        </button>
+                                      )}
+
+                                      {/* Point final si tout est complété */}
+                                      {completedFields.has('volumeMin') && editingField !== 'volume' && (
+                                        <span>.</span>
+                                      )}
+                                    </>
+                                  )}
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
-                      
-                {/* Email */}
-                      <div>
-                  <FloatingInput
-                    label="Votre email pour recevoir les alertes"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                    fixedLabel={true}
-                    placeholder="marie.payet@email.com"
-                  />
-                  
-                  {/* Info box déplacée */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mt-3">
-                    <div className="flex gap-2">
-                      <Bell className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-xs text-blue-800">
-                        <p>
-                          Vous recevrez un email dès qu'une nouvelle annonce correspond à vos critères. 
-                          Vous pourrez modifier ou supprimer cette alerte à tout moment directement depuis les emails reçus.
-                        </p>
-                      </div>
                     </div>
-                  </div>
-                  </div>
+                    
+                    {/* Email - affiché seulement si tous les champs principaux sont complétés */}
+                    {editingField === null && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-3"
+                      >
+                        <FloatingInput
+                          label="Votre email pour recevoir les alertes"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                          required
+                          fixedLabel={true}
+                          placeholder="marie.payet@email.com"
+                        />
+                        
+                        {/* Info box compacte */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                          <div className="flex gap-2">
+                            <Bell className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-xs text-blue-800">
+                              <p className="leading-relaxed">
+                                Vous recevrez un email dès qu'une nouvelle annonce correspond à vos critères. 
+                                Vous pourrez modifier ou supprimer cette alerte à tout moment directement depuis les emails reçus.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
 
-                {/* Actions */}
-                <div className="flex gap-4 pt-4">
-                  <Button
-                      type="button"
-                    variant="outline"
-                      onClick={resetAndClose}
-                    className="flex-1"
-                    >
-                      Annuler
-                  </Button>
-                  <Button
-                      type="submit"
-                    loading={isSubmitting}
-                    className="flex-1 bg-[#F47D6C] hover:bg-[#e05a48] text-white"
-                    disabled={!formData.email}
-                    >
-                    <Bell className="w-4 h-4 mr-2" />
-                    Créer l'alerte
-                  </Button>
-                  </div>
-                </form>
+                    {/* Actions - affichées seulement si email est saisi */}
+                    {editingField === null && formData.email && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col sm:flex-row gap-3 pt-2"
+                      >
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={resetAndClose}
+                          className="w-full sm:flex-1 order-2 sm:order-1"
+                        >
+                          Annuler
+                        </Button>
+                        <Button
+                          type="submit"
+                          loading={isSubmitting}
+                          className="w-full sm:flex-1 bg-[#F47D6C] hover:bg-[#e05a48] text-white order-1 sm:order-2"
+                          disabled={!formData.email}
+                        >
+                          <Bell className="w-4 h-4 mr-2" />
+                          Créer l'alerte
+                        </Button>
+                      </motion.div>
+                    )}
+                  </form>
+                </div>
               </>
             ) : (
-            /* Success State */
-            <div className="text-center p-8">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="w-10 h-10 text-green-600" />
-                  </div>
-              <h2 className="text-2xl font-bold text-blue-900 font-['Roboto_Slab'] mb-3">
-                Alerte créée avec succès ! 🎉
-                  </h2>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                    Vous recevrez un email dès qu'une nouvelle annonce correspondra à vos critères.
-                  </p>
-              
-              <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
-                <p className="font-medium text-gray-800 mb-2">
-                  Alerte configurée pour les personnes qui {formData.type === 'offer' ? 'proposent' : 'cherchent'} de la place
-                  {formData.departure && ` depuis ${locations.find(l => l.value === formData.departure)?.label}`}
-                  {formData.destination && ` vers ${locations.find(l => l.value === formData.destination)?.label}`}
-                  {formData.volumeMin > 1 && ` (${volumes.find(v => v.value === formData.volumeMin.toString())?.label})`}
-                </p>
-                <p className="text-sm text-gray-600">📧 Notifications envoyées à : {formData.email}</p>
-                  </div>
-
-              <Button
-                    onClick={resetAndClose}
-                className="w-full bg-[#F47D6C] hover:bg-[#e05a48] text-white"
-                  >
-                    Parfait !
-              </Button>
+              /* Success State optimisé mobile */
+              <div className="text-center p-6 md:p-8 flex-1 flex flex-col justify-center">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                  <Check className="w-8 h-8 md:w-10 md:h-10 text-green-600" />
                 </div>
+                <h2 className="text-xl md:text-2xl font-bold text-blue-900 font-['Roboto_Slab'] mb-3">
+                  Alerte créée avec succès ! 🎉
+                </h2>
+                <p className="text-gray-600 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
+                  Vous recevrez un email dès qu'une nouvelle annonce correspondra à vos critères.
+                </p>
+                
+                <div className="bg-gray-50 rounded-xl p-4 mb-4 md:mb-6 text-left">
+                  <p className="font-medium text-gray-800 mb-2 text-sm md:text-base">
+                    Alerte configurée pour les personnes qui {formData.type === 'offer' ? 'proposent' : 'cherchent'} de la place
+                    {formData.departure && ` depuis ${locations.find(l => l.value === formData.departure)?.label}`}
+                    {formData.destination && ` vers ${locations.find(l => l.value === formData.destination)?.label}`}
+                    {formData.volumeMin > 1 && ` (${volumes.find(v => v.value === formData.volumeMin.toString())?.label})`}
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-600">📧 Notifications envoyées à : {formData.email}</p>
+                </div>
+
+                <Button
+                  onClick={resetAndClose}
+                  className="w-full bg-[#F47D6C] hover:bg-[#e05a48] text-white"
+                >
+                  Parfait !
+                </Button>
+              </div>
             )}
-          </motion.div>
+          </div>
         </motion.div>
+      </motion.div>
     </AnimatePresence>
   );
 };
