@@ -447,28 +447,12 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
                             </div>
                           </div>
                         </div>
-                      </motion.div>
-                    )}
-
-                    {/* Actions - affichées seulement si email est saisi */}
-                    {editingField === null && formData.email && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col sm:flex-row gap-3 pt-2"
-                      >
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={resetAndClose}
-                          className="w-full sm:flex-1 order-2 sm:order-1"
-                        >
-                          Annuler
-                        </Button>
+                        
+                        {/* CTA affiché directement avec le champ email */}
                         <Button
                           type="submit"
                           loading={isSubmitting}
-                          className="w-full sm:flex-1 bg-[#F47D6C] hover:bg-[#e05a48] text-white order-1 sm:order-2"
+                          className="w-full bg-[#F47D6C] hover:bg-[#e05a48] text-white mt-4"
                           disabled={!formData.email}
                         >
                           <Bell className="w-4 h-4 mr-2" />
