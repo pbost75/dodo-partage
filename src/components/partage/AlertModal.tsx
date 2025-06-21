@@ -445,8 +445,9 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
                           loading={isSubmitting}
                           className="w-full bg-[#F47D6C] hover:bg-[#e05a48] text-white mt-4"
                           disabled={!formData.email}
+                          icon={<Bell className="w-4 h-4" />}
+                          iconPosition="left"
                         >
-                          <Bell className="w-4 h-4 mr-2" />
                           Créer l'alerte
                         </Button>
                       </motion.div>
