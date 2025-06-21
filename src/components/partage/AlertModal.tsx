@@ -217,17 +217,8 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
 
   if (!isOpen) return null;
 
-  // Calculer la hauteur nécessaire basée sur l'état actuel
-  const calculateModalHeight = () => {
-    const baseHeight = 500; // Hauteur de base plus généreuse
-    const dropdownSpace = editingField ? 300 : 0; // Espace pour dropdown si ouvert
-    const emailSpace = editingField === null ? 200 : 0; // Espace pour email si affiché
-    const actionsSpace = editingField === null && formData.email ? 100 : 0; // Espace pour boutons
-    
-    return baseHeight + dropdownSpace + emailSpace + actionsSpace;
-  };
-
-  const modalHeight = calculateModalHeight();
+  // Hauteur fixe optimisée pour tous les états
+  const modalHeight = 600; // Hauteur fixe réduite mais suffisante pour dropdowns + email + bouton
 
   return (
     <AnimatePresence>
