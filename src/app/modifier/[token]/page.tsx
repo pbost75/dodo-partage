@@ -328,7 +328,7 @@ export default function ModifyAnnouncementPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Informations de contact</h3>
-                <p className="text-sm text-gray-500">Prénom, email et téléphone</p>
+                <p className="text-sm text-gray-500">Prénom, email et téléphone (lecture seule)</p>
               </div>
             </div>
             <button
