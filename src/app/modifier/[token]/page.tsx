@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign } from 'lucide-react';
+import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VolumeSelector from '@/components/ui/VolumeSelector';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
 import { useToast } from '@/hooks/useToast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AnnouncementData {
   reference: string;
@@ -61,6 +62,9 @@ export default function ModifierAnnoncePage() {
     offerType: 'free' as 'free' | 'paid',
     announcementText: ''
   });
+
+  // Nouvel état pour la popup de confirmation
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Spécifications des conteneurs (repris du funnel)
   const containerSpecs = {
@@ -222,11 +226,8 @@ export default function ModifierAnnoncePage() {
       });
 
       if (response.ok) {
-        showSuccessToast('✅ Modifications sauvegardées avec succès !');
-        // Redirection vers la page d'accueil après succès
-        setTimeout(() => {
-          router.push('/?updated=true');
-        }, 1500);
+        // Afficher la popup de confirmation au lieu de rediriger
+        setShowSuccessModal(true);
       } else {
         throw new Error('Erreur de sauvegarde');
       }
@@ -237,6 +238,57 @@ export default function ModifierAnnoncePage() {
       setIsSaving(false);
     }
   };
+
+  // Composant popup de confirmation
+  const SuccessModal = () => (
+    <AnimatePresence>
+      {showSuccessModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="bg-white rounded-2xl p-8 max-w-md w-full text-center"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-6xl mb-4">✅</div>
+            <h3 className="text-2xl font-bold text-blue-900 font-['Roboto_Slab'] mb-3">
+              Annonce mise à jour !
+            </h3>
+            <p className="text-gray-700 mb-6">
+              Vos modifications ont été sauvegardées avec succès.
+            </p>
+            
+            {/* Boutons d'action */}
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="primary"
+                onClick={() => router.push(`/annonce/${announcement?.reference}`)}
+                icon={<Eye className="w-4 h-4" />}
+                iconPosition="left"
+                className="w-full bg-[#243163] hover:bg-[#1e2951]"
+              >
+                Voir mon annonce
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/')}
+                className="w-full"
+              >
+                Retour aux annonces
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   // Loading state
   if (loading) {
@@ -507,18 +559,20 @@ export default function ModifierAnnoncePage() {
               {isSaving ? (
                 <span className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Sauvegarde...
+                  Mise à jour...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <Save className="w-4 h-4" />
-                  Sauvegarder les modifications
+                  Mettre à jour l'annonce
                 </span>
               )}
             </Button>
           </div>
         </div>
       </div>
+
+      <SuccessModal />
     </div>
   );
 }
