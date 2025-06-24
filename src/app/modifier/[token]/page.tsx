@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VolumeSelector from '@/components/ui/VolumeSelector';
+import CustomDatePicker from '@/components/ui/CustomDatePicker';
 import { useToast } from '@/hooks/useToast';
 
 interface AnnouncementData {
@@ -354,16 +355,13 @@ export default function ModifierAnnoncePage() {
 
             {/* Date de transport */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                <Calendar className="w-4 h-4" />
-                Date de transport souhaitée
-              </label>
-              <input
-                type="date"
+              <CustomDatePicker
+                label="Date de transport souhaitée"
+                name="shippingDate"
                 value={formData.shippingDate}
                 onChange={(e) => setFormData(prev => ({ ...prev, shippingDate: e.target.value }))}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#243163] focus:border-transparent text-lg"
+                required
               />
             </div>
 
@@ -384,7 +382,7 @@ export default function ModifierAnnoncePage() {
               
               <div>
                 <VolumeSelector
-                  label="Volume minimum accepté (m³)"
+                  label="Volume mini accepté (m³)"
                   value={formData.minimumVolume}
                   onChange={handleMinimumVolumeChange}
                   min={0.1}
@@ -465,16 +463,24 @@ export default function ModifierAnnoncePage() {
                 <FileText className="w-4 h-4" />
                 Description de votre offre
               </label>
-              <textarea
-                value={formData.announcementText}
-                onChange={(e) => setFormData(prev => ({ ...prev, announcementText: e.target.value }))}
-                placeholder="Décrivez votre offre de partage..."
-                rows={4}
-                maxLength={1000}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#243163] focus:border-transparent resize-none text-lg"
-              />
-              <div className="text-right text-sm text-gray-500 mt-1">
-                {formData.announcementText.length}/1000 caractères
+              <div className="space-y-3">
+                <textarea
+                  value={formData.announcementText}
+                  onChange={(e) => setFormData(prev => ({ ...prev, announcementText: e.target.value }))}
+                  placeholder="Décrivez votre offre de partage..."
+                  className="w-full h-48 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 resize-none"
+                  maxLength={500}
+                />
+                
+                {/* Compteurs */}
+                <div className="flex justify-between text-sm">
+                  <span className={`${formData.announcementText.length >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+                    {formData.announcementText.length}/500 caractères {formData.announcementText.length < 50 && '(minimum 50)'}
+                  </span>
+                  <span className="text-gray-500">
+                    {formData.announcementText.split(/\s+/).filter(word => word.length > 0).length} mot{formData.announcementText.split(/\s+/).filter(word => word.length > 0).length !== 1 ? 's' : ''}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
