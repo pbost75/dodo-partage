@@ -45,9 +45,7 @@ export default function AnnouncementTextStep() {
     // Budget
     const budgetStr = budget?.acceptsFees === false
       ? 'Je cherche une place gratuite par entraide.'
-      : budget?.acceptsFees === true && budget?.maxBudget 
-        ? `Je peux participer aux frais (budget: environ ${budget.maxBudget}€).`
-        : 'Je peux participer aux frais (budget à discuter).';
+      : 'Je peux participer aux frais (budget à discuter).';
 
     // Templates de texte selon le budget
     const templates = {

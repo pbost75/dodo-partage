@@ -20,8 +20,17 @@ export default function ContactStep() {
 
   // Redirection si étapes précédentes incomplètes
   useEffect(() => {
-    if (!formData.volumeNeeded.budgetType || !formData.departure.country) {
+    // Vérifier que les étapes essentielles sont complètes
+    if (!formData.departure.country || !formData.arrival.country) {
+      router.push('/funnel/search/locations');
+      return;
+    }
+    if (formData.volumeNeeded.neededVolume <= 0) {
       router.push('/funnel/search/volume-needed');
+      return;
+    }
+    if (formData.budget.acceptsFees === null) {
+      router.push('/funnel/search/budget');
       return;
     }
   }, [formData, router]);
