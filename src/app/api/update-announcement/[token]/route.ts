@@ -80,20 +80,22 @@ export async function PUT(
     
     const currentData = currentResult.data;
     
-    // Merger seulement les champs modifiables avec les données actuelles
+    // Respecter l'API backend en envoyant tous les champs attendus
+    // mais en gardant les valeurs non-modifiables actuelles
     const mergedData = {
       contact: {
-        firstName: currentData.contact.firstName, // Garder le prénom actuel
-        email: currentData.contact.email, // Garder l'email actuel
-        phone: currentData.contact.phone || '' // Garder le téléphone actuel
+        firstName: currentData.contact.firstName, // Garder le prénom actuel (non modifiable)
+        email: currentData.contact.email, // Garder l'email actuel (non modifiable)
+        phone: currentData.contact.phone || '' // Garder le téléphone actuel (non modifiable)
+        // Volontairement PAS de lastName pour éviter l'erreur Airtable
       },
       departure: {
-        country: currentData.departure.country, // Garder le départ actuel
+        country: currentData.departure.country, // Garder le départ actuel (non modifiable)
         city: currentData.departure.city,
         postalCode: currentData.departure.postalCode || ''
       },
       arrival: {
-        country: currentData.arrival.country, // Garder l'arrivée actuelle
+        country: currentData.arrival.country, // Garder l'arrivée actuelle (non modifiable)
         city: currentData.arrival.city,
         postalCode: currentData.arrival.postalCode || ''
       },
