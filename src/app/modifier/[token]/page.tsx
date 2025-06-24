@@ -90,7 +90,7 @@ export default function ModifyAnnouncementPage() {
   const loadAnnouncementForEdit = async () => {
     try {
       // Appeler directement le backend centralisé pour récupérer l'annonce
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://dodomove-backend.up.railway.app';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://web-production-7b738.up.railway.app';
       const response = await fetch(`${backendUrl}/api/partage/edit-form/${token}`);
       
       if (!response.ok) {
