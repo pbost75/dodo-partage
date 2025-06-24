@@ -4,23 +4,27 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
-import EnhancedRadioGroup from '@/components/ui/EnhancedRadioGroup';
+import CardRadioGroup from '@/components/ui/CardRadioGroup';
 import FloatingInput from '@/components/ui/FloatingInput';
 import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
 
-// Options pour la participation aux frais
+// Options pour la participation aux frais - style CardRadioGroup
 const participationOptions = [
   {
     value: 'yes',
-    label: '✅ Oui',
-    subtitle: 'Je suis prêt à participer aux frais',
-    description: 'J\'accepte de contribuer si nécessaire'
+    label: 'Oui, je peux participer',
+    description: 'J\'accepte de contribuer aux frais partagés si nécessaire',
+    emoji: '💰',
+    iconBgColor: 'bg-green-50',
+    iconTextColor: 'text-green-500'
   },
   {
     value: 'no',
-    label: '🚫 Non',
-    subtitle: 'Je cherche uniquement du gratuit',
-    description: 'Seulement les offres sans frais'
+    label: 'Non, uniquement gratuit',
+    description: 'Je cherche seulement des offres sans participation financière',
+    emoji: '🆓',
+    iconBgColor: 'bg-orange-50',
+    iconTextColor: 'text-orange-500'
   }
 ];
 
@@ -108,15 +112,15 @@ export default function BudgetStep() {
       transition={{ duration: 0.5 }}
       className="max-w-3xl mx-auto"
     >
-      {/* TITRE - Style identique aux autres étapes */}
+      {/* TITRE CLARIFIÉ */}
       <h1 className="text-3xl font-bold mb-10 text-blue-900 font-['Roboto_Slab']">
-        💰 Êtes-vous prêt à participer aux frais si nécessaire ?
+        💰 Participation aux frais
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Question sur la participation */}
+        {/* Question sur la participation avec le nouveau style */}
         <div>
-          <EnhancedRadioGroup
+          <CardRadioGroup
             name="participation"
             options={participationOptions}
             value={acceptsFees === true ? 'yes' : acceptsFees === false ? 'no' : ''}
@@ -155,17 +159,17 @@ export default function BudgetStep() {
           <div className="flex items-start space-x-3">
             <div className="text-blue-600 mt-0.5">ℹ️</div>
             <div>
-              <h3 className="font-medium text-blue-900 mb-2">
+              <h3 className="font-medium text-blue-900 mb-2 font-['Roboto_Slab']">
                 Pourquoi cette question ?
               </h3>
               <div className="space-y-2 text-sm">
-                <p className="text-blue-700 leading-relaxed">
+                <p className="text-blue-700 leading-relaxed font-['Lato']">
                   • Les conteneurs ont des coûts (transport, manutention, stockage)
                 </p>
-                <p className="text-blue-700 leading-relaxed">
+                <p className="text-blue-700 leading-relaxed font-['Lato']">
                   • Participer aux frais augmente vos chances de trouver de la place
                 </p>
-                <p className="text-blue-700 leading-relaxed">
+                <p className="text-blue-700 leading-relaxed font-['Lato']">
                   • Les offres gratuites existent mais sont plus rares
                 </p>
               </div>

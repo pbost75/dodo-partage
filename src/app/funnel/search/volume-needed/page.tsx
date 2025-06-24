@@ -35,7 +35,7 @@ export default function VolumeNeededStep() {
       return 'Le volume doit être supérieur à 0';
     }
     if (volume > 50) {
-      return 'Le volume ne peut pas dépasser 50 m³ (limite d\'un conteneur 40 pieds)';
+      return 'Le volume ne peut pas dépasser 50 m³';
     }
     return '';
   };
@@ -122,19 +122,7 @@ export default function VolumeNeededStep() {
               error={errors.neededVolume}
             />
             
-            {/* Info sur les volumes */}
-            <div className="mt-4 text-sm text-gray-600 font-['Lato']">
-              <div className="flex flex-wrap gap-4">
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                  Conteneur 20 pieds : jusqu'à 25 m³
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  Conteneur 40 pieds : jusqu'à 50 m³
-                </span>
-              </div>
-            </div>
+
           </div>
 
           {/* Calculateur de volume intégré */}
