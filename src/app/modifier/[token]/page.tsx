@@ -189,18 +189,13 @@ export default function ModifyAnnouncementPage() {
     
     setIsSubmitting(true);
     try {
-      // Utiliser la nouvelle route qui contourne le backend problématique  
-      const response = await fetch(`/api/update-announcement-minimal/${token}`, {
+      // Utiliser la route backend classique (maintenant corrigée)
+      const response = await fetch(`/api/update-announcement/${token}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          shippingDate: formData.shippingDate,
-          container: {
-            availableVolume: formData.container.availableVolume,
-            minimumVolume: formData.container.minimumVolume
-          },
-          offerType: formData.offerType,
-          announcementText: formData.announcementText
+          ...formData,
+          updatedAt: new Date().toISOString()
         }),
       });
 
