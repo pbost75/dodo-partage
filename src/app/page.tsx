@@ -300,11 +300,16 @@ function HomePageContent() {
   };
 
   const handleChoice = (choice: 'cherche' | 'propose') => {
-    setIsChoiceModalOpen(false);
     if (choice === 'propose') {
-      router.push('/funnel/propose/locations');
+      // La modal se fermera via son propre état de navigation
+      // Délai pour coordonner avec l'animation du loader dans ChoiceModal
+      setTimeout(() => {
+        setIsChoiceModalOpen(false);
+        router.push('/funnel/propose/locations');
+      }, 400); // Légèrement plus long que le délai dans ChoiceModal
     } else {
       // TODO: Implémenter le funnel "cherche"
+      setIsChoiceModalOpen(false);
       console.log('Funnel "cherche" pas encore implémenté');
     }
   };
