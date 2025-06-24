@@ -286,7 +286,7 @@ export default function LocationsPage() {
           >
             {/* TITRE 2 - Style identique Dodomove mais adapté pour expédition */}
             <h1 className="text-3xl font-bold mb-10 text-blue-900 font-['Roboto_Slab']">
-              🏝️ Où voulez-vous envoyer vos affaires ?
+              🏝️ Vers quelle destination ?
             </h1>
 
             {/* Pays d'arrivée */}

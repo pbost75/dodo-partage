@@ -12,8 +12,9 @@ export interface LocationData {
 
 export interface ShippingPeriodData {
   period: 'flexible' | 'specific' | '';
-  preferredMonth?: string; // Pour période flexible
-  specificDate?: string;   // Pour date spécifique
+  preferredMonth?: string; // Pour période flexible (deprecated)
+  specificDate?: string;   // Pour date spécifique (deprecated)
+  selectedMonths?: string[]; // Nouvelle approche simplifiée
   urgency: 'urgent' | 'normal' | 'flexible' | '';
 }
 
@@ -94,8 +95,9 @@ const initialFormData: SearchFormData = {
     isComplete: false
   },
   shippingPeriod: {
-    period: '',
-    urgency: ''
+    period: 'flexible', // Toujours flexible maintenant
+    selectedMonths: [],
+    urgency: 'flexible' // Toujours flexible
   },
   volumeNeeded: {
     neededVolume: 0,
@@ -197,7 +199,7 @@ export const useSearchStore = create<SearchStore>()(
           case 1: // Locations
             return formData.departure.isComplete && formData.arrival.isComplete;
           case 2: // Période d'expédition
-            return Boolean(formData.shippingPeriod.period && formData.shippingPeriod.urgency);
+            return Boolean(formData.shippingPeriod.selectedMonths && formData.shippingPeriod.selectedMonths.length > 0);
           case 3: // Volume recherché
             return Boolean(formData.volumeNeeded.neededVolume > 0 && formData.volumeNeeded.budgetType);
           case 4: // Texte annonce

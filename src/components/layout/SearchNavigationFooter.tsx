@@ -130,11 +130,8 @@ export default function SearchNavigationFooter() {
                formData.arrival.isComplete === true && 
                !hasValidationErrors();
       case 'shipping-period':
-        return formData.shippingPeriod.period !== '' && 
-               (formData.shippingPeriod.period === 'flexible' ? 
-                 formData.shippingPeriod.preferredMonth !== '' : 
-                 !!formData.shippingPeriod.specificDate) &&
-               formData.shippingPeriod.urgency !== '';
+        return formData.shippingPeriod.selectedMonths && 
+               formData.shippingPeriod.selectedMonths.length > 0;
       case 'volume-needed':
         return formData.volumeNeeded.neededVolume > 0 && 
                formData.volumeNeeded.budgetType !== '';
