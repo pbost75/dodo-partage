@@ -20,7 +20,7 @@ export default function AnnouncementTextStep() {
     // Construire des noms explicites avec pays et ville
     const departureStr = departure?.country && departure?.city 
       ? `${departure.country} (${departure.city})`
-      : departure?.displayName || departure?.city || 'lieu de départ';
+      : departure?.displayName || departure?.city || 'lieu d\'expédition';
       
     const arrivalStr = arrival?.country && arrival?.city 
       ? `${arrival.country} (${arrival.city})`

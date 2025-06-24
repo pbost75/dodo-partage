@@ -164,7 +164,7 @@ export default function LocationsPage() {
       if (value && value === formData.departureCountry) {
         setErrors(prev => ({
           ...prev,
-          arrivalCountry: `${value} est votre pays de départ. Veuillez choisir une destination différente.`
+          arrivalCountry: `${value} est votre pays d'expédition. Veuillez choisir une destination différente.`
         }));
       } else {
         // Effacer l'erreur si le pays est valide
@@ -186,9 +186,9 @@ export default function LocationsPage() {
       if (value && value === formData.arrivalCountry) {
         setErrors(prev => ({
           ...prev,
-          arrivalCountry: `${formData.arrivalCountry} est maintenant votre pays de départ. Veuillez choisir une destination différente.`
+          arrivalCountry: `${formData.arrivalCountry} est maintenant votre pays d'expédition. Veuillez choisir une destination différente.`
         }));
-      } else if (formData.arrivalCountry && errors.arrivalCountry.includes('est votre pays de départ')) {
+      } else if (formData.arrivalCountry && errors.arrivalCountry.includes('est votre pays d\'expédition')) {
         // Effacer l'erreur d'arrivée si elle concernait le conflit de pays
         setErrors(prev => ({
           ...prev,
@@ -203,12 +203,12 @@ export default function LocationsPage() {
     // Vérification du pays identique (même logique que Dodomove)
     const sameCountryError = formData.arrivalCountry && formData.departureCountry && 
       formData.arrivalCountry === formData.departureCountry ? 
-      `${formData.arrivalCountry} est votre pays de départ. Veuillez choisir une destination différente.` : '';
+      `${formData.arrivalCountry} est votre pays d'expédition. Veuillez choisir une destination différente.` : '';
 
     const newErrors = {
-      departureCountry: !formData.departureCountry ? 'Le pays de départ est requis' : '',
-      departureCity: !formData.departureCity ? 'La ville de départ est requise' : '',
-      departurePostalCode: !formData.departurePostalCode ? 'Le code postal de départ est requis' : '',
+              departureCountry: !formData.departureCountry ? 'Le pays d\'expédition est requis' : '',
+        departureCity: !formData.departureCity ? 'La ville d\'expédition est requise' : '',
+        departurePostalCode: !formData.departurePostalCode ? 'Le code postal d\'expédition est requis' : '',
       arrivalCountry: !formData.arrivalCountry ? 'Le pays d\'arrivée est requis' : sameCountryError,
       arrivalCity: !formData.arrivalCity ? 'La ville d\'arrivée est requise' : '',
       arrivalPostalCode: !formData.arrivalPostalCode ? 'Le code postal d\'arrivée est requis' : '',
@@ -232,13 +232,13 @@ export default function LocationsPage() {
       transition={{ duration: 0.5 }}
       className="max-w-3xl mx-auto"
     >
-      {/* TITRE 1 - Style identique Dodomove mais adapté pour recherche */}
+      {/* TITRE 1 - Style identique Dodomove mais adapté pour expédition */}
       <h1 className="text-3xl font-bold mb-10 text-blue-900 font-['Roboto_Slab']">
-        🛫 D'où voulez-vous partir ?
+        📦 D'où voulez-vous expédier vos affaires ?
       </h1>
 
       <div className="space-y-6">
-        {/* Pays de départ */}
+        {/* Pays d'expédition */}
         <div>
           <FloatingSelect
             label="Pays"
@@ -251,7 +251,7 @@ export default function LocationsPage() {
           />
         </div>
 
-        {/* Ville et Code postal de départ - côte à côte */}
+        {/* Ville et Code postal d'expédition - côte à côte */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-12">
           <CityAutocomplete
             label="Ville"
@@ -284,9 +284,9 @@ export default function LocationsPage() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="mt-16"
           >
-            {/* TITRE 2 - Style identique Dodomove mais adapté pour recherche */}
+            {/* TITRE 2 - Style identique Dodomove mais adapté pour expédition */}
             <h1 className="text-3xl font-bold mb-10 text-blue-900 font-['Roboto_Slab']">
-              🏝️ Quelle est votre destination ?
+              🏝️ Où voulez-vous envoyer vos affaires ?
             </h1>
 
             {/* Pays d'arrivée */}

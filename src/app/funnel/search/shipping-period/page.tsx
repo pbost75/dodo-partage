@@ -31,13 +31,13 @@ const urgencyOptions = [
     value: 'urgent',
     label: '🔥 Urgent',
     subtitle: 'Dans les prochaines semaines',
-    description: 'Je dois partir rapidement'
+    description: 'Je dois expédier rapidement'
   },
   {
     value: 'normal',
     label: '📅 Normal',
     subtitle: 'Dans les prochains mois',
-    description: 'J\'ai une date à respecter'
+    description: 'J\'ai une date d\'expédition à respecter'
   },
   {
     value: 'flexible',
@@ -87,7 +87,7 @@ export default function ShippingPeriodStep() {
       value: 'specific',
       label: '🎯 Date précise',
       subtitle: 'Une date exacte',
-      description: 'J\'ai une date de départ fixe'
+      description: 'J\'ai une date d\'expédition fixe'
     }
   ];
 
@@ -160,7 +160,7 @@ export default function ShippingPeriodStep() {
     >
       {/* TITRE - Style identique aux autres étapes */}
       <h1 className="text-3xl font-bold mb-10 text-blue-900 font-['Roboto_Slab']">
-        ⏰ Quand souhaitez-vous partir ?
+        ⏰ Quand voulez-vous expédier vos affaires ?
       </h1>
 
       <div className="space-y-8">
@@ -202,7 +202,7 @@ export default function ShippingPeriodStep() {
             transition={{ duration: 0.3 }}
           >
             <CustomDatePicker
-              label="Date de départ souhaitée"
+              label="Date d'expédition souhaitée"
               name="specificDate"
               value={specificDate}
               onChange={handleDateChange}
