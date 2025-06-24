@@ -89,15 +89,23 @@ export default function ModifyAnnouncementPage() {
 
   const loadAnnouncementForEdit = async () => {
     try {
-      const response = await fetch(`/api/get-announcements?editToken=${token}`);
-      if (!response.ok) throw new Error('Annonce non trouvée');
+      // Appeler directement le backend centralisé pour récupérer l'annonce
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://dodomove-backend.up.railway.app';
+      const response = await fetch(`${backendUrl}/api/partage/edit-form/${token}`);
       
-      const data = await response.json();
-      if (!data.success || !data.announcements || data.announcements.length === 0) {
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Annonce non trouvée');
+        }
+        throw new Error('Erreur lors du chargement');
+      }
+      
+      const result = await response.json();
+      if (!result.success || !result.data) {
         throw new Error('Annonce non trouvée');
       }
       
-      const announcementData = data.announcements[0];
+      const announcementData = result.data;
       setAnnouncement(announcementData);
       setFormData(announcementData);
       setOriginalData(JSON.parse(JSON.stringify(announcementData)));

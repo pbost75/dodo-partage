@@ -68,15 +68,18 @@ export async function PUT(
     console.log('📤 Envoi vers le backend centralisé...');
 
     // Appel au backend centralisé pour la mise à jour
-    const response = await fetch(`${backendUrl}/api/partage/update-announcement/${token}`, {
-      method: 'PUT',
+    const response = await fetch(`${backendUrl}/api/partage/update-announcement`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        ...data,
-        source: 'dodo-partage-frontend',
-        timestamp: new Date().toISOString()
+        editToken: token,
+        data: {
+          ...data,
+          source: 'dodo-partage-frontend',
+          timestamp: new Date().toISOString()
+        }
       }),
     });
 
