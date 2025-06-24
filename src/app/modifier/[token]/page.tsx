@@ -365,11 +365,11 @@ export default function ModifierAnnoncePage() {
               />
             </div>
 
-                        {/* Volumes */}
+            {/* Volumes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <VolumeSelector
-                  label="Volume disponible (m³)"
+                  label="Volume dispo (m³)"
                   value={formData.availableVolume}
                   onChange={handleAvailableVolumeChange}
                   min={0.5}
@@ -382,7 +382,7 @@ export default function ModifierAnnoncePage() {
               
               <div>
                 <VolumeSelector
-                  label="Volume mini accepté (m³)"
+                  label="Volume mini (m³)"
                   value={formData.minimumVolume}
                   onChange={handleMinimumVolumeChange}
                   min={0.1}
@@ -435,8 +435,8 @@ export default function ModifierAnnoncePage() {
                     className="mr-3"
                   />
                   <div>
-                    <div className="font-medium">Gratuit</div>
-                    <div className="text-sm text-gray-500">Partage solidaire</div>
+                    <div className="font-semibold text-gray-900">Gratuit</div>
+                    <div className="text-sm text-gray-600">Partage solidaire</div>
                   </div>
                 </label>
                 
@@ -450,8 +450,8 @@ export default function ModifierAnnoncePage() {
                     className="mr-3"
                   />
                   <div>
-                    <div className="font-medium">Participation</div>
-                    <div className="text-sm text-gray-500">Avec participation aux frais</div>
+                    <div className="font-semibold text-gray-900">Participation</div>
+                    <div className="text-sm text-gray-600">Avec participation aux frais</div>
                   </div>
                 </label>
               </div>
