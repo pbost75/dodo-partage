@@ -189,7 +189,7 @@ export default function ModifyAnnouncementPage() {
     
     setIsSubmitting(true);
     try {
-      // Utiliser la nouvelle route directe qui évite les problèmes backend
+      // Utiliser la nouvelle route qui contourne le backend problématique  
       const response = await fetch(`/api/update-announcement-minimal/${token}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
