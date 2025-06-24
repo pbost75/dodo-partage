@@ -67,6 +67,49 @@ export async function PUT(
 
     console.log('📤 Envoi vers le backend centralisé...');
 
+    // D'abord récupérer les données actuelles
+    const getCurrentResponse = await fetch(`${backendUrl}/api/partage/edit-form/${token}`);
+    if (!getCurrentResponse.ok) {
+      throw new Error('Impossible de récupérer les données actuelles');
+    }
+    
+    const currentResult = await getCurrentResponse.json();
+    if (!currentResult.success || !currentResult.data) {
+      throw new Error('Données actuelles introuvables');
+    }
+    
+    const currentData = currentResult.data;
+    
+    // Merger seulement les champs modifiables avec les données actuelles
+    const mergedData = {
+      contact: {
+        firstName: currentData.contact.firstName, // Garder le prénom actuel
+        email: currentData.contact.email, // Garder l'email actuel
+        phone: currentData.contact.phone || '' // Garder le téléphone actuel
+      },
+      departure: {
+        country: currentData.departure.country, // Garder le départ actuel
+        city: currentData.departure.city,
+        postalCode: currentData.departure.postalCode || ''
+      },
+      arrival: {
+        country: currentData.arrival.country, // Garder l'arrivée actuelle
+        city: currentData.arrival.city,
+        postalCode: currentData.arrival.postalCode || ''
+      },
+      // Champs modifiables - utiliser les nouvelles valeurs
+      shippingDate: data.shippingDate,
+      container: {
+        type: currentData.container.type, // Garder le type de conteneur actuel
+        availableVolume: data.container.availableVolume,
+        minimumVolume: data.container.minimumVolume
+      },
+      offerType: data.offerType,
+      announcementText: data.announcementText,
+      source: 'dodo-partage-frontend',
+      timestamp: new Date().toISOString()
+    };
+
     // Appel au backend centralisé pour la mise à jour
     const response = await fetch(`${backendUrl}/api/partage/update-announcement`, {
       method: 'POST',
@@ -75,11 +118,7 @@ export async function PUT(
       },
       body: JSON.stringify({
         editToken: token,
-        data: {
-          ...data,
-          source: 'dodo-partage-frontend',
-          timestamp: new Date().toISOString()
-        }
+        data: mergedData
       }),
     });
 
