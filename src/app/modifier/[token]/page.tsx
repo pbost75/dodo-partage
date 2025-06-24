@@ -98,18 +98,32 @@ export default function ModifierAnnoncePage() {
           throw new Error('Annonce introuvable');
         }
         
-        const data = await response.json();
-        setAnnouncement(data);
+        const result = await response.json();
+        console.log('📥 Données reçues du backend:', result);
         
-        // Initialiser les données du formulaire
+        // Vérifier la structure de la réponse
+        if (!result.success || !result.data) {
+          throw new Error('Format de réponse invalide');
+        }
+        
+        const announcementData = result.data;
+        setAnnouncement(announcementData);
+        
+        // Vérifier que toutes les propriétés nécessaires existent
+        if (!announcementData.container) {
+          throw new Error('Données de conteneur manquantes');
+        }
+        
+        // Initialiser les données du formulaire avec vérifications
         const initialFormData = {
-          shippingDate: data.shippingDate,
-          availableVolume: data.container.availableVolume,
-          minimumVolume: data.container.minimumVolume,
-          offerType: data.offerType,
-          announcementText: data.announcementText
+          shippingDate: announcementData.shippingDate || '',
+          availableVolume: announcementData.container?.availableVolume || 0,
+          minimumVolume: announcementData.container?.minimumVolume || 0,
+          offerType: announcementData.offerType || 'free',
+          announcementText: announcementData.announcementText || ''
         };
         
+        console.log('📝 Données du formulaire initialisées:', initialFormData);
         setFormData(initialFormData);
         setOriginalData({ ...initialFormData });
         
@@ -499,7 +513,7 @@ export default function ModifierAnnoncePage() {
                     value={formData.availableVolume}
                     onChange={handleVolumeAvailableChange}
                     min={0.5}
-                    max={announcement.container.type === '20' ? 25 : 50}
+                    max={announcement?.container?.type === '20' ? 25 : 50}
                     step={0.5}
                     unit="m³"
                   />
