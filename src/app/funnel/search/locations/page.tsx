@@ -8,6 +8,7 @@ import FloatingSelect from '@/components/ui/FloatingSelect';
 import CityAutocomplete from '@/components/ui/CityAutocomplete';
 import PostalCodeAutocomplete from '@/components/ui/PostalCodeAutocomplete';
 import { CitySuggestion, getPostalCodeByCity, getCityByPostalCode } from '@/utils/cityAutocomplete';
+import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
 
 // Options des pays identiques à Dodomove
 const countryOptions = [
@@ -217,15 +218,11 @@ export default function LocationsPage() {
     return !Object.values(newErrors).some(error => error);
   };
 
-  // Soumettre le formulaire
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      // Les données sont déjà mises à jour via useEffect
-      // On peut directement naviguer vers l'étape suivante
-      router.push('/funnel/search/shipping-period');
-    }
+  // Validation du formulaire pour le NavigationFooter
+  const isFormValid = () => {
+    return formData.departureCity !== '' && 
+           formData.arrivalCity !== '' && 
+           formData.departureCountry !== formData.arrivalCountry;
   };
 
   return (
@@ -240,7 +237,7 @@ export default function LocationsPage() {
         🛫 D'où voulez-vous partir ?
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-6">
         {/* Pays de départ */}
         <div>
           <FloatingSelect
@@ -330,7 +327,10 @@ export default function LocationsPage() {
             </div>
           </motion.div>
         )}
-      </form>
+      </div>
+      
+      {/* Navigation Footer */}
+      <SearchNavigationFooter />
     </motion.div>
   );
 } 

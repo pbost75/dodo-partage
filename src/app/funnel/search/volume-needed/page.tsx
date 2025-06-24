@@ -7,6 +7,7 @@ import { useSearchStore } from '@/store/searchStore';
 import VolumeSelector from '@/components/ui/VolumeSelector';
 import EnhancedRadioGroup from '@/components/ui/EnhancedRadioGroup';
 import FloatingInput from '@/components/ui/FloatingInput';
+import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
 
 // Options pour le type de budget
 const budgetTypeOptions = [
@@ -213,6 +214,9 @@ export default function VolumeNeededStep() {
           </div>
         </div>
       </form>
+      
+      {/* Navigation Footer */}
+      <SearchNavigationFooter />
     </motion.div>
   );
 } 

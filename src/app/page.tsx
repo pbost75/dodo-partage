@@ -308,9 +308,11 @@ function HomePageContent() {
         router.push('/funnel/propose/locations');
       }, 400); // Légèrement plus long que le délai dans ChoiceModal
     } else {
-      // TODO: Implémenter le funnel "cherche"
-      setIsChoiceModalOpen(false);
-      console.log('Funnel "cherche" pas encore implémenté');
+      // Redirection vers le funnel search
+      setTimeout(() => {
+        setIsChoiceModalOpen(false);
+        router.push('/funnel/search/locations');
+      }, 400); // Même délai que pour propose
     }
   };
 

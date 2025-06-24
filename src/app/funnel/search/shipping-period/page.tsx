@@ -7,6 +7,7 @@ import { useSearchStore } from '@/store/searchStore';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
 import EnhancedRadioGroup from '@/components/ui/EnhancedRadioGroup';
 import FloatingSelect from '@/components/ui/FloatingSelect';
+import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
 
 // Options pour les mois
 const monthOptions = [
@@ -113,13 +114,11 @@ export default function ShippingPeriodStep() {
     });
   }, [period, preferredMonth, specificDate, urgency, setShippingPeriod]);
 
-  // Gestion de la soumission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (validateForm()) {
-      router.push('/funnel/search/volume-needed');
-    }
+  // Validation du formulaire
+  const isFormValid = () => {
+    return period !== '' && 
+           (period === 'flexible' ? preferredMonth !== '' : !!specificDate) &&
+           urgency !== '';
   };
 
   // Gestion du changement de période
@@ -164,7 +163,7 @@ export default function ShippingPeriodStep() {
         ⏰ Quand souhaitez-vous partir ?
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="space-y-8">
         {/* Type de période */}
         <div>
           <EnhancedRadioGroup
@@ -242,7 +241,10 @@ export default function ShippingPeriodStep() {
             </div>
           </div>
         </div>
-      </form>
+      </div>
+      
+      {/* Navigation Footer */}
+      <SearchNavigationFooter />
     </motion.div>
   );
 } 
