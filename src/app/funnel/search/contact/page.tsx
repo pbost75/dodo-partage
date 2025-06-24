@@ -7,7 +7,7 @@ import { Shield } from 'lucide-react';
 import { useSearchStore } from '@/store/searchStore';
 import FloatingInput from '@/components/ui/FloatingInput';
 import PhoneInput from '@/components/ui/PhoneInput';
-import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
+
 
 export default function ContactStep() {
   const router = useRouter();
@@ -158,9 +158,7 @@ export default function ContactStep() {
           )}
         </div>
       </motion.div>
-      
-      {/* Navigation Footer */}
-      <SearchNavigationFooter />
+
     </div>
   );
 } 

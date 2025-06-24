@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import HelpBlock from '@/components/ui/HelpBlock';
-import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
+
 
 export default function AnnouncementTextStep() {
   const router = useRouter();
@@ -174,9 +174,7 @@ N'hésitez pas à me contacter pour qu'on s'arrange !`
           </div>
         </div>
       </motion.div>
-      
-      {/* Navigation Footer */}
-      <SearchNavigationFooter />
+
     </div>
   );
 } 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import VolumeSelector from '@/components/ui/VolumeSelector';
-import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
+
 import { VolumeCalculatorModal } from '@/components/ui/VolumeCalculatorModal';
 import { Calculator, ArrowRight, Check } from 'lucide-react';
 
@@ -203,8 +203,7 @@ export default function VolumeNeededStep() {
           </div>
         </form>
 
-        {/* Footer de navigation */}
-        <SearchNavigationFooter />
+
       </motion.div>
 
       {/* Modal du calculateur de volume */}

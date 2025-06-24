@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import CardRadioGroup from '@/components/ui/CardRadioGroup';
-import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
+
 
 // Options pour la participation aux frais - style CardRadioGroup
 const participationOptions = [
@@ -126,7 +126,7 @@ export default function BudgetStep() {
       </form>
 
       {/* Footer de navigation */}
-      <SearchNavigationFooter />
+
     </motion.div>
   );
 } 

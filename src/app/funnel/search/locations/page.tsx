@@ -8,7 +8,7 @@ import FloatingSelect from '@/components/ui/FloatingSelect';
 import CityAutocomplete from '@/components/ui/CityAutocomplete';
 import PostalCodeAutocomplete from '@/components/ui/PostalCodeAutocomplete';
 import { CitySuggestion, getPostalCodeByCity, getCityByPostalCode } from '@/utils/cityAutocomplete';
-import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
+
 
 // Options des pays identiques à Dodomove
 const countryOptions = [
@@ -330,7 +330,7 @@ export default function LocationsPage() {
       </div>
       
       {/* Navigation Footer */}
-      <SearchNavigationFooter />
+      
     </motion.div>
   );
 } 

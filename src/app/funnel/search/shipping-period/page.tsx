@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
+
 
 export default function ShippingPeriodStep() {
   const router = useRouter();
@@ -386,7 +386,7 @@ export default function ShippingPeriodStep() {
       </div>
       
       {/* Navigation Footer */}
-      <SearchNavigationFooter />
+      
     </motion.div>
   );
 } 
