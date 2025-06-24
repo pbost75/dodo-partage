@@ -26,8 +26,16 @@ export default function VolumeNeededStep() {
     neededVolume: ''
   });
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const [calculatorItems, setCalculatorItems] = useState<CalculatorItem[]>([]);
-  const [usedCalculator, setUsedCalculator] = useState(false);
+  const [calculatorItems, setCalculatorItems] = useState<CalculatorItem[]>(() => {
+    try {
+      return formData.volumeNeeded.listingItems ? JSON.parse(formData.volumeNeeded.listingItems) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [usedCalculator, setUsedCalculator] = useState(formData.volumeNeeded.usedCalculator || false);
+  const [listingItems, setListingItems] = useState<string>(formData.volumeNeeded.listingItems || '');
+  const [volumeDescription, setVolumeDescription] = useState<string>(formData.volumeNeeded.volumeDescription || '');
 
   // Validation du volume
   const validateVolume = (volume: number) => {
@@ -43,9 +51,12 @@ export default function VolumeNeededStep() {
   // Mettre à jour le store quand les données changent
   useEffect(() => {
     setVolumeNeeded({
-      neededVolume
+      neededVolume,
+      usedCalculator,
+      listingItems: listingItems || undefined,
+      volumeDescription: volumeDescription || undefined
     });
-  }, [neededVolume, setVolumeNeeded]);
+  }, [neededVolume, usedCalculator, listingItems, volumeDescription, setVolumeNeeded]);
 
   // Gestion du changement de volume
   const handleVolumeChange = (volume: number) => {
@@ -61,16 +72,31 @@ export default function VolumeNeededStep() {
   };
 
   // Gestion de la sauvegarde depuis le calculateur
-  const handleCalculatorSave = (data: { volume: number; items: CalculatorItem[] }) => {
+  const handleCalculatorSave = (data: { 
+    description: string; 
+    volume: number; 
+    listingItems: string; 
+    usedCalculator: boolean; 
+  }) => {
     console.log('💾 Données reçues du calculateur:', data);
     
     // Mettre à jour le volume avec la valeur calculée
     const roundedVolume = Math.round(data.volume * 10) / 10;
     setNeededVolume(roundedVolume);
     
-    // Sauvegarder les items pour référence
-    setCalculatorItems(data.items);
-    setUsedCalculator(true);
+    // Sauvegarder les données du calculateur
+    setListingItems(data.listingItems);
+    setVolumeDescription(data.description);
+    setUsedCalculator(data.usedCalculator);
+    
+    // Parser les items pour l'affichage
+    try {
+      const items = JSON.parse(data.listingItems);
+      setCalculatorItems(items);
+    } catch (error) {
+      console.warn('⚠️ Erreur lors du parsing des items:', error);
+      setCalculatorItems([]);
+    }
     
     // Valider le nouveau volume
     const error = validateVolume(roundedVolume);
@@ -211,7 +237,7 @@ export default function VolumeNeededStep() {
         isOpen={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}
         onSave={handleCalculatorSave}
-        existingItems={calculatorItems}
+        existingListingItems={usedCalculator ? listingItems : undefined}
         existingVolume={usedCalculator ? neededVolume : undefined}
       />
     </>

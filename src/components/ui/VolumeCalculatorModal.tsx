@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import { FaCalculator, FaTimes, FaSpinner, FaCheck } from 'react-icons/fa';
+import { FaCalculator, FaTimes, FaCheck, FaSpinner } from 'react-icons/fa';
 
 interface CalculatorItem {
   id: string;
@@ -17,8 +19,13 @@ interface CalculatorData {
 interface VolumeCalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { volume: number; items: CalculatorItem[] }) => void;
-  existingItems?: CalculatorItem[];
+  onSave: (data: {
+    description: string;
+    volume: number;
+    listingItems: string;
+    usedCalculator: boolean;
+  }) => void;
+  existingListingItems?: string;
   existingVolume?: number;
 }
 
@@ -26,68 +33,59 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  existingItems,
+  existingListingItems,
   existingVolume
 }) => {
-  const [calculatorData, setCalculatorData] = useState<CalculatorData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasData, setHasData] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // S'assurer que le composant est monté côté client
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   // Configuration de l'URL du calculateur avec support des données existantes
   const buildCalculatorUrl = () => {
-    if (!isMounted) return '';
-    
-    // Utiliser la même URL que DodoMove funnel qui fonctionne
     let url = process.env.NEXT_PUBLIC_CALCULATOR_URL || 'https://calculateur-volume.dodomove.fr';
-      
     const params = new URLSearchParams();
     
     // Mode embedded
     params.append('embedded', 'true');
     
     // Si on a des données existantes, les passer en paramètres
-    if (existingItems && existingItems.length > 0) {
+    if (existingListingItems) {
       try {
         // Encoder les données existantes pour les passer dans l'URL
-        const encodedItems = encodeURIComponent(JSON.stringify(existingItems));
+        const encodedItems = encodeURIComponent(existingListingItems);
         params.append('items', encodedItems);
-        console.log('📤 Transmission des données existantes au calculateur:', existingItems);
+        console.log('📤 Transmission des données existantes au calculateur:', existingListingItems);
       } catch (error) {
         console.warn('⚠️ Erreur lors de l\'encodage des données existantes:', error);
       }
     }
     
-    const finalUrl = `${url}?${params.toString()}`;
-    console.log('🔗 URL du calculateur:', finalUrl);
-    return finalUrl;
+    return `${url}?${params.toString()}`;
   };
+  
+  const CALCULATOR_URL = buildCalculatorUrl();
+  
+  const [calculatorData, setCalculatorData] = useState<CalculatorData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasData, setHasData] = useState(false);
 
   // Initialiser les données existantes si disponibles
   useEffect(() => {
-    if (!isMounted) return;
-    
-    if (existingItems && existingItems.length > 0 && existingVolume) {
-      setCalculatorData({
-        items: existingItems,
-        totalVolume: existingVolume
-      });
-      setHasData(true);
-      console.log('📊 Données existantes chargées:', { items: existingItems, totalVolume: existingVolume });
+    if (existingListingItems && existingVolume) {
+      try {
+        const items = JSON.parse(existingListingItems);
+        setCalculatorData({
+          items,
+          totalVolume: existingVolume
+        });
+        setHasData(true);
+        console.log('📊 Données existantes chargées:', { items, totalVolume: existingVolume });
+      } catch (error) {
+        console.warn('⚠️ Erreur lors du parsing des données existantes:', error);
+      }
     }
-  }, [existingItems, existingVolume, isMounted]);
+  }, [existingListingItems, existingVolume]);
 
-  // Gestion des messages depuis l'iframe du calculateur
+  // Écouter les messages du calculateur
   useEffect(() => {
-    if (!isMounted) return;
-    
     const handleMessage = (event: MessageEvent) => {
-      // Liste des domaines autorisés pour le calculateur (même config que DodoMove)
+      // Liste des domaines autorisés pour le calculateur
       const allowedOrigins = [
         'https://calculateur-volume.dodomove.fr',
         'https://pbost75.github.io',
@@ -95,6 +93,7 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
         'http://localhost:3000'  // Alternative pour le développement
       ];
       
+      // Sécurité : vérifier l'origine du message
       if (!allowedOrigins.includes(event.origin)) {
         console.warn('⚠️ Message reçu d\'une origine non autorisée:', event.origin);
         return;
@@ -107,17 +106,22 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
         console.log('✅ Calculateur chargé et prêt');
         
         // Envoyer les données existantes au calculateur s'il y en a
-        if (existingItems && existingItems.length > 0 && existingVolume) {
-          const iframe = document.querySelector('iframe[title="Calculateur de volume de déménagement"]') as HTMLIFrameElement;
-          if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage({
-              type: 'LOAD_EXISTING_DATA',
-              payload: {
-                items: existingItems,
-                totalVolume: existingVolume
-              }
-            }, event.origin);
-            console.log('📤 Données existantes envoyées au calculateur');
+        if (existingListingItems && existingVolume) {
+          try {
+            const items = JSON.parse(existingListingItems);
+            const iframe = document.querySelector('iframe[title="Calculateur de volume de déménagement"]') as HTMLIFrameElement;
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage({
+                type: 'LOAD_EXISTING_DATA',
+                payload: {
+                  items,
+                  totalVolume: existingVolume
+                }
+              }, event.origin);
+              console.log('📤 Données existantes envoyées au calculateur');
+            }
+          } catch (error) {
+            console.warn('⚠️ Erreur lors de l\'envoi des données existantes:', error);
           }
         }
       }
@@ -134,7 +138,7 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
         console.log('🔄 Calculateur réinitialisé');
       }
       
-      // Nouveau : gestion du message de sauvegarde automatique
+      // Nouveau : gestion du message de sauvegarde
       if (event.data.type === 'CALCULATOR_SAVE' && event.data.payload) {
         console.log('💾 Demande de sauvegarde reçue:', event.data.payload);
         handleSave(event.data.payload);
@@ -143,33 +147,37 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
 
     if (isOpen) {
       window.addEventListener('message', handleMessage);
-      
-      // Signaler au calculateur qu'on est en mode modal
-      setTimeout(() => {
-        const iframe = document.querySelector('iframe[title="Calculateur de volume de déménagement"]') as HTMLIFrameElement;
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({
-            type: 'MODAL_MODE',
-            payload: { modalMode: true }
-          }, '*');
-        }
-      }, 1000);
-      
-      return () => {
-        window.removeEventListener('message', handleMessage);
-      };
     }
-  }, [isOpen, existingItems, existingVolume, isMounted]);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [isOpen, existingListingItems, existingVolume]);
   
   // Fonction pour sauvegarder les données du calculateur
   const handleSave = (data: CalculatorData) => {
     try {
-      console.log('💾 Sauvegarde des données calculateur:', data);
+      // Créer la description formatée pour le funnel
+      const description = data.items
+        .map(item => `${item.name} (${item.quantity}x - ${(item.volume * item.quantity).toFixed(1)}m³)`)
+        .join('\n');
+      
+      // Créer la liste JSON pour le backend
+      const listingItems = JSON.stringify(data.items);
+      
+      console.log('💾 Sauvegarde des données calculateur:', {
+        description,
+        volume: data.totalVolume,
+        listingItems,
+        usedCalculator: true
+      });
       
       // Appeler le callback de sauvegarde
       onSave({
+        description,
         volume: data.totalVolume,
-        items: data.items
+        listingItems,
+        usedCalculator: true
       });
       
       // Fermer la modal
@@ -188,27 +196,7 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
     onClose();
   };
 
-  // Empêcher le scroll du body quand la modal est ouverte (seulement côté client)
-  useEffect(() => {
-    if (!isMounted || typeof document === 'undefined') return;
-    
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    
-    return () => {
-      if (typeof document !== 'undefined') {
-        document.body.style.overflow = 'unset';
-      }
-    };
-  }, [isOpen, isMounted]);
-
-  // Ne pas rendre côté serveur ou si pas encore monté
-  if (!isMounted || !isOpen) return null;
-
-  const CALCULATOR_URL = buildCalculatorUrl();
+  if (!isOpen) return null;
 
   return (
     <div 
@@ -227,12 +215,12 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
           <div className="flex items-center">
             <FaCalculator className="text-blue-600 mr-3 text-xl" />
-            <h2 className="text-lg md:text-xl font-semibold text-gray-900 font-['Roboto_Slab']">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900">
               Calculateur de volume
             </h2>
           </div>
           <button
-            onClick={handleClose}
+            onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Fermer le calculateur"
           >
@@ -242,50 +230,25 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
 
         {/* Contenu de l'iframe */}
         <div className="flex-1 relative bg-gray-50 overflow-hidden">
-          {CALCULATOR_URL && (
-            <iframe
-              src={CALCULATOR_URL}
-              className="w-full h-full border-0"
-              title="Calculateur de volume de déménagement"
-              allow="clipboard-write"
-            />
-          )}
+          <iframe
+            src={CALCULATOR_URL}
+            className="w-full h-full border-0"
+            title="Calculateur de volume de déménagement"
+            allow="clipboard-write"
+          />
           
           {/* Overlay de chargement */}
           {isLoading && (
             <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
               <div className="flex items-center space-x-3">
                 <FaSpinner className="animate-spin text-blue-600 text-xl" />
-                <span className="text-gray-700 font-['Lato']">Chargement du calculateur...</span>
-              </div>
-            </div>
-          )}
-          
-          {/* Message d'erreur si échec du chargement */}
-          {!isLoading && !calculatorData && (
-            <div className="absolute inset-0 bg-white flex items-center justify-center p-8">
-              <div className="text-center">
-                <div className="text-gray-500 mb-4">
-                  <FaCalculator className="text-4xl mx-auto mb-2" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 font-['Roboto_Slab']">
-                  Calculateur temporairement indisponible
-                </h3>
-                <p className="text-gray-600 mb-4 font-['Lato']">
-                  Vous pouvez estimer votre volume manuellement en attendant.
-                </p>
-                <button
-                  onClick={handleClose}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-['Lato']"
-                >
-                  Fermer
-                </button>
+                <span className="text-gray-700">Chargement du calculateur...</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Bandeau fixe en bas */}
+        {/* Bandeau fixe en bas - style Dodomove */}
         <div className="bg-white border-t border-gray-200 p-3 md:p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             {/* Volume total */}
@@ -294,17 +257,17 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
                 <div className="flex items-center">
                   <FaCalculator className="text-blue-600 mr-2 text-sm" />
                   <div>
-                    <div className="text-base md:text-lg font-bold text-blue-800 font-['Lato']">
-                      {calculatorData ? `${Math.round(calculatorData.totalVolume * 10) / 10} m³` : '0.0 m³'}
+                    <div className="text-base md:text-lg font-bold text-blue-800">
+                      {calculatorData ? `${calculatorData.totalVolume.toFixed(1)} m³` : '0.0 m³'}
                     </div>
-                    <div className="text-xs text-blue-600 font-['Lato']">Volume total</div>
+                    <div className="text-xs text-blue-600">Volume total</div>
                   </div>
                 </div>
               </div>
               
               {/* Compteur d'objets */}
               {calculatorData && calculatorData.items.length > 0 && (
-                <div className="text-sm text-gray-600 font-['Lato']">
+                <div className="text-sm text-gray-600">
                   {calculatorData.items.length} objet{calculatorData.items.length > 1 ? 's' : ''} sélectionné{calculatorData.items.length > 1 ? 's' : ''}
                 </div>
               )}
@@ -318,9 +281,9 @@ export const VolumeCalculatorModal: React.FC<VolumeCalculatorModalProps> = ({
                 }
               }}
               disabled={!calculatorData || calculatorData.totalVolume === 0}
-              className={`w-full sm:w-auto px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm md:text-base font-['Lato'] ${
+              className={`w-full sm:w-auto px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm md:text-base ${
                 calculatorData && calculatorData.totalVolume > 0
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >

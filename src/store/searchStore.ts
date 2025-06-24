@@ -20,6 +20,9 @@ export interface ShippingPeriodData {
 
 export interface VolumeNeededData {
   neededVolume: number;
+  usedCalculator?: boolean;
+  listingItems?: string;
+  volumeDescription?: string;
 }
 
 export interface BudgetData {
