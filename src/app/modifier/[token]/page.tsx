@@ -148,9 +148,9 @@ export default function ModifierAnnoncePage() {
       }
     }
 
-    // Validation volume minimum
-    if (minimumVolume < 0.1) {
-      newErrors.push('Le volume minimum doit être d\'au moins 0.1 m³');
+    // Validation volume minimum (accepte maintenant 0-5 entiers)
+    if (minimumVolume < 0 || minimumVolume > 5) {
+      newErrors.push('Le volume minimum doit être entre 0 et 5 m³');
     } else if (minimumVolume > availableVolume) {
       newErrors.push('Le volume minimum ne peut pas être supérieur au volume disponible');
     }
@@ -163,7 +163,7 @@ export default function ModifierAnnoncePage() {
     setErrors(newErrors);
     setWarnings(newWarnings);
 
-    return newErrors.length === 0;
+    return { errors: newErrors, warnings: newWarnings };
   };
 
   // Gestionnaires de changement avec validation
@@ -172,17 +172,20 @@ export default function ModifierAnnoncePage() {
     setFormData(newFormData);
     
     if (announcement?.container?.type) {
-      validateVolumes(value, newFormData.minimumVolume, announcement.container.type);
+      const newErrors = validateVolumes(value, newFormData.minimumVolume, announcement.container.type);
+      setErrors(newErrors.errors);
+      setWarnings(newErrors.warnings);
     }
   };
 
   const handleMinimumVolumeChange = (value: number) => {
-    const newFormData = { ...formData, minimumVolume: value };
-    setFormData(newFormData);
+    // Arrondir à l'entier le plus proche pour le volume minimum
+    const roundedValue = Math.round(value);
+    setFormData(prev => ({ ...prev, minimumVolume: roundedValue }));
     
-    if (announcement?.container?.type) {
-      validateVolumes(newFormData.availableVolume, value, announcement.container.type);
-    }
+    const newErrors = validateVolumes(formData.availableVolume, roundedValue, announcement?.container?.type || '20');
+    setErrors(newErrors.errors);
+    setWarnings(newErrors.warnings);
   };
 
   // Sauvegarder les modifications
@@ -191,8 +194,8 @@ export default function ModifierAnnoncePage() {
     
     // Validation avant sauvegarde
     if (announcement.container?.type) {
-      const isValid = validateVolumes(formData.availableVolume, formData.minimumVolume, announcement.container.type);
-      if (!isValid) {
+      const validationResult = validateVolumes(formData.availableVolume, formData.minimumVolume, announcement.container.type);
+      if (validationResult.errors.length > 0) {
         showErrorToast('❌ Veuillez corriger les erreurs avant de sauvegarder');
         return;
       }
@@ -385,9 +388,9 @@ export default function ModifierAnnoncePage() {
                   label="Volume mini (m³)"
                   value={formData.minimumVolume}
                   onChange={handleMinimumVolumeChange}
-                  min={0.1}
-                  max={formData.availableVolume}
-                  step={0.1}
+                  min={0}
+                  max={5}
+                  step={1}
                   unit="m³"
                   placeholder="Ex: 1"
                 />
