@@ -31,10 +31,11 @@ interface UpdateAnnouncementRequest {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    console.log('📝 Demande de mise à jour d\'annonce reçue pour token:', params.token);
+    const { token } = await params;
+    console.log('📝 Demande de mise à jour d\'annonce reçue pour token:', token);
 
     // Parse des données du formulaire
     const data: UpdateAnnouncementRequest = await request.json();
@@ -67,7 +68,7 @@ export async function PUT(
     console.log('📤 Envoi vers le backend centralisé...');
 
     // Appel au backend centralisé pour la mise à jour
-    const response = await fetch(`${backendUrl}/api/partage/update-announcement/${params.token}`, {
+    const response = await fetch(`${backendUrl}/api/partage/update-announcement/${token}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

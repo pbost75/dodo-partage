@@ -368,7 +368,7 @@ export default function ModifyAnnouncementPage() {
                                                   <PhoneInput
                    label="Téléphone"
                    value={formData.contact.phone || ''}
-                   onChange={(name: string, value: string) => updateFormData('contact.phone', value)}
+                   onChange={(value: string) => updateFormData('contact.phone', value)}
                  />
                </div>
              ) : (
