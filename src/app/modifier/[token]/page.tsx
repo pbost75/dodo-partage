@@ -2,17 +2,28 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Edit, Check, X, MapPin, Calendar, Package, FileText, User, Phone, Mail, Save, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Button from '@/components/ui/Button';
+import { 
+  ArrowLeft, 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Calendar, 
+  Package, 
+  DollarSign, 
+  FileText, 
+  Edit, 
+  X, 
+  Check, 
+  Save, 
+  Eye, 
+  Trash2,
+  Heart
+} from 'lucide-react';
+
 import FloatingInput from '@/components/ui/FloatingInput';
-import FloatingSelect from '@/components/ui/FloatingSelect';
 import FloatingTextarea from '@/components/ui/FloatingTextarea';
-import CountrySelect from '@/components/ui/CountrySelect';
-import PhoneInput from '@/components/ui/PhoneInput';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
-import VolumeSelector from '@/components/ui/VolumeSelector';
-import CardRadioGroup from '@/components/ui/CardRadioGroup';
 import SubmissionLoader from '@/components/ui/SubmissionLoader';
 
 interface AnnouncementData {
@@ -43,283 +54,245 @@ interface AnnouncementData {
   announcementText: string;
 }
 
-interface EditableSection {
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-  isEditing: boolean;
-}
-
 export default function ModifyAnnouncementPage() {
-  const params = useParams();
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
-  const [editingSections, setEditingSections] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<AnnouncementData | null>(null);
+  const [originalData, setOriginalData] = useState<AnnouncementData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingSections, setEditingSections] = useState<Set<string>>(new Set());
   const [hasChanges, setHasChanges] = useState(false);
+  // Force deploy timestamp: 1750761857
+  
+  const { token } = useParams();
+  const router = useRouter();
 
-  // Options pour les pays
   const countryOptions = [
-    { value: 'france', label: 'France métropolitaine', emoji: '🇫🇷' },
-    { value: 'reunion', label: 'Réunion', emoji: '🌺' },
-    { value: 'martinique', label: 'Martinique', emoji: '🌴' },
-    { value: 'guadeloupe', label: 'Guadeloupe', emoji: '🏝️' },
-    { value: 'guyane', label: 'Guyane', emoji: '🌿' },
-    { value: 'mayotte', label: 'Mayotte', emoji: '🐋' },
-    { value: 'nouvelle-caledonie', label: 'Nouvelle-Calédonie', emoji: '🏖️' }
-  ];
-
-  // Options pour les types de conteneur
-  const containerTypeOptions = [
-    { value: '20_feet', label: 'Conteneur 20 pieds', description: 'Standard pour petits volumes' },
-    { value: '40_feet', label: 'Conteneur 40 pieds', description: 'Grande capacité' }
-  ];
-
-  // Options pour le type d'offre
-  const offerTypeOptions = [
-    { value: 'free', label: 'Gratuit', description: 'Partage sans contrepartie financière' },
-    { value: 'paid', label: 'Participation aux frais', description: 'Partage des coûts de transport' }
+    { value: 'reunion', label: '🇷🇪 Réunion' },
+    { value: 'martinique', label: '🇲🇶 Martinique' },
+    { value: 'guadeloupe', label: '🇬🇵 Guadeloupe' },
+    { value: 'guyane', label: '🇬🇫 Guyane' },
+    { value: 'mayotte', label: '🇾🇹 Mayotte' },
+    { value: 'nouvelle-caledonie', label: '🇳🇨 Nouvelle-Calédonie' },
+    { value: 'polynesie', label: '🇵🇫 Polynésie française' },
+    { value: 'saint-barthelemy', label: '🇧🇱 Saint-Barthélemy' },
+    { value: 'saint-martin', label: '🇲🇫 Saint-Martin' },
+    { value: 'saint-pierre-et-miquelon', label: '🇵🇲 Saint-Pierre-et-Miquelon' },
+    { value: 'wallis-et-futuna', label: '🇼🇫 Wallis-et-Futuna' },
+    { value: 'france', label: '🇫🇷 France métropolitaine' }
   ];
 
   useEffect(() => {
-    const loadAnnouncementForEdit = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://web-production-7b738.up.railway.app';
-        const response = await fetch(`${backendUrl}/api/partage/edit-form/${params.token}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Token de modification invalide, expiré, ou cette annonce a été créée avant l\'implémentation des fonctionnalités de gestion. Veuillez contacter support@dodomove.fr pour modifier votre annonce.');
-          } else {
-            throw new Error('Erreur lors du chargement de l\'annonce');
-          }
-        }
-        
-        const result = await response.json();
-        if (!result.success) {
-          throw new Error(result.error || 'Annonce non trouvée');
-        }
-        
-        setAnnouncement(result.data);
-        setFormData(result.data);
-        
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Token invalide';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
+    loadAnnouncementForEdit();
+  }, [token]);
 
-    if (params.token) {
-      loadAnnouncementForEdit();
+  const loadAnnouncementForEdit = async () => {
+    try {
+      const response = await fetch(`/api/get-announcements?editToken=${token}`);
+      if (!response.ok) throw new Error('Annonce non trouvée');
+      
+      const data = await response.json();
+      if (!data.success || !data.announcements || data.announcements.length === 0) {
+        throw new Error('Annonce non trouvée');
+      }
+      
+      const announcementData = data.announcements[0];
+      setAnnouncement(announcementData);
+      setFormData(announcementData);
+      setOriginalData(JSON.parse(JSON.stringify(announcementData)));
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+      setError('Impossible de charger l\'annonce');
+    } finally {
+      setLoading(false);
     }
-  }, [params.token]);
+  };
+
+  const checkForChanges = (data: AnnouncementData) => {
+    if (!originalData) return;
+    
+    const hasModifications = 
+      data.shippingDate !== originalData.shippingDate ||
+      data.container.availableVolume !== originalData.container.availableVolume ||
+      data.container.minimumVolume !== originalData.container.minimumVolume ||
+      data.offerType !== originalData.offerType ||
+      data.announcementText !== originalData.announcementText;
+    
+    setHasChanges(hasModifications);
+  };
 
   const toggleEditSection = (sectionId: string) => {
-    const newEditingSections = new Set(editingSections);
-    if (newEditingSections.has(sectionId)) {
-      newEditingSections.delete(sectionId);
-    } else {
-      newEditingSections.add(sectionId);
-    }
-    setEditingSections(newEditingSections);
+    setEditingSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
   };
 
   const cancelEdit = (sectionId: string) => {
-    const newEditingSections = new Set(editingSections);
-    newEditingSections.delete(sectionId);
-    setEditingSections(newEditingSections);
-    
-    // Restaurer les données originales
-    if (announcement) {
-      setFormData({ ...announcement });
+    if (originalData && formData) {
+      // Restaurer les données originales pour cette section
+      const restoredData = { ...formData };
+      
+      if (sectionId === 'date') {
+        restoredData.shippingDate = originalData.shippingDate;
+      } else if (sectionId === 'conteneur') {
+        restoredData.container.availableVolume = originalData.container.availableVolume;
+        restoredData.container.minimumVolume = originalData.container.minimumVolume;
+      } else if (sectionId === 'offre') {
+        restoredData.offerType = originalData.offerType;
+      } else if (sectionId === 'description') {
+        restoredData.announcementText = originalData.announcementText;
+      }
+      
+      setFormData(restoredData);
+      setEditingSections(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(sectionId);
+        return newSet;
+      });
+      checkForChanges(restoredData);
     }
   };
 
   const updateFormData = (path: string, value: any) => {
     if (!formData) return;
     
-    const keys = path.split('.');
-    const newData = { ...formData };
-    let current = newData as any;
+    const updatedData = { ...formData };
+    const pathArray = path.split('.');
+    let current: any = updatedData;
     
-    for (let i = 0; i < keys.length - 1; i++) {
-      current = current[keys[i]];
+    for (let i = 0; i < pathArray.length - 1; i++) {
+      current = current[pathArray[i]];
     }
-    current[keys[keys.length - 1]] = value;
+    current[pathArray[pathArray.length - 1]] = value;
     
-    setFormData(newData);
-    setHasChanges(true);
+    setFormData(updatedData);
+    checkForChanges(updatedData);
   };
 
   const saveAllChanges = async () => {
     if (!formData || !hasChanges) return;
-
-    setSaving(true);
+    
+    setIsSubmitting(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://web-production-7b738.up.railway.app';
-      const response = await fetch(`${backendUrl}/api/partage/update-announcement/${params.token}`, {
+      const response = await fetch(`/api/update-announcement/${token}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           updatedAt: new Date().toISOString()
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la sauvegarde');
-      }
-
+      if (!response.ok) throw new Error('Erreur lors de la sauvegarde');
+      
       const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Erreur lors de la sauvegarde');
+      if (result.success) {
+        setOriginalData(JSON.parse(JSON.stringify(formData)));
+        setHasChanges(false);
+        setEditingSections(new Set());
+        
+        // Afficher un message de succès
+        alert('✅ Modifications sauvegardées avec succès !');
+      } else {
+        throw new Error(result.error || 'Erreur inconnue');
       }
-
-      // Mettre à jour les données locales
-      setAnnouncement(formData);
-      setHasChanges(false);
-      setEditingSections(new Set());
-
-      // Feedback de succès
-      alert('✅ Vos modifications ont été sauvegardées avec succès !');
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
-      alert(`❌ ${errorMessage}`);
+    } catch (error) {
+      console.error('Erreur sauvegarde:', error);
+      alert('❌ Erreur lors de la sauvegarde');
     } finally {
-      setSaving(false);
+      setIsSubmitting(false);
     }
+  };
+
+  const getCountryLabel = (value: string) => {
+    return countryOptions.find(option => option.value === value)?.label || value;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Edit className="w-6 h-6" />
-              <h1 className="text-xl font-semibold">Modifier l'annonce</h1>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#243163] mx-auto mb-4"></div>
-            <p className="text-gray-600">Chargement...</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF6B35] mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement de l'annonce...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !announcement || !formData) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <button
-              onClick={() => router.push('/')}
-              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Retour aux annonces</span>
-            </button>
-            <div className="flex items-center gap-3">
-              <Edit className="w-6 h-6" />
-              <h1 className="text-xl font-semibold">Modifier l'annonce</h1>
-            </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="w-8 h-8 text-red-500" />
           </div>
-        </div>
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl border border-red-200 p-8 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="w-8 h-8 text-red-500" />
-            </div>
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
-              Impossible de modifier l'annonce
-            </h1>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <Button variant="primary" onClick={() => router.push('/')}>
-              Retour aux annonces
-            </Button>
-          </div>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">
+            Annonce introuvable
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {error || 'Cette annonce n\'existe pas ou le lien de modification est invalide.'}
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            className="inline-flex items-center gap-2 bg-[#FF6B35] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#E55A2B] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Retour aux annonces
+          </button>
         </div>
       </div>
     );
   }
-
-  if (!announcement || !formData) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header fixe */}
       <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <button
             onClick={() => router.push('/')}
             className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>Retour aux annonces</span>
+            <span className="text-sm">Retour aux annonces</span>
           </button>
+          
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Edit className="w-6 h-6" />
-              <div>
-                <h1 className="text-xl font-semibold">Modifier l'annonce</h1>
-                <p className="text-sm text-white/70">{announcement.reference}</p>
-              </div>
+            <div>
+              <h1 className="text-xl font-semibold">🔧 Modifier l'annonce</h1>
+              <p className="text-sm text-white/70">{announcement.reference}</p>
             </div>
             
-            {/* Bouton de sauvegarde flottant */}
-            <AnimatePresence>
-              {hasChanges && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+            {/* Bouton sauvegarde pour desktop */}
+            {hasChanges && (
+              <div className="hidden sm:block">
+                <button
+                  onClick={saveAllChanges}
+                  disabled={isSubmitting}
+                  className="bg-white text-[#243163] px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2"
                 >
-                  <Button
-                    variant="secondary"
-                    onClick={saveAllChanges}
-                    disabled={saving}
-                    className="bg-white text-[#243163] hover:bg-gray-100"
-                  >
-                    {saving ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#243163]"></div>
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                    {!saving && <span className="ml-2">Sauvegarder</span>}
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <Save className="w-4 h-4" />
+                  {isSubmitting ? 'Sauvegarde...' : 'Sauvegarder'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-             {/* Loader de sauvegarde */}
-       <AnimatePresence>
-         {saving && (
-           <SubmissionLoader isSubmitting={saving} />
-         )}
-       </AnimatePresence>
+      {/* Loader de soumission */}
+      {isSubmitting && <SubmissionLoader isSubmitting={isSubmitting} />}
 
-      {/* Contenu principal */}
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6 pb-24 sm:pb-6">
         
-        {/* Section Contact */}
+        {/* Section Contact - NON MODIFIABLE */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
@@ -331,352 +304,322 @@ export default function ModifyAnnouncementPage() {
                 <p className="text-sm text-gray-500">Prénom, email et téléphone (lecture seule)</p>
               </div>
             </div>
-            <button
-              onClick={() => toggleEditSection('contact')}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              {editingSections.has('contact') ? (
-                <>
-                  <X className="w-4 h-4" />
-                  <span>Annuler</span>
-                </>
-              ) : (
-                <>
-                  <Edit className="w-4 h-4" />
-                  <span>Modifier</span>
-                </>
-              )}
-            </button>
+            <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">Non modifiable</span>
           </div>
           
           <div className="p-4">
-            {editingSections.has('contact') ? (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-700">
+                💡 Pour modifier ces informations, supprimez cette annonce et créez-en une nouvelle.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <User className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-900">{formData.contact.firstName}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-900">{formData.contact.email}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-900">{formData.contact.phone || 'Non renseigné'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section Trajet - NON MODIFIABLE */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Trajet</h3>
+                <p className="text-sm text-gray-500">Départ et arrivée</p>
+              </div>
+            </div>
+            <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">Non modifiable</span>
+          </div>
+          
+          <div className="p-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-green-700">
+                💡 Pour modifier le trajet, supprimez cette annonce et créez-en une nouvelle.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Départ</div>
+                <div className="text-gray-900 font-medium">
+                  {getCountryLabel(formData.departure.country)} - {formData.departure.city} ({formData.departure.postalCode})
+                </div>
+              </div>
+              <div className="text-center text-gray-400">↓</div>
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Arrivée</div>
+                <div className="text-gray-900 font-medium">
+                  {getCountryLabel(formData.arrival.country)} - {formData.arrival.city} ({formData.arrival.postalCode})
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section Date de transport - MODIFIABLE */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Date de transport</h3>
+                <p className="text-sm text-gray-500">Date d'expédition prévue</p>
+              </div>
+            </div>
+            
+            {editingSections.has('date') ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    toggleEditSection('date');
+                    if (hasChanges) checkForChanges(formData);
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Valider</span>
+                </button>
+                <button
+                  onClick={() => cancelEdit('date')}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Annuler</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => toggleEditSection('date')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Modifier</span>
+              </button>
+            )}
+          </div>
+          
+          <div className="p-4">
+            {editingSections.has('date') ? (
+              <CustomDatePicker
+                label="Date d'expédition prévue"
+                value={formData.shippingDate}
+                onChange={(date) => updateFormData('shippingDate', date)}
+              />
+            ) : (
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-900">
+                  {new Date(formData.shippingDate).toLocaleDateString('fr-FR')}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Section Volumes disponibles - MODIFIABLE */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <Package className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Volumes disponibles</h3>
+                <p className="text-sm text-gray-500">Volume disponible et minimum</p>
+              </div>
+            </div>
+            
+            {editingSections.has('conteneur') ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    toggleEditSection('conteneur');
+                    if (hasChanges) checkForChanges(formData);
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Valider</span>
+                </button>
+                <button
+                  onClick={() => cancelEdit('conteneur')}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Annuler</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => toggleEditSection('conteneur')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Modifier</span>
+              </button>
+            )}
+          </div>
+          
+          <div className="p-4">
+            {editingSections.has('conteneur') ? (
               <div className="space-y-4">
                 <FloatingInput
-                  label="Prénom"
-                  value={formData.contact.firstName}
-                  onChange={(e) => updateFormData('contact.firstName', e.target.value)}
-                  required
+                  label="Volume disponible (m³)"
+                  type="number"
+                  value={formData.container.availableVolume.toString()}
+                  onChange={(e) => updateFormData('container.availableVolume', parseFloat(e.target.value) || 0)}
+                  min="0.5"
+                  max="50"
+                  step="0.5"
                 />
                 <FloatingInput
-                  label="Email"
-                  type="email"
-                  value={formData.contact.email}
-                  onChange={(e) => updateFormData('contact.email', e.target.value)}
-                  required
+                  label="Volume minimum requis (m³)"
+                  type="number"
+                  value={formData.container.minimumVolume.toString()}
+                  onChange={(e) => updateFormData('container.minimumVolume', parseFloat(e.target.value) || 0)}
+                  min="0.5"
+                  max={formData.container.availableVolume.toString()}
+                  step="0.5"
                 />
-                                                  <PhoneInput
-                   label="Téléphone"
-                   value={formData.contact.phone || ''}
-                   onChange={(value: string) => updateFormData('contact.phone', value)}
-                 />
-               </div>
-             ) : (
-               <div className="space-y-3">
-                 <div className="flex items-center gap-3">
-                   <User className="w-4 h-4 text-gray-400" />
-                   <span className="text-gray-900">{formData.contact.firstName}</span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                   <Mail className="w-4 h-4 text-gray-400" />
-                   <span className="text-gray-900">{formData.contact.email}</span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                   <Phone className="w-4 h-4 text-gray-400" />
-                   <span className="text-gray-900">{formData.contact.phone || 'Non renseigné'}</span>
-                 </div>
-               </div>
-             )}
-           </div>
-         </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Package className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-900">
+                    Conteneur {formData.container.type === '20_feet' ? '20' : '40'} pieds
+                  </span>
+                  <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">Non modifiable</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  </div>
+                  <span className="text-gray-900">{formData.container.availableVolume} m³ disponible</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  </div>
+                  <span className="text-gray-900">Minimum {formData.container.minimumVolume} m³</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
-         {/* Section Trajet */}
-         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-           <div className="flex items-center justify-between p-4 border-b border-gray-100">
-             <div className="flex items-center gap-3">
-               <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                 <MapPin className="w-5 h-5 text-green-600" />
-               </div>
-               <div>
-                 <h3 className="font-semibold text-gray-900">Trajet</h3>
-                 <p className="text-sm text-gray-500">Départ et arrivée</p>
-               </div>
-             </div>
-             <button
-               onClick={() => toggleEditSection('trajet')}
-               className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-             >
-               {editingSections.has('trajet') ? (
-                 <>
-                   <X className="w-4 h-4" />
-                   <span>Annuler</span>
-                 </>
-               ) : (
-                 <>
-                   <Edit className="w-4 h-4" />
-                   <span>Modifier</span>
-                 </>
-               )}
-             </button>
-           </div>
-           
-           <div className="p-4">
-             {editingSections.has('trajet') ? (
-               <div className="space-y-6">
-                 <div>
-                   <h4 className="font-medium text-gray-700 mb-3">Départ</h4>
-                   <div className="space-y-3">
-                     <CountrySelect
-                       label="Pays de départ"
-                       options={countryOptions}
-                       value={formData.departure.country}
-                       onChange={(value) => updateFormData('departure.country', value)}
-                     />
-                     <div className="grid grid-cols-2 gap-3">
-                       <FloatingInput
-                         label="Ville"
-                         value={formData.departure.city}
-                         onChange={(e) => updateFormData('departure.city', e.target.value)}
-                         required
-                       />
-                       <FloatingInput
-                         label="Code postal"
-                         value={formData.departure.postalCode}
-                         onChange={(e) => updateFormData('departure.postalCode', e.target.value)}
-                         required
-                       />
-                     </div>
-                   </div>
-                 </div>
-                 
-                 <div>
-                   <h4 className="font-medium text-gray-700 mb-3">Arrivée</h4>
-                   <div className="space-y-3">
-                     <CountrySelect
-                       label="Pays d'arrivée"
-                       options={countryOptions}
-                       value={formData.arrival.country}
-                       onChange={(value) => updateFormData('arrival.country', value)}
-                     />
-                     <div className="grid grid-cols-2 gap-3">
-                       <FloatingInput
-                         label="Ville"
-                         value={formData.arrival.city}
-                         onChange={(e) => updateFormData('arrival.city', e.target.value)}
-                         required
-                       />
-                       <FloatingInput
-                         label="Code postal"
-                         value={formData.arrival.postalCode}
-                         onChange={(e) => updateFormData('arrival.postalCode', e.target.value)}
-                         required
-                       />
-                     </div>
-                   </div>
-                 </div>
-               </div>
-             ) : (
-               <div className="space-y-4">
-                 <div>
-                   <div className="text-sm text-gray-500 mb-1">Départ</div>
-                   <div className="text-gray-900 font-medium">
-                     {countryOptions.find(c => c.value === formData.departure.country)?.label} - {formData.departure.city} ({formData.departure.postalCode})
-                   </div>
-                 </div>
-                 <div className="text-center text-gray-400">↓</div>
-                 <div>
-                   <div className="text-sm text-gray-500 mb-1">Arrivée</div>
-                   <div className="text-gray-900 font-medium">
-                     {countryOptions.find(c => c.value === formData.arrival.country)?.label} - {formData.arrival.city} ({formData.arrival.postalCode})
-                   </div>
-                 </div>
-               </div>
-             )}
-           </div>
-         </div>
+        {/* Section Type d'offre - MODIFIABLE */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Type d'offre</h3>
+                <p className="text-sm text-gray-500">Gratuit ou participation aux frais</p>
+              </div>
+            </div>
+            
+            {editingSections.has('offre') ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    toggleEditSection('offre');
+                    if (hasChanges) checkForChanges(formData);
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Valider</span>
+                </button>
+                <button
+                  onClick={() => cancelEdit('offre')}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Annuler</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => toggleEditSection('offre')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Modifier</span>
+              </button>
+            )}
+          </div>
+          
+          <div className="p-4">
+            {editingSections.has('offre') ? (
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="offerType"
+                    value="free"
+                    checked={formData.offerType === 'free'}
+                    onChange={(e) => updateFormData('offerType', e.target.value)}
+                    className="w-4 h-4 text-[#FF6B35]"
+                  />
+                  <span className="text-lg">🎁</span>
+                  <div>
+                    <div className="font-medium">Partage gratuit</div>
+                    <div className="text-sm text-gray-500">Sans contrepartie financière</div>
+                  </div>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="offerType"
+                    value="paid"
+                    checked={formData.offerType === 'paid'}
+                    onChange={(e) => updateFormData('offerType', e.target.value)}
+                    className="w-4 h-4 text-[#FF6B35]"
+                  />
+                  <span className="text-lg">💰</span>
+                  <div>
+                    <div className="font-medium">Participation aux frais</div>
+                    <div className="text-sm text-gray-500">Partage des coûts de transport</div>
+                  </div>
+                </label>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">
+                  {formData.offerType === 'free' ? '🎁' : '💰'}
+                </span>
+                <div>
+                  <div className="text-gray-900 font-medium">
+                    {formData.offerType === 'free' ? 'Partage gratuit' : 'Participation aux frais'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {formData.offerType === 'free' ? 'Sans contrepartie financière' : 'Partage des coûts de transport'}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
-         {/* Section Date et Transport */}
-         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-           <div className="flex items-center justify-between p-4 border-b border-gray-100">
-             <div className="flex items-center gap-3">
-               <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                 <Calendar className="w-5 h-5 text-orange-600" />
-               </div>
-               <div>
-                 <h3 className="font-semibold text-gray-900">Date et transport</h3>
-                 <p className="text-sm text-gray-500">Date d'expédition prévue</p>
-               </div>
-             </div>
-             <button
-               onClick={() => toggleEditSection('transport')}
-               className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-             >
-               {editingSections.has('transport') ? (
-                 <>
-                   <X className="w-4 h-4" />
-                   <span>Annuler</span>
-                 </>
-               ) : (
-                 <>
-                   <Edit className="w-4 h-4" />
-                   <span>Modifier</span>
-                 </>
-               )}
-             </button>
-           </div>
-           
-           <div className="p-4">
-             {editingSections.has('transport') ? (
-               <CustomDatePicker
-                 label="Date d'expédition prévue"
-                 value={formData.shippingDate}
-                 onChange={(date) => updateFormData('shippingDate', date)}
-                 required
-               />
-             ) : (
-               <div className="flex items-center gap-3">
-                 <Calendar className="w-4 h-4 text-gray-400" />
-                 <span className="text-gray-900">{new Date(formData.shippingDate).toLocaleDateString('fr-FR')}</span>
-               </div>
-             )}
-           </div>
-         </div>
-
-         {/* Section Conteneur */}
-         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-           <div className="flex items-center justify-between p-4 border-b border-gray-100">
-             <div className="flex items-center gap-3">
-               <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                 <Package className="w-5 h-5 text-purple-600" />
-               </div>
-               <div>
-                 <h3 className="font-semibold text-gray-900">Conteneur</h3>
-                 <p className="text-sm text-gray-500">Type et volumes</p>
-               </div>
-             </div>
-             <button
-               onClick={() => toggleEditSection('conteneur')}
-               className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-             >
-               {editingSections.has('conteneur') ? (
-                 <>
-                   <X className="w-4 h-4" />
-                   <span>Annuler</span>
-                 </>
-               ) : (
-                 <>
-                   <Edit className="w-4 h-4" />
-                   <span>Modifier</span>
-                 </>
-               )}
-             </button>
-           </div>
-           
-           <div className="p-4">
-             {editingSections.has('conteneur') ? (
-               <div className="space-y-6">
-                 <CardRadioGroup
-                   name="containerType"
-                   value={formData.container.type}
-                   onChange={(value) => updateFormData('container.type', value)}
-                   options={containerTypeOptions}
-                 />
-                 
-                 <VolumeSelector
-                   label="Volume disponible (m³)"
-                   value={formData.container.availableVolume}
-                   onChange={(value) => updateFormData('container.availableVolume', value)}
-                   min={1}
-                   max={50}
-                   step={0.5}
-                 />
-                 
-                 <VolumeSelector
-                   label="Volume minimum requis (m³)"
-                   value={formData.container.minimumVolume}
-                   onChange={(value) => updateFormData('container.minimumVolume', value)}
-                   min={0.5}
-                   max={formData.container.availableVolume}
-                   step={0.5}
-                 />
-               </div>
-             ) : (
-               <div className="space-y-3">
-                 <div className="flex items-center gap-3">
-                   <Package className="w-4 h-4 text-gray-400" />
-                   <span className="text-gray-900">
-                     Conteneur {formData.container.type === '20_feet' ? '20' : '40'} pieds
-                   </span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                   <div className="w-4 h-4 flex items-center justify-center">
-                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                   </div>
-                   <span className="text-gray-900">{formData.container.availableVolume} m³ disponible</span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                   <div className="w-4 h-4 flex items-center justify-center">
-                     <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                   </div>
-                   <span className="text-gray-900">Minimum {formData.container.minimumVolume} m³</span>
-                 </div>
-               </div>
-             )}
-           </div>
-         </div>
-
-         {/* Section Offre */}
-         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-           <div className="flex items-center justify-between p-4 border-b border-gray-100">
-             <div className="flex items-center gap-3">
-               <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                 <span className="text-yellow-600">💰</span>
-               </div>
-               <div>
-                 <h3 className="font-semibold text-gray-900">Type d'offre</h3>
-                 <p className="text-sm text-gray-500">Gratuit ou participation</p>
-               </div>
-             </div>
-             <button
-               onClick={() => toggleEditSection('offre')}
-               className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-             >
-               {editingSections.has('offre') ? (
-                 <>
-                   <X className="w-4 h-4" />
-                   <span>Annuler</span>
-                 </>
-               ) : (
-                 <>
-                   <Edit className="w-4 h-4" />
-                   <span>Modifier</span>
-                 </>
-               )}
-             </button>
-           </div>
-           
-           <div className="p-4">
-             {editingSections.has('offre') ? (
-               <CardRadioGroup
-                 name="offerType"
-                 value={formData.offerType}
-                 onChange={(value) => updateFormData('offerType', value)}
-                 options={offerTypeOptions}
-               />
-             ) : (
-               <div className="flex items-center gap-3">
-                 <span className="text-2xl">
-                   {formData.offerType === 'free' ? '🎁' : '💰'}
-                 </span>
-                 <span className="text-gray-900 font-medium">
-                   {formData.offerType === 'free' ? 'Partage gratuit' : 'Participation aux frais'}
-                 </span>
-               </div>
-             )}
-           </div>
-         </div>
-
-        {/* Section Description */}
+        {/* Section Description - MODIFIABLE */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
@@ -685,25 +628,39 @@ export default function ModifyAnnouncementPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Description</h3>
-                <p className="text-sm text-gray-500">Détails de l'annonce</p>
+                <p className="text-sm text-gray-500">Détails de votre annonce</p>
               </div>
             </div>
-            <button
-              onClick={() => toggleEditSection('description')}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              {editingSections.has('description') ? (
-                <>
+            
+            {editingSections.has('description') ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    toggleEditSection('description');
+                    if (hasChanges) checkForChanges(formData);
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Valider</span>
+                </button>
+                <button
+                  onClick={() => cancelEdit('description')}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
                   <X className="w-4 h-4" />
                   <span>Annuler</span>
-                </>
-              ) : (
-                <>
-                  <Edit className="w-4 h-4" />
-                  <span>Modifier</span>
-                </>
-              )}
-            </button>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => toggleEditSection('description')}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Modifier</span>
+              </button>
+            )}
           </div>
           
           <div className="p-4">
@@ -712,62 +669,51 @@ export default function ModifyAnnouncementPage() {
                 label="Description de votre annonce"
                 value={formData.announcementText}
                 onChange={(e) => updateFormData('announcementText', e.target.value)}
-                placeholder="Décrivez ce que vous proposez..."
+                placeholder="Décrivez ce que vous proposez, vos conditions particulières..."
                 rows={4}
                 maxLength={800}
-                required
               />
             ) : (
-              <p className="text-gray-900 whitespace-pre-wrap">{formData.announcementText}</p>
+              <p className="text-gray-900 whitespace-pre-wrap">
+                {formData.announcementText}
+              </p>
             )}
           </div>
         </div>
 
-        {/* Actions en bas */}
+        {/* Actions principales */}
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Button
-            variant="secondary"
+          <button
             onClick={() => router.push(`/annonce/${announcement.reference}`)}
-            className="flex-1"
+            className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
           >
-            👁️ Voir l'annonce publique
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => router.push(`/supprimer/${params.token}`)}
-            className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+            <Eye className="w-4 h-4" />
+            Voir l'annonce publique
+          </button>
+          <button
+            onClick={() => router.push(`/supprimer/${token}`)}
+            className="flex-1 flex items-center justify-center gap-2 bg-red-50 text-red-600 px-6 py-3 rounded-xl font-medium hover:bg-red-100 transition-colors border border-red-200"
           >
-            🗑️ Supprimer l'annonce
-          </Button>
+            <Trash2 className="w-4 h-4" />
+            Supprimer l'annonce
+          </button>
         </div>
 
       </div>
 
       {/* Bouton flottant mobile pour sauvegarder */}
-      <AnimatePresence>
-        {hasChanges && (
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            className="fixed bottom-6 left-4 right-4 z-50 sm:hidden"
+      {hasChanges && (
+        <div className="fixed bottom-6 left-4 right-4 z-50 sm:hidden">
+          <button
+            onClick={saveAllChanges}
+            disabled={isSubmitting}
+            className="w-full bg-[#FF6B35] text-white px-6 py-4 rounded-xl font-medium hover:bg-[#E55A2B] transition-colors shadow-lg flex items-center justify-center gap-2"
           >
-            <Button
-              variant="primary"
-              onClick={saveAllChanges}
-              disabled={saving}
-              className="w-full shadow-lg"
-            >
-              {saving ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              ) : (
-                <Save className="w-5 h-5" />
-              )}
-              {!saving && <span className="ml-2">Sauvegarder les modifications</span>}
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <Save className="w-5 h-5" />
+            {isSubmitting ? 'Sauvegarde...' : 'Sauvegarder les modifications'}
+          </button>
+        </div>
+      )}
     </div>
   );
-} 
+}
