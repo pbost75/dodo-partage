@@ -5,38 +5,19 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import VolumeSelector from '@/components/ui/VolumeSelector';
-import EnhancedRadioGroup from '@/components/ui/EnhancedRadioGroup';
-import FloatingInput from '@/components/ui/FloatingInput';
 import SearchNavigationFooter from '@/components/layout/SearchNavigationFooter';
-
-// Options pour le type de budget
-const budgetTypeOptions = [
-  {
-    value: 'no-budget',
-    label: '💸 Gratuit uniquement',
-    subtitle: 'Je cherche une place gratuite',
-    description: 'Uniquement les offres sans frais'
-  },
-  {
-    value: 'budget',
-    label: '💰 Avec budget',
-    subtitle: 'Je peux payer une participation',
-    description: 'J\'ai un budget pour participer aux frais'
-  }
-];
+import { Calculator, ArrowRight, Check } from 'lucide-react';
 
 export default function VolumeNeededStep() {
   const router = useRouter();
   const { formData, setVolumeNeeded } = useSearchStore();
   
   const [neededVolume, setNeededVolume] = useState(formData.volumeNeeded.neededVolume);
-  const [budgetType, setBudgetType] = useState(formData.volumeNeeded.budgetType);
-  const [maxBudget, setMaxBudget] = useState(formData.volumeNeeded.maxBudget || 0);
   const [errors, setErrors] = useState({
-    neededVolume: '',
-    budgetType: '',
-    maxBudget: ''
+    neededVolume: ''
   });
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calculatorData, setCalculatorData] = useState<any>(null);
 
   // Validation du volume
   const validateVolume = (volume: number) => {
@@ -49,67 +30,46 @@ export default function VolumeNeededStep() {
     return '';
   };
 
-  // Validation du budget
-  const validateBudget = (budget: number) => {
-    if (budgetType === 'budget' && budget <= 0) {
-      return 'Veuillez indiquer votre budget maximum';
-    }
-    if (budget > 50000) {
-      return 'Le budget semble anormalement élevé';
-    }
-    return '';
-  };
-
   // Mettre à jour le store quand les données changent
   useEffect(() => {
     setVolumeNeeded({
-      neededVolume,
-      budgetType,
-      maxBudget: budgetType === 'budget' ? maxBudget : undefined
+      neededVolume
     });
-  }, [neededVolume, budgetType, maxBudget, setVolumeNeeded]);
+  }, [neededVolume, setVolumeNeeded]);
 
   // Gestion du changement de volume
   const handleVolumeChange = (volume: number) => {
     setNeededVolume(volume);
     const error = validateVolume(volume);
-    setErrors(prev => ({ ...prev, neededVolume: error }));
+    setErrors({ neededVolume: error });
   };
 
-  // Gestion du changement de type de budget
-  const handleBudgetTypeChange = (type: string) => {
-    setBudgetType(type as 'no-budget' | 'budget');
-    setErrors(prev => ({ ...prev, budgetType: '' }));
-    
-    // Si on passe à "gratuit", reset le budget
-    if (type === 'no-budget') {
-      setMaxBudget(0);
-      setErrors(prev => ({ ...prev, maxBudget: '' }));
-    }
-  };
+  // Gestion des messages du calculateur
+  useEffect(() => {
+    const handleCalculatorMessage = (event: MessageEvent) => {
+      if (event.data.type === 'VOLUME_CALCULATED') {
+        const { totalVolume } = event.data.payload;
+        setCalculatorData(event.data.payload);
+        // Mettre à jour automatiquement le volume avec celui calculé
+        const roundedVolume = Math.round(totalVolume * 10) / 10;
+        setNeededVolume(roundedVolume);
+        const error = validateVolume(roundedVolume);
+        setErrors({ neededVolume: error });
+      } else if (event.data.type === 'CALCULATOR_RESET') {
+        setCalculatorData(null);
+      }
+    };
 
-  // Gestion du changement de budget
-  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0;
-    setMaxBudget(value);
-    const error = validateBudget(value);
-    setErrors(prev => ({ ...prev, maxBudget: error }));
-  };
+    window.addEventListener('message', handleCalculatorMessage);
+    return () => window.removeEventListener('message', handleCalculatorMessage);
+  }, []);
 
   // Validation finale
   const validateForm = () => {
     const volumeError = validateVolume(neededVolume);
-    const budgetError = validateBudget(maxBudget);
-    const budgetTypeError = !budgetType ? 'Veuillez choisir votre approche budget' : '';
-
-    const newErrors = {
-      neededVolume: volumeError,
-      budgetType: budgetTypeError,
-      maxBudget: budgetError
-    };
-
+    const newErrors = { neededVolume: volumeError };
     setErrors(newErrors);
-    return !Object.values(newErrors).some(error => error);
+    return !volumeError;
   };
 
   // Gestion de la soumission
@@ -117,7 +77,7 @@ export default function VolumeNeededStep() {
     e.preventDefault();
     
     if (validateForm()) {
-      router.push('/funnel/search/announcement-text');
+      router.push('/funnel/search/budget');
     }
   };
 
@@ -163,59 +123,108 @@ export default function VolumeNeededStep() {
           </div>
         </div>
 
-        {/* Type de budget */}
-        <div className="mt-12">
-          <h2 className="text-xl font-semibold mb-6 text-gray-900 font-['Roboto_Slab']">
-            Quel est votre budget ?
-          </h2>
-          <EnhancedRadioGroup
-            name="budgetType"
-            options={budgetTypeOptions}
-            value={budgetType}
-            onChange={handleBudgetTypeChange}
-            error={errors.budgetType}
-          />
-        </div>
-
-        {/* Champ budget conditionnel */}
-        {budgetType === 'budget' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            transition={{ duration: 0.3 }}
-            className="mt-6"
-          >
-            <FloatingInput
-              label="Budget maximum (€)"
-              type="number"
-              name="maxBudget"
-              value={maxBudget.toString()}
-              onChange={handleBudgetChange}
-              placeholder="Ex: 500"
-              error={errors.maxBudget}
-              min="1"
-              max="50000"
-            />
-          </motion.div>
-        )}
-
-        {/* Info utile */}
-        <div className="bg-green-50 rounded-xl p-4 border border-green-200 mt-8">
-          <div className="flex gap-3">
-            <span className="text-green-600 flex-shrink-0 mt-0.5">💡</span>
-            <div className="text-sm text-green-800 font-['Lato']">
-              <p className="font-medium mb-2">Conseil pour maximiser vos chances</p>
-              <ul className="text-green-700 leading-relaxed space-y-1">
-                <li>• Plus votre volume est flexible, plus vous aurez d'options</li>
-                <li>• Les offres gratuites sont rares mais existent !</li>
-                <li>• Un petit budget peut considérablement augmenter vos possibilités</li>
-              </ul>
+        {/* Calculateur de volume intégré */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-6 mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+                <Calculator className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 font-['Roboto_Slab']">
+                  Pas sûr de votre estimation ?
+                </h3>
+                <p className="text-sm text-gray-600 font-['Lato']">
+                  Utilisez notre calculateur pour estimer précisément votre volume
+                </p>
+              </div>
             </div>
+            
+            {!showCalculator && (
+              <button
+                type="button"
+                onClick={() => setShowCalculator(true)}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-['Lato'] text-sm font-medium"
+              >
+                Calculer
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
+
+          {/* Résumé si calculateur utilisé */}
+          {calculatorData && !showCalculator && (
+            <div className="bg-white rounded-lg p-4 border border-purple-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Check className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-800 font-['Lato']">
+                  Volume calculé : {Math.round(calculatorData.totalVolume * 10) / 10} m³
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 font-['Lato']">
+                {calculatorData.items.length} objet{calculatorData.items.length > 1 ? 's' : ''} sélectionné{calculatorData.items.length > 1 ? 's' : ''}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowCalculator(true)}
+                className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-2 font-['Lato']"
+              >
+                Modifier la sélection →
+              </button>
+            </div>
+          )}
+
+          {/* Calculateur en iframe */}
+          {showCalculator && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.4 }}
+              className="mt-4"
+            >
+              <div className="bg-white rounded-lg border border-purple-200 overflow-hidden">
+                <div className="flex items-center justify-between p-3 bg-purple-50 border-b border-purple-200">
+                  <span className="font-medium text-purple-900 font-['Lato']">
+                    Calculateur de volume
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowCalculator(false)}
+                    className="text-purple-600 hover:text-purple-700 text-sm font-['Lato']"
+                  >
+                    Masquer
+                  </button>
+                </div>
+                <iframe
+                  src="https://calculateur.dodomove.fr/?embedded=true"
+                  className="w-full h-96 border-0"
+                  title="Calculateur de volume"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Avantages d'utiliser le calculateur */}
+          {!showCalculator && !calculatorData && (
+            <div className="space-y-2 text-sm">
+              <p className="text-purple-700 leading-relaxed flex items-center gap-2">
+                <span className="w-1 h-1 bg-purple-600 rounded-full"></span>
+                Sélectionnez vos objets dans notre base de données
+              </p>
+              <p className="text-purple-700 leading-relaxed flex items-center gap-2">
+                <span className="w-1 h-1 bg-purple-600 rounded-full"></span>
+                Calcul automatique et précis du volume total
+              </p>
+              <p className="text-purple-700 leading-relaxed flex items-center gap-2">
+                <span className="w-1 h-1 bg-purple-600 rounded-full"></span>
+                Évite les erreurs d'estimation
+              </p>
+            </div>
+          )}
         </div>
       </form>
-      
-      {/* Navigation Footer */}
+
+      {/* Footer de navigation */}
       <SearchNavigationFooter />
     </motion.div>
   );

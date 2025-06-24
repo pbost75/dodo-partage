@@ -9,6 +9,7 @@ const steps = [
   'locations',
   'shipping-period',
   'volume-needed',
+  'budget',
   'announcement-text',
   'contact',
 ];
@@ -17,6 +18,7 @@ const stepLabels = [
   'Lieux',
   'Période',
   'Volume',
+  'Budget',
   'Annonce',
   'Contact',
 ];
@@ -26,11 +28,13 @@ const nextLabels = [
   'Continuer',
   'Continuer',
   'Continuer',
+  'Continuer',
   'Publier ma demande',
 ];
 
 const prevLabels = [
   '',
+  'Retour',
   'Retour',
   'Retour',
   'Retour',
@@ -133,8 +137,9 @@ export default function SearchNavigationFooter() {
         return formData.shippingPeriod.selectedMonths && 
                formData.shippingPeriod.selectedMonths.length > 0;
       case 'volume-needed':
-        return formData.volumeNeeded.neededVolume > 0 && 
-               formData.volumeNeeded.budgetType !== '';
+        return formData.volumeNeeded.neededVolume > 0;
+      case 'budget':
+        return formData.budget.acceptsFees !== null;
       case 'announcement-text':
         return formData.announcementText.trim() !== '';
       case 'contact':

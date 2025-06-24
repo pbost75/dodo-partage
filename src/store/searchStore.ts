@@ -20,8 +20,11 @@ export interface ShippingPeriodData {
 
 export interface VolumeNeededData {
   neededVolume: number;
+}
+
+export interface BudgetData {
+  acceptsFees: boolean | null; // null = pas encore répondu, true = oui, false = non
   maxBudget?: number;
-  budgetType: 'no-budget' | 'budget' | '';
 }
 
 export interface ContactData {
@@ -40,6 +43,9 @@ export interface SearchFormData {
   
   // Volume recherché
   volumeNeeded: VolumeNeededData;
+  
+  // Budget
+  budget: BudgetData;
   
   // Annonce (adaptée pour "cherche")
   announcementText: string;
@@ -63,6 +69,7 @@ interface SearchStore {
   setArrival: (data: Partial<LocationData>) => void;
   setShippingPeriod: (data: Partial<ShippingPeriodData>) => void;
   setVolumeNeeded: (data: Partial<VolumeNeededData>) => void;
+  setBudget: (data: Partial<BudgetData>) => void;
   setAnnouncementText: (text: string) => void;
   setContact: (contact: Partial<ContactData>) => void;
   
@@ -100,8 +107,10 @@ const initialFormData: SearchFormData = {
     urgency: 'flexible' // Toujours flexible
   },
   volumeNeeded: {
-    neededVolume: 0,
-    budgetType: ''
+    neededVolume: 0
+  },
+  budget: {
+    acceptsFees: null
   },
   announcementText: '',
   contact: {
@@ -159,6 +168,14 @@ export const useSearchStore = create<SearchStore>()(
         }
       })),
 
+      // Action pour le budget
+      setBudget: (data) => set((state) => ({
+        formData: {
+          ...state.formData,
+          budget: { ...state.formData.budget, ...data }
+        }
+      })),
+
       // Action pour le texte d'annonce
       setAnnouncementText: (text) => set((state) => ({
         formData: { ...state.formData, announcementText: text }
@@ -178,7 +195,7 @@ export const useSearchStore = create<SearchStore>()(
       })),
 
       nextStep: () => set((state) => {
-        const nextStep = Math.min(state.formData.currentStep + 1, 5);
+        const nextStep = Math.min(state.formData.currentStep + 1, 6);
         return {
           formData: { ...state.formData, currentStep: nextStep }
         };
@@ -201,10 +218,12 @@ export const useSearchStore = create<SearchStore>()(
           case 2: // Période d'expédition
             return Boolean(formData.shippingPeriod.selectedMonths && formData.shippingPeriod.selectedMonths.length > 0);
           case 3: // Volume recherché
-            return Boolean(formData.volumeNeeded.neededVolume > 0 && formData.volumeNeeded.budgetType);
-          case 4: // Texte annonce
+            return Boolean(formData.volumeNeeded.neededVolume > 0);
+          case 4: // Budget
+            return formData.budget.acceptsFees !== null;
+          case 5: // Texte annonce
             return formData.announcementText.length >= 50;
-          case 5: // Contact
+          case 6: // Contact
             return Boolean(formData.contact.firstName && formData.contact.email);
           default:
             return false;
@@ -227,8 +246,8 @@ export const useSearchStore = create<SearchStore>()(
 
       getProgress: () => {
         const { isStepComplete } = get();
-        const completedSteps = [1, 2, 3, 4, 5].filter(step => isStepComplete(step)).length;
-        return Math.round((completedSteps / 5) * 100);
+        const completedSteps = [1, 2, 3, 4, 5, 6].filter(step => isStepComplete(step)).length;
+        return Math.round((completedSteps / 6) * 100);
       },
 
       reset: () => set({ formData: initialFormData })
@@ -253,6 +272,7 @@ export const useSearchActions = () => {
     setArrival,
     setShippingPeriod,
     setVolumeNeeded,
+    setBudget,
     setAnnouncementText,
     setContact,
     setCurrentStep,
@@ -266,6 +286,7 @@ export const useSearchActions = () => {
     setArrival,
     setShippingPeriod,
     setVolumeNeeded,
+    setBudget,
     setAnnouncementText,
     setContact,
     setCurrentStep,

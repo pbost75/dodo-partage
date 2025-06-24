@@ -34,14 +34,16 @@ const VolumeSelector: React.FC<VolumeSelectorProps> = ({
 
   const handleIncrement = () => {
     const newValue = Math.min(value + step, max);
-    onChange(newValue);
-    setInputValue(newValue.toString());
+    const roundedValue = Math.round(newValue * 10) / 10; // Arrondir à 1 décimale
+    onChange(roundedValue);
+    setInputValue(roundedValue.toString());
   };
 
   const handleDecrement = () => {
     const newValue = Math.max(value - step, min);
-    onChange(newValue);
-    setInputValue(newValue.toString());
+    const roundedValue = Math.round(newValue * 10) / 10; // Arrondir à 1 décimale
+    onChange(roundedValue);
+    setInputValue(roundedValue.toString());
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +52,8 @@ const VolumeSelector: React.FC<VolumeSelectorProps> = ({
     
     const numValue = parseFloat(inputVal);
     if (!isNaN(numValue)) {
-      onChange(Math.max(min, Math.min(max, numValue)));
+      const roundedValue = Math.round(numValue * 10) / 10; // Arrondir à 1 décimale
+      onChange(Math.max(min, Math.min(max, roundedValue)));
     } else if (inputVal === '') {
       onChange(0);
     }
@@ -62,8 +65,9 @@ const VolumeSelector: React.FC<VolumeSelectorProps> = ({
 
   const handleInputBlur = () => {
     setIsFocused(false);
-    // Synchroniser l'affichage avec la valeur réelle
-    setInputValue(value.toString());
+    // Synchroniser l'affichage avec la valeur réelle, formatée à 1 décimale
+    const displayValue = value % 1 === 0 ? value.toString() : value.toFixed(1);
+    setInputValue(displayValue);
   };
 
   return (
@@ -134,4 +138,4 @@ const VolumeSelector: React.FC<VolumeSelectorProps> = ({
   );
 };
 
-export default VolumeSelector; 
+export default VolumeSelector;

@@ -15,7 +15,7 @@ export default function AnnouncementTextStep() {
 
   // Fonction pour générer automatiquement le texte d'annonce de recherche
   const generateAnnouncementText = () => {
-    const { departure, arrival, shippingPeriod, volumeNeeded } = formData;
+    const { departure, arrival, shippingPeriod, volumeNeeded, budget } = formData;
     
     // Construire des noms explicites avec pays et ville
     const departureStr = departure?.country && departure?.city 
@@ -27,50 +27,51 @@ export default function AnnouncementTextStep() {
       : arrival?.displayName || arrival?.city || 'lieu d\'arrivée';
     
     const volume = volumeNeeded?.neededVolume || 5;
-    const budget = volumeNeeded?.budgetType || 'no-budget';
     
-    // Période formatée
+    // Période formatée (nouvelle méthode avec selectedMonths)
     let periodStr = '';
-    if (shippingPeriod?.period === 'flexible' && shippingPeriod?.preferredMonth) {
-      periodStr = `vers ${shippingPeriod.preferredMonth}`;
-    } else if (shippingPeriod?.period === 'specific' && shippingPeriod?.specificDate) {
-      const date = new Date(shippingPeriod.specificDate);
-      periodStr = `le ${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`;
+    if (shippingPeriod?.selectedMonths && shippingPeriod.selectedMonths.length > 0) {
+      if (shippingPeriod.selectedMonths.length === 1) {
+        periodStr = `en ${shippingPeriod.selectedMonths[0]}`;
+      } else if (shippingPeriod.selectedMonths.length === 2) {
+        periodStr = `entre ${shippingPeriod.selectedMonths[0]} et ${shippingPeriod.selectedMonths[1]}`;
+      } else {
+        periodStr = `entre ${shippingPeriod.selectedMonths[0]} et ${shippingPeriod.selectedMonths[shippingPeriod.selectedMonths.length - 1]}`;
+      }
     } else {
       periodStr = 'prochainement';
     }
-
-    // Urgence
-    const urgencyStr = shippingPeriod?.urgency === 'urgent' ? 'URGENT - ' : '';
     
     // Budget
-    const budgetStr = budget === 'no-budget' 
+    const budgetStr = budget?.acceptsFees === false
       ? 'Je cherche une place gratuite par entraide.'
-      : `Je peux participer aux frais (budget: ${volumeNeeded?.maxBudget || 'à discuter'}€).`;
+      : budget?.acceptsFees === true && budget?.maxBudget 
+        ? `Je peux participer aux frais (budget: environ ${budget.maxBudget}€).`
+        : 'Je peux participer aux frais (budget à discuter).';
 
-    // Templates de texte selon l'urgence et le budget
+    // Templates de texte selon le budget
     const templates = {
       free: [
-        `🔍 ${urgencyStr}Bonjour ! Je cherche de la place dans un conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
+        `🔍 Bonjour ! Je cherche de la place dans un conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
 
 J'ai environ ${volume} m³ d'affaires personnelles à transporter. ${budgetStr}
 
 Si vous avez de l'espace libre, contactez-moi ! Merci 🙏`,
 
-        `📦 ${urgencyStr}Bonjour ! Recherche place conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
+        `📦 Bonjour ! Recherche place conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
 
 Volume: environ ${volume} m³ (affaires personnelles). ${budgetStr}
 
 Merci de me contacter si vous pouvez m'aider !`
       ],
       budget: [
-        `🔍 ${urgencyStr}Bonjour ! Je cherche de la place dans un conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
+        `🔍 Bonjour ! Je cherche de la place dans un conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
 
 J'ai environ ${volume} m³ d'affaires personnelles. ${budgetStr}
 
 Contactez-moi si vous avez de l'espace disponible !`,
 
-        `📦 ${urgencyStr}Recherche espace conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
+        `📦 Recherche espace conteneur ${departureStr} → ${arrivalStr} ${periodStr}.
 
 Volume: ${volume} m³. ${budgetStr}
 
@@ -79,7 +80,7 @@ N'hésitez pas à me contacter pour qu'on s'arrange !`
     };
 
     // Choisir un template selon le budget
-    const templateType = budget === 'no-budget' ? 'free' : 'budget';
+    const templateType = budget?.acceptsFees === false ? 'free' : 'budget';
     const availableTemplates = templates[templateType];
     const randomTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
     
@@ -97,10 +98,10 @@ N'hésitez pas à me contacter pour qu'on s'arrange !`
 
   // Redirection si les étapes précédentes ne sont pas complètes
   useEffect(() => {
-    if (!formData.volumeNeeded.budgetType) {
-      router.push('/funnel/search/volume-needed');
+    if (formData.budget.acceptsFees === null) {
+      router.push('/funnel/search/budget');
     }
-  }, [formData.volumeNeeded.budgetType, router]);
+  }, [formData.budget.acceptsFees, router]);
 
   // Gestion du changement de texte
   const handleTextChange = (newText: string) => {

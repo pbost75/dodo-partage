@@ -27,8 +27,9 @@ function getStepInfo(pathname: string) {
     'locations': '1',
     'shipping-period': '2',
     'volume-needed': '3',
-    'announcement-text': '4',
-    'contact': '5',
+    'budget': '4',
+    'announcement-text': '5',
+    'contact': '6',
   };
   
   const match = pathname.match(/\/funnel\/search\/([^\/]+)/);
@@ -37,14 +38,14 @@ function getStepInfo(pathname: string) {
   // Page de confirmation utilise son propre layout
   if (step === 'confirmation') {
     return {
-      currentStep: '5',
-      totalSteps: 5
+      currentStep: '6',
+      totalSteps: 6
     };
   }
   
   return {
     currentStep: stepNumbers[step] || '1',
-    totalSteps: 5  // Nombre total d'étapes dans le funnel search
+    totalSteps: 6  // Nombre total d'étapes dans le funnel search
   };
 }
 
