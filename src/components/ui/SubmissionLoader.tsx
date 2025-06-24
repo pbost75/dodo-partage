@@ -18,7 +18,7 @@ const SubmissionLoader: React.FC<SubmissionLoaderProps> = ({
   useEffect(() => {
     if (!isSubmitting) return;
 
-    let timeouts: NodeJS.Timeout[] = [];
+    const timeouts: NodeJS.Timeout[] = [];
 
     // Étape 1: Envoi de la demande (immédiat)
     setCurrentStep('submitting');

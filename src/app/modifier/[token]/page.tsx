@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Save, Check, AlertTriangle, Eye, X, ExternalLink } from 'lucide-react';
@@ -59,7 +59,7 @@ export default function ModifierAnnoncePage() {
   // États
   const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
@@ -115,7 +115,7 @@ export default function ModifierAnnoncePage() {
         
       } catch (error) {
         console.error('Erreur lors du chargement:', error);
-        showErrorToast('Erreur lors du chargement de l\'annonce');
+        showErrorToast('Erreur lors du chargement de l&apos;annonce');
         router.push('/');
       } finally {
         setIsLoading(false);
@@ -125,44 +125,9 @@ export default function ModifierAnnoncePage() {
     fetchAnnouncement();
   }, [token, router, showErrorToast]);
 
-  // Détecter les changements
-  useEffect(() => {
-    const hasChanges = (
-      formData.shippingDate !== originalData.shippingDate ||
-      formData.availableVolume !== originalData.availableVolume ||
-      formData.minimumVolume !== originalData.minimumVolume ||
-      formData.offerType !== originalData.offerType ||
-      formData.announcementText !== originalData.announcementText
-    );
-    
-    setHasUnsavedChanges(hasChanges);
-  }, [formData, originalData]);
-
-  // Sauvegarde automatique avec debounce
-  useEffect(() => {
-    if (hasUnsavedChanges && !isSaving) {
-      // Annuler le timeout précédent
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      
-      // Programmer une nouvelle sauvegarde dans 2 secondes
-      saveTimeoutRef.current = setTimeout(() => {
-        handleAutoSave();
-      }, 2000);
-    }
-    
-    // Cleanup
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [hasUnsavedChanges, isSaving]);
-
   // Sauvegarde automatique
-  const handleAutoSave = async () => {
-    if (!hasUnsavedChanges || isSaving) return;
+  const handleAutoSave = useCallback(async () => {
+    if (!hasUnsavedChanges || isSaving || !announcement) return;
     
     setIsSaving(true);
     
@@ -174,7 +139,7 @@ export default function ModifierAnnoncePage() {
           ...announcement,
           shippingDate: formData.shippingDate,
           container: {
-            ...announcement!.container,
+            ...announcement?.container,
             availableVolume: formData.availableVolume,
             minimumVolume: formData.minimumVolume
           },
@@ -198,7 +163,42 @@ export default function ModifierAnnoncePage() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [hasUnsavedChanges, isSaving, announcement, formData, token, showSuccessToast, showErrorToast]);
+
+  // Détecter les changements
+  useEffect(() => {
+    const hasChanges = (
+      formData.shippingDate !== originalData.shippingDate ||
+      formData.availableVolume !== originalData.availableVolume ||
+      formData.minimumVolume !== originalData.minimumVolume ||
+      formData.offerType !== originalData.offerType ||
+      formData.announcementText !== originalData.announcementText
+    );
+    
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, originalData]);
+
+  // Sauvegarde automatique avec debounce
+  useEffect(() => {
+    if (hasUnsavedChanges && !isSaving && announcement) {
+      // Annuler le timeout précédent
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      // Programmer une nouvelle sauvegarde dans 2 secondes
+      saveTimeoutRef.current = setTimeout(() => {
+        handleAutoSave();
+      }, 2000);
+    }
+    
+    // Cleanup
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [hasUnsavedChanges, isSaving, announcement, handleAutoSave]);
 
   // Sauvegarde manuelle
   const handleManualSave = async () => {
@@ -302,9 +302,9 @@ export default function ModifierAnnoncePage() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
             <div className="text-red-600 text-xl font-semibold mb-4">Annonce introuvable</div>
-            <p className="text-gray-600 mb-6">Cette annonce n'existe pas ou le lien n'est plus valide.</p>
-            <Button onClick={() => router.push('/')} className="bg-blue-600 hover:bg-blue-700">
-              Retour à l'accueil
+            <p className="text-gray-600 mb-6">Cette annonce n&apos;existe pas ou le lien n&apos;est plus valide.</p>
+                          <Button onClick={() => router.push('/')} className="bg-blue-600 hover:bg-blue-700">
+                Retour à l&apos;accueil
             </Button>
           </div>
         </div>
@@ -313,15 +313,7 @@ export default function ModifierAnnoncePage() {
   }
 
   // Format de la date pour l'affichage
-  const formatDisplayDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
+  
 
   return (
     <>
