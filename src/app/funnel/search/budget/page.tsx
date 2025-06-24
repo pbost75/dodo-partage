@@ -28,8 +28,11 @@ export default function BudgetStep() {
   const router = useRouter();
   const { formData, setBudget } = useSearchStore();
   
-  const [acceptsFees, setAcceptsFees] = useState<boolean | null>(formData.budget.acceptsFees);
-  const [maxBudget, setMaxBudget] = useState(formData.budget.maxBudget || 0);
+  // Protection contre l'erreur d'hydratation - s'assurer que budget existe
+  const budget = formData.budget || { acceptsFees: null, maxBudget: undefined };
+  
+  const [acceptsFees, setAcceptsFees] = useState<boolean | null>(budget.acceptsFees);
+  const [maxBudget, setMaxBudget] = useState(budget.maxBudget || 0);
   const [errors, setErrors] = useState({
     acceptsFees: '',
     maxBudget: ''

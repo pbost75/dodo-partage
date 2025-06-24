@@ -139,7 +139,7 @@ export default function SearchNavigationFooter() {
       case 'volume-needed':
         return formData.volumeNeeded.neededVolume > 0;
       case 'budget':
-        return formData.budget.acceptsFees !== null;
+        return formData.budget && formData.budget.acceptsFees !== null;
       case 'announcement-text':
         return formData.announcementText.trim() !== '';
       case 'contact':
