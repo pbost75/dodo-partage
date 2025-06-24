@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Volume2, FileText, DollarSign } from 'lucide-react';
+import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 
@@ -283,11 +283,11 @@ export default function ModifierAnnoncePage() {
 
             {/* Volumes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                  <Volume2 className="w-4 h-4" />
-                  Volume disponible (m³)
-                </label>
+                             <div>
+                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                   <Package className="w-4 h-4" />
+                   Volume disponible (m³)
+                 </label>
                 <input
                   type="number"
                   value={formData.availableVolume}
@@ -299,11 +299,11 @@ export default function ModifierAnnoncePage() {
                 />
               </div>
               
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                  <Volume2 className="w-4 h-4" />
-                  Volume minimum accepté (m³)
-                </label>
+                             <div>
+                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                   <Package className="w-4 h-4" />
+                   Volume minimum accepté (m³)
+                 </label>
                 <input
                   type="number"
                   value={formData.minimumVolume}
