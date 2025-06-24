@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import VolumeSelector from '@/components/ui/VolumeSelector';
 import { useToast } from '@/hooks/useToast';
 
 interface AnnouncementData {
@@ -48,6 +49,8 @@ export default function ModifierAnnoncePage() {
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
 
   // Données du formulaire
   const [formData, setFormData] = useState({
@@ -57,6 +60,12 @@ export default function ModifierAnnoncePage() {
     offerType: 'free' as 'free' | 'paid',
     announcementText: ''
   });
+
+  // Spécifications des conteneurs (repris du funnel)
+  const containerSpecs = {
+    '20': { totalVolume: 33, maxAvailable: 25, description: '~33 m³ total' },
+    '40': { totalVolume: 67, maxAvailable: 50, description: '~67 m³ total' }
+  };
 
   // Charger les données de l'annonce
   useEffect(() => {
@@ -96,6 +105,15 @@ export default function ModifierAnnoncePage() {
         
         setFormData(initialFormData);
         
+        // Validation initiale des volumes
+        if (announcementData.container?.type) {
+          validateVolumes(
+            initialFormData.availableVolume,
+            initialFormData.minimumVolume,
+            announcementData.container.type
+          );
+        }
+        
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
         setError(errorMessage);
@@ -107,9 +125,77 @@ export default function ModifierAnnoncePage() {
     fetchAnnouncement();
   }, [token]);
 
+  // Validation des volumes (reprise du funnel)
+  const validateVolumes = (availableVolume: number, minimumVolume: number, containerType: '20' | '40') => {
+    const newErrors: string[] = [];
+    const newWarnings: string[] = [];
+
+    // Validation volume disponible
+    if (availableVolume <= 0) {
+      newErrors.push('Le volume disponible doit être supérieur à 0');
+    } else {
+      const specs = containerSpecs[containerType];
+      
+      // ERREUR : Dépasse le maximum absolu
+      if (availableVolume > specs.maxAvailable) {
+        newErrors.push(`Volume trop important pour un conteneur ${containerType} pieds (max recommandé: ${specs.maxAvailable} m³)`);
+      }
+      
+      // AVERTISSEMENT : Volume important mais acceptable (dès 50% du total)
+      if (newErrors.length === 0 && availableVolume > specs.totalVolume * 0.5) {
+        newWarnings.push('Volume important, vérifiez que vous avez vraiment autant d\'espace libre');
+      }
+    }
+
+    // Validation volume minimum
+    if (minimumVolume < 0.1) {
+      newErrors.push('Le volume minimum doit être d\'au moins 0.1 m³');
+    } else if (minimumVolume > availableVolume) {
+      newErrors.push('Le volume minimum ne peut pas être supérieur au volume disponible');
+    }
+
+    // Avertissement si le volume minimum est élevé
+    if (newErrors.length === 0 && minimumVolume >= 2 && availableVolume < 3) {
+      newWarnings.push('Volume minimum élevé par rapport à l\'espace disponible');
+    }
+
+    setErrors(newErrors);
+    setWarnings(newWarnings);
+
+    return newErrors.length === 0;
+  };
+
+  // Gestionnaires de changement avec validation
+  const handleAvailableVolumeChange = (value: number) => {
+    const newFormData = { ...formData, availableVolume: value };
+    setFormData(newFormData);
+    
+    if (announcement?.container?.type) {
+      validateVolumes(value, newFormData.minimumVolume, announcement.container.type);
+    }
+  };
+
+  const handleMinimumVolumeChange = (value: number) => {
+    const newFormData = { ...formData, minimumVolume: value };
+    setFormData(newFormData);
+    
+    if (announcement?.container?.type) {
+      validateVolumes(newFormData.availableVolume, value, announcement.container.type);
+    }
+  };
+
   // Sauvegarder les modifications
   const handleSave = async () => {
     if (!announcement) return;
+    
+    // Validation avant sauvegarde
+    if (announcement.container?.type) {
+      const isValid = validateVolumes(formData.availableVolume, formData.minimumVolume, announcement.container.type);
+      if (!isValid) {
+        showErrorToast('❌ Veuillez corriger les erreurs avant de sauvegarder');
+        return;
+      }
+    }
     
     try {
       setIsSaving(true);
@@ -281,40 +367,58 @@ export default function ModifierAnnoncePage() {
               />
             </div>
 
-            {/* Volumes */}
+                        {/* Volumes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div>
-                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                   <Package className="w-4 h-4" />
-                   Volume disponible (m³)
-                 </label>
-                <input
-                  type="number"
+              <div>
+                <VolumeSelector
+                  label="Volume disponible (m³)"
                   value={formData.availableVolume}
-                  onChange={(e) => setFormData(prev => ({ ...prev, availableVolume: Number(e.target.value) }))}
-                  min="0.5"
-                  max={announcement?.container?.type === '20' ? '25' : '50'}
-                  step="0.5"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#243163] focus:border-transparent text-lg"
+                  onChange={handleAvailableVolumeChange}
+                  min={0.5}
+                  max={announcement?.container?.type === '20' ? 25 : 50}
+                  step={0.5}
+                  unit="m³"
+                  placeholder="Ex: 12"
                 />
               </div>
               
-                             <div>
-                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                   <Package className="w-4 h-4" />
-                   Volume minimum accepté (m³)
-                 </label>
-                <input
-                  type="number"
+              <div>
+                <VolumeSelector
+                  label="Volume minimum accepté (m³)"
                   value={formData.minimumVolume}
-                  onChange={(e) => setFormData(prev => ({ ...prev, minimumVolume: Number(e.target.value) }))}
-                  min="0.1"
+                  onChange={handleMinimumVolumeChange}
+                  min={0.1}
                   max={formData.availableVolume}
-                  step="0.1"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#243163] focus:border-transparent text-lg"
+                  step={0.1}
+                  unit="m³"
+                  placeholder="Ex: 1"
                 />
               </div>
             </div>
+
+            {/* Messages d'erreur pour les volumes */}
+            {errors.length > 0 && (
+              <div className="space-y-2">
+                {errors.map((error, index) => (
+                  <div key={index} className="flex items-start gap-2 text-red-600 text-sm">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{error}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Messages d'avertissement pour les volumes */}
+            {warnings.length > 0 && (
+              <div className="space-y-2">
+                {warnings.map((warning, index) => (
+                  <div key={index} className="flex items-start gap-2 text-orange-600 text-sm">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{warning}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Type d'offre */}
             <div>
@@ -389,7 +493,7 @@ export default function ModifierAnnoncePage() {
               variant="primary"
               onClick={handleSave}
               className="flex-1 bg-[#243163] hover:bg-[#1e2951]"
-              disabled={isSaving}
+              disabled={isSaving || errors.length > 0}
             >
               {isSaving ? (
                 <span className="flex items-center gap-2">
