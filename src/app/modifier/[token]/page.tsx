@@ -337,7 +337,7 @@ export default function ModifierAnnoncePage() {
                   <h1 className="text-2xl font-bold text-gray-900">
                     Modification de l'annonce
                   </h1>
-                  <p className="text-gray-600">{announcement.reference}</p>
+                  <p className="text-gray-600">{announcement?.reference}</p>
                 </div>
               </div>
               
@@ -369,7 +369,7 @@ export default function ModifierAnnoncePage() {
                 </div>
 
                 <button
-                  onClick={() => handleNavigation(`/annonce/${announcement.reference}`)}
+                  onClick={() => handleNavigation(`/annonce/${announcement?.reference}`)}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                 >
                   <Eye className="w-4 h-4" />
@@ -408,15 +408,15 @@ export default function ModifierAnnoncePage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
                     <span className="text-gray-500">Prénom :</span>
-                    <p className="font-medium">{announcement.contact.firstName}</p>
+                    <p className="font-medium">{announcement?.contact?.firstName}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Email :</span>
-                    <p className="font-medium">{announcement.contact.email}</p>
+                    <p className="font-medium">{announcement?.contact?.email}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Téléphone :</span>
-                    <p className="font-medium">{announcement.contact.phone}</p>
+                    <p className="font-medium">{announcement?.contact?.phone}</p>
                   </div>
                 </div>
               </div>
@@ -438,15 +438,15 @@ export default function ModifierAnnoncePage() {
                   <div>
                     <span className="text-gray-500 text-sm">Départ :</span>
                     <p className="font-medium">
-                      {announcement.departure.city}, {announcement.departure.country}
-                      {announcement.departure.postalCode && ` (${announcement.departure.postalCode})`}
+                      {announcement?.departure?.city}, {announcement?.departure?.country}
+                      {announcement?.departure?.postalCode && ` (${announcement.departure.postalCode})`}
                     </p>
                   </div>
                   <div>
                     <span className="text-gray-500 text-sm">Arrivée :</span>
                     <p className="font-medium">
-                      {announcement.arrival.city}, {announcement.arrival.country}
-                      {announcement.arrival.postalCode && ` (${announcement.arrival.postalCode})`}
+                      {announcement?.arrival?.city}, {announcement?.arrival?.country}
+                      {announcement?.arrival?.postalCode && ` (${announcement.arrival.postalCode})`}
                     </p>
                   </div>
                 </div>
@@ -466,42 +466,43 @@ export default function ModifierAnnoncePage() {
                   />
                 </div>
                 <p className="font-medium">
-                  Conteneur {announcement.container.type} pieds 
+                  Conteneur {announcement?.container?.type} pieds 
                   <span className="text-gray-500 ml-2">
-                    (~{announcement.container.type === '20' ? '33' : '67'} m³ total)
+                    (~{announcement?.container?.type === '20' ? '33' : '67'} m³ total)
                   </span>
                 </p>
               </div>
             </div>
 
             {/* Champs modifiables */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Informations modifiables
-              </h2>
+            {announcement && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Informations modifiables
+                </h2>
 
-              {/* Date de transport */}
-              <div>
-                <CustomDatePicker
-                  label="Date de transport souhaitée"
-                  value={formData.shippingDate}
-                  onChange={handleDateChange}
-                  min={new Date().toISOString().split('T')[0]}
-                  name="shippingDate"
-                />
-              </div>
+                {/* Date de transport */}
+                <div>
+                  <CustomDatePicker
+                    label="Date de transport souhaitée"
+                    value={formData.shippingDate}
+                    onChange={handleDateChange}
+                    min={new Date().toISOString().split('T')[0]}
+                    name="shippingDate"
+                  />
+                </div>
 
-              {/* Volumes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <VolumeSelector
-                  label="Volume disponible (m³)"
-                  value={formData.availableVolume}
-                  onChange={handleVolumeAvailableChange}
-                  min={0.5}
-                  max={announcement.container.type === '20' ? 25 : 50}
-                  step={0.5}
-                  unit="m³"
-                />
+                {/* Volumes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <VolumeSelector
+                    label="Volume disponible (m³)"
+                    value={formData.availableVolume}
+                    onChange={handleVolumeAvailableChange}
+                    min={0.5}
+                    max={announcement.container.type === '20' ? 25 : 50}
+                    step={0.5}
+                    unit="m³"
+                  />
                 
                 <VolumeSelector
                   label="Volume minimum accepté (m³)"
@@ -542,6 +543,7 @@ export default function ModifierAnnoncePage() {
                 </div>
               </div>
             </div>
+            )}
 
             {/* Bouton de sauvegarde manuelle */}
             <div className="flex justify-center pt-6">
