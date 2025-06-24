@@ -24,7 +24,6 @@ export interface VolumeNeededData {
 
 export interface BudgetData {
   acceptsFees: boolean | null; // null = pas encore répondu, true = oui, false = non
-  maxBudget?: number;
 }
 
 export interface ContactData {
