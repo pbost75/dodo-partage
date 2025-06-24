@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import ProgressBar from '../ui/ProgressBar';
 import { useProposeStore } from '@/store/proposeStore';
+import { useSearchStore } from '@/store/searchStore';
 import NavigationFooter from './NavigationFooter';
 import SearchNavigationFooter from './SearchNavigationFooter';
 
@@ -27,22 +28,31 @@ const FunnelLayout: React.FC<FunnelLayoutProps> = ({
   // Calculer le pourcentage de progression
   const progressPercentage = (parseInt(currentStep) / totalSteps) * 100;
   
-  // Récupérer la fonction resetStore depuis le store (uniquement pour propose)
-  const { reset } = useProposeStore();
+  // Récupérer les fonctions reset depuis les stores
+  const { reset: resetPropose } = useProposeStore();
+  const { reset: resetSearch } = useSearchStore();
   
-  // Fonction pour réinitialiser le store et le localStorage (uniquement pour propose)
+  // Fonction pour réinitialiser le store et le localStorage
   const handleReset = () => {
-    if (!isProposeFunnel) return; // Pas de reset pour search
+    const funnelType = isSearchFunnel ? 'search' : 'propose';
+    const confirmMessage = `Êtes-vous sûr de vouloir réinitialiser toutes les données du formulaire ${funnelType} ?`;
     
-    if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les données du formulaire?')) {
-      // Réinitialiser le store
-      reset();
-      
-      // Supprimer uniquement les données du funnel dans localStorage
-      localStorage.removeItem('dodo-partage-propose-store');
-      
-      // Rediriger directement vers la première étape du funnel
-      window.location.href = '/funnel/propose/locations';
+    if (confirm(confirmMessage)) {
+      if (isSearchFunnel) {
+        // Réinitialiser le store search
+        resetSearch();
+        // Supprimer les données du funnel search dans localStorage
+        localStorage.removeItem('search-funnel-storage');
+        // Rediriger vers la première étape du funnel search
+        window.location.href = '/funnel/search/locations';
+      } else if (isProposeFunnel) {
+        // Réinitialiser le store propose
+        resetPropose();
+        // Supprimer les données du funnel propose dans localStorage
+        localStorage.removeItem('dodo-partage-propose-store');
+        // Rediriger vers la première étape du funnel propose
+        window.location.href = '/funnel/propose/locations';
+      }
     }
   };
 
@@ -89,12 +99,12 @@ const FunnelLayout: React.FC<FunnelLayoutProps> = ({
       {isSearchFunnel && <SearchNavigationFooter />}
       {isProposeFunnel && <NavigationFooter />}
       
-      {/* Bouton de réinitialisation discret - Uniquement pour le funnel propose */}
-      {isProposeFunnel && (
+      {/* Bouton de réinitialisation discret - Pour les deux funnels */}
+      {(isSearchFunnel || isProposeFunnel) && (
         <button
           onClick={handleReset}
           className="fixed bottom-4 right-4 bg-gray-200 bg-opacity-50 hover:bg-gray-300 text-gray-600 rounded-full w-8 h-8 flex items-center justify-center text-xs z-50"
-          title="Réinitialiser le formulaire (pour tests)"
+          title={`Réinitialiser le formulaire ${isSearchFunnel ? 'search' : 'propose'} (pour tests)`}
         >
           R
         </button>
