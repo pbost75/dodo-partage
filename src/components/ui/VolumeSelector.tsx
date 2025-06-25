@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Minus } from 'lucide-react';
 
 interface VolumeSelectorProps {
@@ -28,6 +28,12 @@ const VolumeSelector: React.FC<VolumeSelectorProps> = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [inputValue, setInputValue] = useState(value.toString());
+  
+  // Synchroniser inputValue avec la prop value (important pour le calculateur)
+  useEffect(() => {
+    const displayValue = value % 1 === 0 ? value.toString() : value.toFixed(1);
+    setInputValue(displayValue);
+  }, [value]);
   
   // Déterminer si le label doit être en position haute
   const isLabelUp = isFocused || value >= 0 || inputValue !== '';

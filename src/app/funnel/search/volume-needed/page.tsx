@@ -36,6 +36,12 @@ export default function VolumeNeededStep() {
   const [usedCalculator, setUsedCalculator] = useState(formData.volumeNeeded.usedCalculator || false);
   const [listingItems, setListingItems] = useState<string>(formData.volumeNeeded.listingItems || '');
   const [volumeDescription, setVolumeDescription] = useState<string>(formData.volumeNeeded.volumeDescription || '');
+  const [isMounted, setIsMounted] = useState(false);
+
+  // S'assurer que le composant est monté côté client
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Validation du volume
   const validateVolume = (volume: number) => {
@@ -233,13 +239,15 @@ export default function VolumeNeededStep() {
       </motion.div>
 
       {/* Modal du calculateur de volume */}
-      <VolumeCalculatorModal
-        isOpen={isCalculatorOpen}
-        onClose={() => setIsCalculatorOpen(false)}
-        onSave={handleCalculatorSave}
-        existingListingItems={usedCalculator ? listingItems : undefined}
-        existingVolume={usedCalculator ? neededVolume : undefined}
-      />
+      {isMounted && (
+        <VolumeCalculatorModal
+          isOpen={isCalculatorOpen}
+          onClose={() => setIsCalculatorOpen(false)}
+          onSave={handleCalculatorSave}
+          existingListingItems={usedCalculator ? listingItems : undefined}
+          existingVolume={usedCalculator ? neededVolume : undefined}
+        />
+      )}
     </>
   );
 } 

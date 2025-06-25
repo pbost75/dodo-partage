@@ -86,6 +86,16 @@ export default function ContactStep() {
     setContact({ phone: value });
   };
 
+  // Navigation vers l'étape suivante (confirmation)
+  const handleContinue = () => {
+    const isFirstNameValid = validateField('firstName', firstName);
+    const isEmailValid = validateField('email', email);
+
+    if (isFirstNameValid && isEmailValid) {
+      router.push('/funnel/search/confirmation');
+    }
+  };
+
   const isValid = firstName.trim().length >= 2 && 
                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
                  Object.keys(errors).length === 0;
