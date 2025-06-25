@@ -483,13 +483,10 @@ export default function ModifierAnnoncePage() {
             <div className="space-y-8">
               {/* Date d'expédition */}
               <div>
-                <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                  <Calendar className="w-5 h-5 text-[#243163]" />
-                  Date d'expédition souhaitée
-                </label>
                 <CustomDatePicker
-                  selectedDate={formData.shippingDate}
-                  onDateChange={(date) => setFormData(prev => ({ ...prev, shippingDate: date }))}
+                  label="Date d'expédition souhaitée"
+                  value={formData.shippingDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, shippingDate: e.target.value }))}
                   placeholder="Sélectionner une date"
                 />
               </div>
@@ -505,7 +502,7 @@ export default function ModifierAnnoncePage() {
                   <VolumeSelector
                     value={formData.volumeNeeded}
                     onChange={handleVolumeNeededChange}
-                    maxValue={containerSpecs[announcement.container?.type || '20'].maxAvailable}
+                    max={containerSpecs[announcement.container?.type || '20'].maxAvailable}
                     label="Volume recherché"
                   />
                 </div>
@@ -520,7 +517,7 @@ export default function ModifierAnnoncePage() {
                     <VolumeSelector
                       value={formData.availableVolume}
                       onChange={handleAvailableVolumeChange}
-                      maxValue={containerSpecs[announcement.container?.type || '20'].maxAvailable}
+                      max={containerSpecs[announcement.container?.type || '20'].maxAvailable}
                       label="Volume disponible"
                     />
                   </div>
@@ -533,10 +530,10 @@ export default function ModifierAnnoncePage() {
                     <VolumeSelector
                       value={formData.minimumVolume}
                       onChange={handleMinimumVolumeChange}
-                      maxValue={5}
+                      max={5}
                       label="Volume minimum"
                       step={1}
-                      allowZero={true}
+                      min={0}
                     />
                     <p className="text-sm text-gray-500 mt-2">
                       Volume minimum que vous acceptez de transporter (0 = pas de minimum)
