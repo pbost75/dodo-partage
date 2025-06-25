@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       
       // Ajout du statut initial pour les demandes
       status: 'pending_validation',
-      requestType: 'search', // Différencier des annonces "propose"
+      request_type: 'search', // Différencier des annonces "propose" (snake_case pour backend)
       
       // Ajout de l'étape de finalisation
       isCompleted: true,
