@@ -96,7 +96,7 @@ const CardContent = ({ children, className = '', ...props }: { children: React.R
 export default function ModifierAnnoncePage() {
   const params = useParams();
   const router = useRouter();
-  const { addToast } = useToast();
+  const { success, error } = useToast();
   const token = params.token as string;
   
   const [loading, setLoading] = useState(true);
@@ -167,12 +167,12 @@ export default function ModifierAnnoncePage() {
             });
           }
         } else {
-          addToast('Erreur lors du chargement de l\'annonce', 'error');
+          error('Erreur lors du chargement de l\'annonce');
           router.push('/');
         }
-      } catch (error) {
-        console.error('Erreur:', error);
-        addToast('Erreur technique lors du chargement', 'error');
+      } catch (err) {
+        console.error('Erreur:', err);
+        error('Erreur technique lors du chargement');
         router.push('/');
       } finally {
         setLoading(false);
@@ -182,7 +182,7 @@ export default function ModifierAnnoncePage() {
     if (token) {
       fetchAnnouncement();
     }
-  }, [token, router, addToast]);
+  }, [token, router, error]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -224,15 +224,15 @@ export default function ModifierAnnoncePage() {
       const result = await response.json();
       
       if (result.success) {
-        addToast('Annonce mise à jour avec succès !', 'success');
+        success('Annonce mise à jour avec succès !');
         // Rediriger vers la page d'accueil ou vers la liste des annonces
         router.push('/');
       } else {
-        addToast(result.error || 'Erreur lors de la mise à jour', 'error');
+        error(result.error || 'Erreur lors de la mise à jour');
       }
-    } catch (error) {
-      console.error('Erreur:', error);
-      addToast('Erreur technique lors de la sauvegarde', 'error');
+    } catch (err) {
+      console.error('Erreur:', err);
+      error('Erreur technique lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
