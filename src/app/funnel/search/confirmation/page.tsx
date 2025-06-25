@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle, Mail, Home, AlertCircle, Search } from 'lucide-react';
+import { CheckCircle, Mail, Home, AlertCircle } from 'lucide-react';
 import { useSearchStore } from '@/store/searchStore';
 import Button from '@/components/ui/Button';
 import SubmissionLoader from '@/components/ui/SubmissionLoader';
@@ -20,6 +20,7 @@ export default function SearchConfirmationPage() {
   // Redirection si pas de données
   useEffect(() => {
     if (!formData.contact.email || !formData.volumeNeeded.neededVolume) {
+      console.log('❌ Données manquantes - Redirection vers locations');
       router.push('/funnel/search/locations');
       return;
     }
@@ -28,6 +29,7 @@ export default function SearchConfirmationPage() {
   // Soumission automatique au chargement (une seule fois)
   useEffect(() => {
     if (!isSubmitted && !isSubmitting && !hasAttemptedSubmit && formData.contact.email) {
+      console.log('🚀 Démarrage soumission automatique');
       setHasAttemptedSubmit(true);
       handleSubmit();
     }
@@ -55,6 +57,7 @@ export default function SearchConfirmationPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.log('❌ Erreur API:', errorData);
         
         // Cas spécial : Demande potentielle déjà créée (429)
         if (response.status === 429) {
@@ -89,12 +92,6 @@ export default function SearchConfirmationPage() {
     router.push('/');
   };
 
-  const handleNewSearch = () => {
-    // Réinitialiser le store et rediriger vers le début du funnel search
-    reset();
-    router.push('/funnel/search/locations');
-  };
-
   if (isSubmitting) {
     return <SubmissionLoader isSubmitting={isSubmitting} />;
   }
@@ -120,7 +117,7 @@ export default function SearchConfirmationPage() {
             
             <div className="space-y-6 mb-8">
               <p className="text-lg text-gray-700">
-                Une erreur s'est produite lors de la soumission de votre demande de place
+                Une erreur s'est produite lors de la soumission de votre demande
               </p>
               
               <div className="bg-red-50 rounded-xl p-4 border border-red-200">
@@ -133,7 +130,7 @@ export default function SearchConfirmationPage() {
               <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                 <h3 className="font-semibold text-blue-900 mb-2">✅ Ce qui fonctionne déjà</h3>
                 <ul className="text-sm text-blue-800 space-y-1 text-left">
-                  <li>• Toutes les étapes du funnel de recherche</li>
+                  <li>• Toutes les étapes du funnel</li>
                   <li>• Validation des données</li>
                   <li>• Interface utilisateur complète</li>
                   <li>• Calculateur de volume intégré</li>
@@ -194,7 +191,7 @@ export default function SearchConfirmationPage() {
             transition={{ delay: 0.4 }}
             className="text-4xl font-bold text-blue-900 font-['Roboto_Slab'] mb-4"
           >
-            🔍 Demande reçue !
+            🔍 Bien reçu !
           </motion.h1>
 
           {/* Message de confirmation */}
@@ -204,120 +201,65 @@ export default function SearchConfirmationPage() {
             transition={{ delay: 0.6 }}
             className="space-y-6 mb-8"
           >
-            <p className="text-xl text-gray-700 font-['Lato']">
-              Votre demande de place a été enregistrée avec succès
-            </p>
-
-            {/* Résumé de la demande */}
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200 text-left">
-              <h3 className="font-semibold text-blue-900 mb-4 font-['Roboto_Slab']">
-                📋 Résumé de votre demande
-              </h3>
-              <div className="space-y-3 text-sm text-blue-800">
-                <div className="flex justify-between">
-                  <span className="font-medium">Trajet :</span>
-                  <span>{formData.departure.displayName} → {formData.arrival.displayName}</span>
+            {/* Information importante sur la validation email */}
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+              <div className="text-left space-y-3">
+                <div className="flex items-start gap-3">
+                  <Mail className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-blue-800">
+                    Un email a été envoyé à <strong>{formData.contact.email}</strong> avec un lien pour valider votre demande.
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Volume recherché :</span>
-                  <span>{formData.volumeNeeded.neededVolume} m³</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Participation aux frais :</span>
-                  <span>{formData.budget.acceptsFees ? 'Acceptée' : 'Non souhaitée'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Période :</span>
-                  <span>
-                    {formData.shippingPeriod.selectedMonths?.length ? 
-                      formData.shippingPeriod.selectedMonths.join(', ') : 
-                      'Flexible'
-                    }
-                  </span>
-                </div>
-                {formData.volumeNeeded.usedCalculator && (
-                  <div className="flex justify-between">
-                    <span className="font-medium">Calculateur :</span>
-                    <span className="text-green-600">✓ Utilisé</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Prochaines étapes */}
-            <div className="bg-green-50 rounded-xl p-6 border border-green-200 text-left">
-              <div className="flex items-start gap-3">
-                <Mail className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-green-900 mb-2 font-['Roboto_Slab']">
-                    📧 Prochaines étapes
-                  </h3>
-                  <ol className="text-sm text-green-800 space-y-2">
-                    <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-                      <span>Un email de validation a été envoyé à <strong>{formData.contact.email}</strong></span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                      <span>Cliquez sur le lien dans l'email pour confirmer votre demande</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-                      <span>Votre demande sera visible par les transporteurs ayant de l'espace</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
-                      <span>Vous recevrez les coordonnées des personnes intéressées</span>
-                    </li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-
-            {/* Note importante */}
-            <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-yellow-800">
-                  <p className="font-medium mb-1">📥 Vérifiez vos emails</p>
-                  <p>
-                    Si vous ne recevez pas l'email de validation dans les 5 minutes, 
-                    vérifiez votre dossier spam ou courrier indésirable.
+                <div className="bg-blue-100 rounded-lg p-3">
+                  <p className="text-sm text-blue-900 font-medium">
+                    ⚠️ Important : Votre demande ne sera visible qu'après validation
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Prochaines étapes */}
+            <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
+              <h3 className="font-semibold text-yellow-900 mb-4 text-left text-lg">📋 Prochaines étapes</h3>
+              <div className="text-left space-y-3">
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">1</span>
+                  <p className="text-yellow-800">Vérifiez votre boîte email (et les spams)</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">2</span>
+                  <p className="text-yellow-800">Cliquez sur le lien de validation dans l'email</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">3</span>
+                  <p className="text-yellow-800">Votre demande sera publiée et visible par les transporteurs</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-200 rounded-full flex items-center justify-center text-xs font-bold text-yellow-900">4</span>
+                  <p className="text-yellow-800">Vous recevrez les propositions de transport par email</p>
+                </div>
+              </div>
+            </div>
           </motion.div>
 
-          {/* Actions */}
+          {/* Bouton d'action */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="space-y-4"
+            transition={{ delay: 1 }}
           >
-            <Button
-              onClick={handleNewSearch}
-              fullWidth
-              size="lg"
-              className="bg-[#F47D6C] hover:bg-[#e05a48] text-white"
-              icon={<Search className="w-5 h-5" />}
-              iconPosition="left"
-            >
-              Nouvelle recherche
-            </Button>
-            
             <Button
               onClick={handleGoHome}
               fullWidth
               size="lg"
-              variant="outline"
               icon={<Home className="w-5 h-5" />}
               iconPosition="left"
+              className="bg-[#F47D6C] hover:bg-[#e05a48] text-white"
             >
               Retour à l'accueil
             </Button>
           </motion.div>
+
         </div>
       </motion.div>
     </div>

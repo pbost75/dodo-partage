@@ -114,6 +114,9 @@ export async function POST(request: NextRequest) {
       announcementTextLength: data.announcementText.length,
       submittedAt: new Date().toISOString(),
       
+      // Type de requête pour Airtable
+      request_type: 'offer', // Différencier des demandes "search"
+      
       // Formatage de la date d'expédition en français
       shippingDateFormatted: new Date(data.shippingDate).toLocaleDateString('fr-FR', {
         weekday: 'long',
