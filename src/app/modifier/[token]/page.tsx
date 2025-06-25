@@ -1,24 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import Card from '@/components/ui/Card';
+import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye, Search } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Textarea from '@/components/ui/Textarea';
-import MonthPicker from '@/components/ui/MonthPicker';
-import CustomDatePicker from '@/components/ui/CustomDatePicker';
 import VolumeSelector from '@/components/ui/VolumeSelector';
-import { ArrowLeft } from 'lucide-react';
+import CustomDatePicker from '@/components/ui/CustomDatePicker';
 import { useToast } from '@/hooks/useToast';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Interfaces pour les différents types d'annonces
+// Interface pour les données du formulaire
+interface FormData {
+  shippingDate: string;
+  announcementText: string;
+  // Champs conditionnels selon le type
+  // Pour offer:
+  availableVolume: number;
+  minimumVolume: number;
+  offerType: 'free' | 'paid';
+  // Pour search:
+  volumeNeeded: number;
+  acceptsCostSharing: boolean;
+}
+
+// Interface commune pour les deux types d'annonces
 interface BaseAnnouncementData {
-  id: string;
   reference: string;
   contact: {
     firstName: string;
-    lastName: string;
     email: string;
     phone: string;
   };
@@ -34,492 +43,651 @@ interface BaseAnnouncementData {
     postalCode: string;
     displayName: string;
   };
+  shippingDate: string;
   announcementText: string;
-  requestType: 'search' | 'offer';
+  status: string;
+  createdAt: string;
+  requestType: 'search' | 'offer'; // Champ pour différencier les types
 }
 
-interface SearchAnnouncementData extends BaseAnnouncementData {
-  requestType: 'search';
-  shippingPeriod: string; // String simple depuis le backend
-  container: {
-    volumeNeeded: number; // Volume recherché
-  };
-  acceptsCostSharing: boolean; // Participation aux frais
-  offerType: 'paid' | 'free';
-}
-
+// Interface pour les annonces "offer" (propose de la place)
 interface OfferAnnouncementData extends BaseAnnouncementData {
   requestType: 'offer';
-  shippingDate: string; // Pour les offres : date précise
   container: {
-    type: string;
+    type: '20' | '40';
     availableVolume: number;
     minimumVolume: number;
   };
   offerType: 'free' | 'paid';
 }
 
-type AnnouncementData = SearchAnnouncementData | OfferAnnouncementData;
-
-interface FormData {
-  // Données communes
-  announcementText: string;
-  
-  // Pour les demandes de place (search)
-  shippingPeriod: string[];
-  volumeNeeded: number;
-  acceptsCostSharing: boolean;
-  
-  // Pour les offres de place (offer)
-  shippingDate: string;
-  containerType: string;
-  availableVolume: number;
-  minimumVolume: number;
-  offerType: 'free' | 'paid';
+// Interface pour les annonces "search" (cherche de la place)
+interface SearchAnnouncementData extends BaseAnnouncementData {
+  requestType: 'search';
+  container: {
+    type: '20' | '40';
+    volumeNeeded: number; // Volume recherché
+  };
+  acceptsCostSharing: boolean; // Accepte de participer aux frais
 }
 
-// Composant LoadingSpinner simple
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    <span className="ml-2 text-gray-600">Chargement...</span>
-  </div>
-);
-
-// Composant CardContent simple
-const CardContent = ({ children, className = '', ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) => (
-  <div className={className} {...props}>
-    {children}
-  </div>
-);
+type AnnouncementData = OfferAnnouncementData | SearchAnnouncementData;
 
 export default function ModifierAnnoncePage() {
   const params = useParams();
   const router = useRouter();
-  const { success, error } = useToast();
+  const { success: showSuccessToast, error: showErrorToast } = useToast();
   const token = params.token as string;
   
+  // États
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<AnnouncementData | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
+
+  // Données du formulaire - adaptées selon le type
   const [formData, setFormData] = useState<FormData>({
-    announcementText: '',
-    shippingPeriod: [],
-    volumeNeeded: 0,
-    acceptsCostSharing: false,
     shippingDate: '',
-    containerType: 'pieds',
+    announcementText: '',
+    // Champs conditionnels selon le type
+    // Pour offer:
     availableVolume: 0,
     minimumVolume: 0,
-    offerType: 'free'
+    offerType: 'free',
+    // Pour search:
+    volumeNeeded: 0,
+    acceptsCostSharing: false
   });
 
-  // Fonction pour convertir string en array pour MonthPicker
-  const formatShippingPeriodArray = (periodString: string): string[] => {
-    if (!periodString || periodString === 'Flexible') return [];
-    
-    // Si c'est une période formatée "Mois Année - Mois Année"
-    if (periodString.includes(' - ')) {
-      const [start, end] = periodString.split(' - ');
-      return [start.trim(), end.trim()];
-    }
-    
-    // Si c'est un seul mois
-    return [periodString.trim()];
+  // Nouvel état pour la popup de confirmation
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Spécifications des conteneurs
+  const containerSpecs = {
+    '20': { totalVolume: 33, maxAvailable: 25, description: '~33 m³ total' },
+    '40': { totalVolume: 67, maxAvailable: 50, description: '~67 m³ total' }
   };
 
-  // Chargement des données de l'annonce
+  // Charger les données de l'annonce
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
-        const response = await fetch(`https://web-production-7b738.up.railway.app/api/partage/edit-form/${token}`);
+        setLoading(true);
+        setError(null);
+        
+        const backendUrl = 'https://web-production-7b738.up.railway.app';
+        const response = await fetch(`${backendUrl}/api/partage/edit-form/${token}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Token de modification invalide ou expiré. Cette annonce n\'existe peut-être plus.');
+          } else {
+            throw new Error('Erreur lors du chargement de l\'annonce');
+          }
+        }
+        
         const result = await response.json();
         
-        if (result.success) {
-          setAnnouncement(result.data);
-          
-          // Initialiser le formulaire selon le type d'annonce
-          if (result.data.requestType === 'search') {
-            const searchData = result.data as SearchAnnouncementData;
-            setFormData({
-              announcementText: searchData.announcementText || '',
-              shippingPeriod: formatShippingPeriodArray(searchData.shippingPeriod || ''),
-              volumeNeeded: searchData.container.volumeNeeded || 0,
-              acceptsCostSharing: searchData.acceptsCostSharing || false,
-              shippingDate: '',
-              containerType: 'pieds',
-              availableVolume: 0,
-              minimumVolume: 0,
-              offerType: searchData.offerType || 'free'
-            });
-          } else {
-            const offerData = result.data as OfferAnnouncementData;
-            setFormData({
-              announcementText: offerData.announcementText || '',
-              shippingPeriod: [],
-              volumeNeeded: 0,
-              acceptsCostSharing: false,
-              shippingDate: offerData.shippingDate || '',
-              containerType: offerData.container.type || 'pieds',
-              availableVolume: offerData.container.availableVolume || 0,
-              minimumVolume: offerData.container.minimumVolume || 0,
-              offerType: offerData.offerType || 'free'
-            });
-          }
-        } else {
-          error('Erreur lors du chargement de l\'annonce');
-          router.push('/');
+        if (!result.success || !result.data) {
+          throw new Error('Format de réponse invalide');
         }
+        
+        const announcementData = result.data;
+        setAnnouncement(announcementData);
+        
+        // Initialiser les données du formulaire selon le type
+        if (announcementData.requestType === 'search') {
+          // Pour les demandes de place
+          const initialFormData: FormData = {
+            shippingDate: announcementData.shippingDate || '',
+            announcementText: announcementData.announcementText || '',
+            volumeNeeded: announcementData.container?.volumeNeeded || 0,
+            acceptsCostSharing: announcementData.acceptsCostSharing || false,
+            // Valeurs par défaut pour les champs offer (non utilisés)
+            availableVolume: 0,
+            minimumVolume: 0,
+            offerType: 'free'
+          };
+          setFormData(initialFormData);
+        } else {
+          // Pour les offres de place (type 'offer')
+          const initialFormData: FormData = {
+            shippingDate: announcementData.shippingDate || '',
+            announcementText: announcementData.announcementText || '',
+            availableVolume: announcementData.container?.availableVolume || 0,
+            minimumVolume: announcementData.container?.minimumVolume || 0,
+            offerType: announcementData.offerType || 'free',
+            // Valeurs par défaut pour les champs search (non utilisés)
+            volumeNeeded: 0,
+            acceptsCostSharing: false
+          };
+          setFormData(initialFormData);
+          
+          // Validation initiale des volumes pour les offres
+          if (announcementData.container?.type) {
+            validateVolumes(
+              initialFormData.availableVolume,
+              initialFormData.minimumVolume,
+              announcementData.container.type
+            );
+          }
+        }
+        
       } catch (err) {
-        console.error('Erreur:', err);
-        error('Erreur technique lors du chargement');
-        router.push('/');
+        const errorMessage = err instanceof Error ? err.message : 'Erreur de chargement';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
 
-    if (token) {
-      fetchAnnouncement();
+    fetchAnnouncement();
+  }, [token]);
+
+  // Validation des volumes (reprise du funnel)
+  const validateVolumes = (availableVolume: number, minimumVolume: number, containerType: '20' | '40') => {
+    const newErrors: string[] = [];
+    const newWarnings: string[] = [];
+
+    // Validation volume disponible
+    if (availableVolume <= 0) {
+      newErrors.push('Le volume disponible doit être supérieur à 0');
+    } else {
+      const specs = containerSpecs[containerType];
+      
+      // ERREUR : Dépasse le maximum absolu
+      if (availableVolume > specs.maxAvailable) {
+        newErrors.push(`Volume trop important pour un conteneur ${containerType} pieds (max recommandé: ${specs.maxAvailable} m³)`);
+      }
+      
+      // AVERTISSEMENT : Volume important mais acceptable (dès 50% du total)
+      if (newErrors.length === 0 && availableVolume > specs.totalVolume * 0.5) {
+        newWarnings.push('Volume important, vérifiez que vous avez vraiment autant d\'espace libre');
+      }
     }
-  }, [token, router, error]);
+
+    // Validation volume minimum (accepte maintenant 0-5 entiers)
+    if (minimumVolume < 0 || minimumVolume > 5) {
+      newErrors.push('Le volume minimum doit être entre 0 et 5 m³');
+    } else if (minimumVolume > availableVolume) {
+      newErrors.push('Le volume minimum ne peut pas être supérieur au volume disponible');
+    }
+
+    setErrors(newErrors);
+    setWarnings(newWarnings);
+  };
+
+  // Validation du volume recherché pour les demandes
+  const validateVolumeNeeded = (volumeNeeded: number, containerType: '20' | '40') => {
+    const newErrors: string[] = [];
+    const newWarnings: string[] = [];
+
+    if (volumeNeeded <= 0) {
+      newErrors.push('Le volume recherché doit être supérieur à 0');
+    } else {
+      const specs = containerSpecs[containerType];
+      
+      if (volumeNeeded > specs.maxAvailable) {
+        newErrors.push(`Volume trop important pour un conteneur ${containerType} pieds (max: ${specs.maxAvailable} m³)`);
+      } else if (volumeNeeded > specs.totalVolume * 0.5) {
+        newWarnings.push('Volume important, assurez-vous que c\'est nécessaire');
+      }
+    }
+
+    setErrors(newErrors);
+    setWarnings(newWarnings);
+  };
+
+  // Gestionnaires d'événements
+  const handleAvailableVolumeChange = (value: number) => {
+    setFormData(prev => ({ ...prev, availableVolume: value }));
+    if (announcement && announcement.container?.type) {
+      validateVolumes(value, formData.minimumVolume, announcement.container.type);
+    }
+  };
+
+  const handleMinimumVolumeChange = (value: number) => {
+    setFormData(prev => ({ ...prev, minimumVolume: value }));
+    if (announcement && announcement.container?.type) {
+      validateVolumes(formData.availableVolume, value, announcement.container.type);
+    }
+  };
+
+  const handleVolumeNeededChange = (value: number) => {
+    setFormData(prev => ({ ...prev, volumeNeeded: value }));
+    if (announcement && announcement.container?.type) {
+      validateVolumeNeeded(value, announcement.container.type);
+    }
+  };
+
+  const handleCostSharingChange = (accepts: boolean) => {
+    setFormData(prev => ({ ...prev, acceptsCostSharing: accepts }));
+  };
 
   const handleSave = async () => {
-    setSaving(true);
-    
-    try {
-      // Préparer les données selon le type d'annonce
-      let updateData: any = {
-        token,
-        announcementText: formData.announcementText,
-        requestType: announcement?.requestType
-      };
+    if (!announcement) return;
 
-      if (announcement?.requestType === 'search') {
+    // Validation finale selon le type
+    if (announcement.requestType === 'search') {
+      if (formData.volumeNeeded <= 0) {
+        showErrorToast('Le volume recherché doit être supérieur à 0');
+        return;
+      }
+    } else {
+      if (formData.availableVolume <= 0) {
+        showErrorToast('Le volume disponible doit être supérieur à 0');
+        return;
+      }
+      if (formData.minimumVolume > formData.availableVolume) {
+        showErrorToast('Le volume minimum ne peut pas être supérieur au volume disponible');
+        return;
+      }
+    }
+
+    if (errors.length > 0) {
+      showErrorToast('Veuillez corriger les erreurs avant de sauvegarder');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      
+      const backendUrl = 'https://web-production-7b738.up.railway.app';
+      
+      // Préparer les données selon le type d'annonce
+      let updateData;
+      
+      if (announcement.requestType === 'search') {
         updateData = {
-          ...updateData,
-          shippingPeriod: formData.shippingPeriod.join(', ') || 'Flexible',
+          shippingDate: formData.shippingDate,
+          announcementText: formData.announcementText,
           volumeNeeded: formData.volumeNeeded,
           acceptsCostSharing: formData.acceptsCostSharing
         };
       } else {
         updateData = {
-          ...updateData,
           shippingDate: formData.shippingDate,
-          containerType: formData.containerType,
+          announcementText: formData.announcementText,
           availableVolume: formData.availableVolume,
           minimumVolume: formData.minimumVolume,
           offerType: formData.offerType
         };
       }
-
-      const response = await fetch('https://web-production-7b738.up.railway.app/api/partage/update-announcement', {
-        method: 'POST',
+      
+      const response = await fetch(`${backendUrl}/api/partage/update-announcement`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify({
+          token: token,
+          ...updateData
+        })
       });
 
       const result = await response.json();
       
-      if (result.success) {
-        success('Annonce mise à jour avec succès !');
-        // Rediriger vers la page d'accueil ou vers la liste des annonces
-        router.push('/');
-      } else {
-        error(result.error || 'Erreur lors de la mise à jour');
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la sauvegarde');
       }
+
+      // Afficher la popup de succès
+      setShowSuccessModal(true);
+      
     } catch (err) {
-      console.error('Erreur:', err);
-      error('Erreur technique lors de la sauvegarde');
+      const errorMessage = err instanceof Error ? err.message : 'Erreur de sauvegarde';
+      showErrorToast(errorMessage);
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   };
+
+  // Popup de succès
+  const SuccessModal = () => (
+    <AnimatePresence>
+      {showSuccessModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Save className="w-8 h-8 text-green-600" />
+            </div>
+            
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              ✅ Annonce mise à jour
+            </h3>
+            
+            <p className="text-gray-600 mb-6">
+              Vos modifications ont été sauvegardées avec succès.
+            </p>
+            
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setShowSuccessModal(false)}
+                className="flex-1"
+              >
+                Continuer à modifier
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => router.push('/')}
+                className="flex-1"
+              >
+                Retour aux annonces
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex items-center justify-center py-12">
-          <LoadingSpinner />
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <Edit3 className="w-6 h-6" />
+              <h1 className="text-xl font-semibold">Modifier l'annonce</h1>
+            </div>
+          </div>
+        </div>
+
+        {/* Loading */}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#243163] mx-auto mb-4"></div>
+            <p className="text-gray-600">Chargement...</p>
+          </div>
         </div>
       </div>
     );
   }
-
-  if (!announcement) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <p className="text-center text-gray-600">Annonce non trouvée</p>
-        </div>
-      </div>
-    );
-  }
-
-  const isSearchRequest = announcement.requestType === 'search';
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* En-tête avec bouton retour */}
-        <div className="mb-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <button
             onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
+            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Retour aux annonces
+            <ArrowLeft className="w-5 h-5" />
+            <span>Retour aux annonces</span>
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">
-            ✏️ Modifier l'annonce {announcement.reference}
-          </h1>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Informations de l'annonce (non modifiables) */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  📍 Informations de l'annonce
-                </h2>
-                
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-600">Référence:</span>
-                    <p className="text-gray-900">{announcement.reference}</p>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-gray-600">Contact:</span>
-                    <p className="text-gray-900">{announcement.contact.firstName} {announcement.contact.lastName}</p>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-gray-600">Email:</span>
-                    <p className="text-gray-900">{announcement.contact.email}</p>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-gray-600">Trajet:</span>
-                    <p className="text-gray-900">
-                      {announcement.departure.displayName} → {announcement.arrival.displayName}
-                    </p>
-                  </div>
-                  
-                  {/* Affichage conditionnel selon le type */}
-                  {isSearchRequest ? (
-                    <div>
-                      <span className="font-medium text-gray-600">Type:</span>
-                      <p className="text-blue-600">🔍 Cherche de la place</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div>
-                        <span className="font-medium text-gray-600">Conteneur:</span>
-                        <p className="text-gray-900">{(announcement as OfferAnnouncementData).container.type}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Type:</span>
-                        <p className="text-green-600">📦 Propose de la place</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Informations modifiables */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-6">
-                  Informations modifiables
-                </h2>
-                
-                <div className="space-y-6">
-                  {/* Date ou Période selon le type */}
-                  {isSearchRequest ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        📅 Période d'expédition souhaitée
-                      </label>
-                      <MonthPicker
-                        selectedMonths={formData.shippingPeriod}
-                        onMonthsChange={(months) => setFormData(prev => ({ ...prev, shippingPeriod: months }))}
-                        placeholder="Période flexible"
-                      />
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        📅 Date de transport souhaitée
-                      </label>
-                      <CustomDatePicker
-                        label="Date de transport"
-                        value={formData.shippingDate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, shippingDate: e.target.value }))}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                  )}
-
-                  {/* Volume selon le type */}
-                  {isSearchRequest ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        📦 Volume recherché (m³)
-                      </label>
-                      <VolumeSelector
-                        label="Volume recherché"
-                        value={formData.volumeNeeded}
-                        onChange={(value: number) => setFormData({...formData, volumeNeeded: value})}
-                        min={0.5}
-                        max={50}
-                        step={0.5}
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          📦 Volume disponible (m³)
-                        </label>
-                        <VolumeSelector
-                          label="Volume disponible"
-                          value={formData.availableVolume}
-                          onChange={(value) => setFormData(prev => ({ ...prev, availableVolume: value }))}
-                          min={0.5}
-                          max={50}
-                          step={0.5}
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          📦 Volume minimum (m³)
-                        </label>
-                        <VolumeSelector
-                          label="Volume minimum"
-                          value={formData.minimumVolume}
-                          onChange={(value) => setFormData(prev => ({ ...prev, minimumVolume: value }))}
-                          min={0}
-                          max={5}
-                          step={1}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* Participation aux frais */}
-                  {isSearchRequest ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        💰 Participation aux frais
-                      </label>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="acceptsCostSharing"
-                            checked={formData.acceptsCostSharing === true}
-                            onChange={() => setFormData(prev => ({ ...prev, acceptsCostSharing: true }))}
-                            className="mr-2"
-                          />
-                          <span>Oui - J'accepte de participer aux frais</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="acceptsCostSharing"
-                            checked={formData.acceptsCostSharing === false}
-                            onChange={() => setFormData(prev => ({ ...prev, acceptsCostSharing: false }))}
-                            className="mr-2"
-                          />
-                          <span>Non - Je cherche un transport gratuit</span>
-                        </label>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        💰 Type d'offre
-                      </label>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="offerType"
-                            value="free"
-                            checked={formData.offerType === 'free'}
-                            onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
-                            className="mr-2"
-                          />
-                          <span>Gratuit</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="offerType"
-                            value="paid"
-                            checked={formData.offerType === 'paid'}
-                            onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
-                            className="mr-2"
-                          />
-                          <span>Participation aux frais demandée</span>
-                        </label>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      📝 Description de votre {isSearchRequest ? 'demande' : 'offre'}
-                    </label>
-                    <Textarea
-                      value={formData.announcementText}
-                      onChange={(e) => setFormData(prev => ({ ...prev, announcementText: e.target.value }))}
-                      placeholder={`Décrivez votre ${isSearchRequest ? 'demande' : 'offre'}...`}
-                      rows={4}
-                      maxLength={500}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formData.announcementText.length}/500 caractères
-                    </p>
-                  </div>
-                </div>
-
-                {/* Boutons d'action */}
-                <div className="flex gap-3 mt-8">
-                  <Button
-                    onClick={() => router.push('/')}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    onClick={handleSave}
-                    disabled={saving}
-                    variant="primary"
-                    className="flex-1 bg-[#F47D6C] hover:bg-[#e66b5a]"
-                  >
-                    {saving ? '💾 Sauvegarde...' : '💾 Mettre à jour l\'annonce'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="flex items-center gap-3">
+            <Edit3 className="w-6 h-6" />
+            <h1 className="text-xl font-semibold">Modifier l'annonce</h1>
           </div>
         </div>
       </div>
+
+      {/* Contenu */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {error ? (
+          <div className="bg-white rounded-xl border border-red-200 p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">
+              Impossible de modifier l'annonce
+            </h1>
+            <p className="text-gray-600 mb-6">
+              {error}
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => router.push('/')}
+            >
+              Retour aux annonces
+            </Button>
+          </div>
+        ) : announcement ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-8">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+              Modifier l'annonce {announcement.reference}
+            </h1>
+            
+            {/* Aperçu de l'annonce */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Informations de l'annonce
+              </h2>
+              <div className="text-sm text-gray-600 space-y-2">
+                <p><strong>Référence:</strong> {announcement.reference}</p>
+                <p><strong>Type:</strong> {announcement.requestType === 'search' ? '🔍 Cherche de la place' : '📦 Propose de la place'}</p>
+                <p><strong>Trajet:</strong> {announcement.departure.displayName} → {announcement.arrival.displayName}</p>
+                <p><strong>Contact:</strong> {announcement.contact.firstName} ({announcement.contact.email})</p>
+                <p><strong>Conteneur:</strong> {announcement.container?.type} pieds {containerSpecs[announcement.container?.type || '20'].description}</p>
+              </div>
+            </div>
+
+            {/* Formulaire de modification */}
+            <div className="space-y-8">
+              {/* Date d'expédition */}
+              <div>
+                <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                  <Calendar className="w-5 h-5 text-[#243163]" />
+                  Date d'expédition souhaitée
+                </label>
+                <CustomDatePicker
+                  selectedDate={formData.shippingDate}
+                  onDateChange={(date) => setFormData(prev => ({ ...prev, shippingDate: date }))}
+                  placeholder="Sélectionner une date"
+                />
+              </div>
+
+              {/* Volume - Conditionnel selon le type */}
+              {announcement.requestType === 'search' ? (
+                // Pour les demandes de place
+                <div>
+                  <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                    <Search className="w-5 h-5 text-[#243163]" />
+                    Volume recherché (m³)
+                  </label>
+                  <VolumeSelector
+                    value={formData.volumeNeeded}
+                    onChange={handleVolumeNeededChange}
+                    maxValue={containerSpecs[announcement.container?.type || '20'].maxAvailable}
+                    label="Volume recherché"
+                  />
+                </div>
+              ) : (
+                // Pour les offres de place
+                <>
+                  <div>
+                    <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                      <Package className="w-5 h-5 text-[#243163]" />
+                      Volume disponible (m³)
+                    </label>
+                    <VolumeSelector
+                      value={formData.availableVolume}
+                      onChange={handleAvailableVolumeChange}
+                      maxValue={containerSpecs[announcement.container?.type || '20'].maxAvailable}
+                      label="Volume disponible"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                      <Package className="w-5 h-5 text-[#243163]" />
+                      Volume minimum accepté (m³)
+                    </label>
+                    <VolumeSelector
+                      value={formData.minimumVolume}
+                      onChange={handleMinimumVolumeChange}
+                      maxValue={5}
+                      label="Volume minimum"
+                      step={1}
+                      allowZero={true}
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Volume minimum que vous acceptez de transporter (0 = pas de minimum)
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Participation aux frais / Type d'offre - Conditionnel */}
+              {announcement.requestType === 'search' ? (
+                // Pour les demandes de place
+                <div>
+                  <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                    <DollarSign className="w-5 h-5 text-[#243163]" />
+                    Participation aux frais
+                  </label>
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input 
+                        type="radio" 
+                        name="costSharing" 
+                        checked={formData.acceptsCostSharing === true}
+                        onChange={() => handleCostSharingChange(true)}
+                        className="mr-3"
+                      />
+                      <span>Oui, je peux participer aux frais</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input 
+                        type="radio" 
+                        name="costSharing" 
+                        checked={formData.acceptsCostSharing === false}
+                        onChange={() => handleCostSharingChange(false)}
+                        className="mr-3"
+                      />
+                      <span>Non, je cherche un transport gratuit</span>
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                // Pour les offres de place
+                <div>
+                  <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                    <DollarSign className="w-5 h-5 text-[#243163]" />
+                    Type d'offre
+                  </label>
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input 
+                        type="radio" 
+                        name="offerType" 
+                        value="free"
+                        checked={formData.offerType === 'free'}
+                        onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
+                        className="mr-3"
+                      />
+                      <span>Gratuit</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input 
+                        type="radio" 
+                        name="offerType" 
+                        value="paid"
+                        checked={formData.offerType === 'paid'}
+                        onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
+                        className="mr-3"
+                      />
+                      <span>Avec participation aux frais</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              <div>
+                <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                  <FileText className="w-5 h-5 text-[#243163]" />
+                  {announcement.requestType === 'search' ? 'Description de votre demande' : 'Description de votre offre'}
+                </label>
+                <textarea
+                  value={formData.announcementText}
+                  onChange={(e) => setFormData(prev => ({ ...prev, announcementText: e.target.value }))}
+                  placeholder={announcement.requestType === 'search' ? 
+                    "Décrivez ce que vous souhaitez transporter..." : 
+                    "Décrivez votre offre de transport..."
+                  }
+                  className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-[#243163] focus:border-transparent"
+                />
+              </div>
+
+              {/* Alertes d'erreur/avertissement */}
+              {errors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-red-900 mb-2">Erreurs à corriger :</h4>
+                      <ul className="text-red-700 text-sm space-y-1">
+                        {errors.map((error, index) => (
+                          <li key={index}>• {error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {warnings.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <Eye className="w-5 h-5 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-yellow-900 mb-2">Avertissements :</h4>
+                      <ul className="text-yellow-700 text-sm space-y-1">
+                        {warnings.map((warning, index) => (
+                          <li key={index}>• {warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Bouton de sauvegarde */}
+              <div className="flex justify-end pt-6 border-t border-gray-200">
+                <Button
+                  variant="primary"
+                  onClick={handleSave}
+                  disabled={isSaving || errors.length > 0}
+                  className="flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Sauvegarde...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Sauvegarder les modifications
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Popup de succès */}
+      <SuccessModal />
     </div>
   );
 }
