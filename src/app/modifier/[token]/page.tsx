@@ -59,6 +59,20 @@ interface SearchAnnouncementData extends BaseAnnouncementData {
 
 type AnnouncementData = OfferAnnouncementData | SearchAnnouncementData;
 
+// Interface pour les données du formulaire
+interface FormData {
+  shippingDate: string;
+  announcementText: string;
+  // Champs conditionnels selon le type
+  // Pour offer:
+  availableVolume: number;
+  minimumVolume: number;
+  offerType: 'free' | 'paid';
+  // Pour search:
+  volumeNeeded: number;
+  acceptsCostSharing: boolean;
+}
+
 export default function ModifierAnnoncePage() {
   const params = useParams();
   const router = useRouter();
@@ -73,8 +87,8 @@ export default function ModifierAnnoncePage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
 
-  // Données du formulaire - adaptées selon le type
-  const [formData, setFormData] = useState<any>({
+  // Données du formulaire - avec type approprié
+  const [formData, setFormData] = useState<FormData>({
     shippingDate: '',
     announcementText: '',
     // Champs conditionnels selon le type
@@ -254,7 +268,7 @@ export default function ModifierAnnoncePage() {
   const handleMinimumVolumeChange = (value: number) => {
     // Arrondir à l'entier le plus proche pour le volume minimum
     const roundedValue = Math.round(value);
-    setFormData((prev: any) => ({ ...prev, minimumVolume: roundedValue }));
+    setFormData(prev => ({ ...prev, minimumVolume: roundedValue }));
     
     const newErrors = validateVolumes(formData.availableVolume, roundedValue, announcement?.container?.type || '20');
     setErrors(newErrors.errors);
@@ -263,7 +277,7 @@ export default function ModifierAnnoncePage() {
 
   // Gestionnaires pour les demandes (search)
   const handleVolumeNeededChange = (value: number) => {
-    setFormData((prev: any) => ({ ...prev, volumeNeeded: value }));
+    setFormData(prev => ({ ...prev, volumeNeeded: value }));
     
     if (announcement?.container?.type) {
       const newErrors = validateVolumeNeeded(value, announcement.container.type);
@@ -273,7 +287,7 @@ export default function ModifierAnnoncePage() {
   };
 
   const handleCostSharingChange = (accepts: boolean) => {
-    setFormData((prev: any) => ({ ...prev, acceptsCostSharing: accepts }));
+    setFormData(prev => ({ ...prev, acceptsCostSharing: accepts }));
   };
 
   // Sauvegarder les modifications
@@ -654,7 +668,7 @@ export default function ModifierAnnoncePage() {
                       name="offerType"
                       value="free"
                       checked={formData.offerType === 'free'}
-                      onChange={(e) => setFormData((prev: any) => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
                       className="mr-3"
                     />
                     <div>
@@ -669,7 +683,7 @@ export default function ModifierAnnoncePage() {
                       name="offerType"
                       value="paid"
                       checked={formData.offerType === 'paid'}
-                      onChange={(e) => setFormData((prev: any) => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
                       className="mr-3"
                     />
                     <div>
@@ -690,7 +704,7 @@ export default function ModifierAnnoncePage() {
               <div className="space-y-3">
                 <textarea
                   value={formData.announcementText}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, announcementText: e.target.value }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, announcementText: e.target.value }))}
                   placeholder={announcement?.requestType === 'search' ? 'Décrivez votre demande de transport...' : 'Décrivez votre offre de partage...'}
                   className="w-full h-48 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 resize-none"
                   maxLength={500}
