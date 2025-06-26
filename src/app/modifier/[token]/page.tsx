@@ -66,11 +66,12 @@ interface OfferAnnouncementData extends BaseAnnouncementData {
 // Interface pour les annonces "search" (cherche de la place)
 interface SearchAnnouncementData extends BaseAnnouncementData {
   requestType: 'search';
-  container: {
-    type: '20' | '40';
-    volumeNeeded: number; // Volume recherché
+  volumeNeeded: {
+    neededVolume: number;
+    usedCalculator?: boolean;
   };
   acceptsCostSharing: boolean; // Accepte de participer aux frais
+  shippingPeriod?: string[]; // Périodes sélectionnées pour search
 }
 
 type AnnouncementData = OfferAnnouncementData | SearchAnnouncementData;
@@ -163,7 +164,7 @@ export default function ModifierAnnoncePage() {
           const initialFormData: FormData = {
             shippingDate: announcementData.shippingDate || '',
             announcementText: announcementData.announcementText || '',
-            volumeNeeded: announcementData.container?.volumeNeeded || 0,
+            volumeNeeded: announcementData.volumeNeeded?.neededVolume || 0,
             acceptsCostSharing: announcementData.acceptsCostSharing || false,
             shippingPeriod: announcementData.shippingPeriod || [], // Maintenant disponible depuis le backend
             // Valeurs par défaut pour les champs offer (non utilisés)
@@ -275,23 +276,24 @@ export default function ModifierAnnoncePage() {
   // Gestionnaires d'événements
   const handleAvailableVolumeChange = (value: number) => {
     setFormData(prev => ({ ...prev, availableVolume: value }));
-    if (announcement && announcement.container?.type) {
-      validateVolumes(value, formData.minimumVolume, announcement.container.type);
+    if (announcement && announcement.requestType === 'offer') {
+      const offerAnnouncement = announcement as OfferAnnouncementData;
+      validateVolumes(value, formData.minimumVolume, offerAnnouncement.container.type);
     }
   };
 
   const handleMinimumVolumeChange = (value: number) => {
     setFormData(prev => ({ ...prev, minimumVolume: value }));
-    if (announcement && announcement.container?.type) {
-      validateVolumes(formData.availableVolume, value, announcement.container.type);
+    if (announcement && announcement.requestType === 'offer') {
+      const offerAnnouncement = announcement as OfferAnnouncementData;
+      validateVolumes(formData.availableVolume, value, offerAnnouncement.container.type);
     }
   };
 
   const handleVolumeNeededChange = (value: number) => {
     setFormData(prev => ({ ...prev, volumeNeeded: value }));
-    if (announcement && announcement.container?.type) {
-      validateVolumeNeeded(value, announcement.container.type);
-    }
+    // Pour les annonces search, utiliser un type de conteneur par défaut pour la validation
+    validateVolumeNeeded(value, '20'); // Utiliser 20 pieds par défaut pour les validations
   };
 
   const handleCostSharingChange = (accepts: boolean) => {
@@ -645,7 +647,7 @@ export default function ModifierAnnoncePage() {
                 <p><strong>Type:</strong> {announcement.requestType === 'search' ? '🔍 Cherche de la place' : '📦 Propose de la place'}</p>
                 <p><strong>Trajet:</strong> {announcement.departure.displayName} → {announcement.arrival.displayName}</p>
                 <p><strong>Contact:</strong> {announcement.contact.firstName} ({announcement.contact.email})</p>
-                <p><strong>Conteneur:</strong> {announcement.container?.type} pieds {containerSpecs[announcement.container?.type || '20'].description}</p>
+                <p><strong>Conteneur:</strong> {announcement.requestType === 'offer' ? `${(announcement as OfferAnnouncementData).container.type} pieds ${containerSpecs[(announcement as OfferAnnouncementData).container.type].description}` : 'Variable selon l\'espace disponible'}</p>
         </div>
       </div>
 
@@ -801,8 +803,10 @@ export default function ModifierAnnoncePage() {
                   <VolumeSelector
                     value={formData.volumeNeeded}
                     onChange={handleVolumeNeededChange}
-                    max={containerSpecs[announcement.container?.type || '20'].maxAvailable}
+                    max={containerSpecs['20'].maxAvailable}
                     label="Volume recherché"
+                    step={0.1}
+                    min={0.1}
                   />
                 </div>
               ) : (
@@ -813,12 +817,12 @@ export default function ModifierAnnoncePage() {
                       <Package className="w-5 h-5 text-[#243163]" />
                       Volume disponible (m³)
                     </label>
-                <VolumeSelector
-                  value={formData.availableVolume}
-                  onChange={handleAvailableVolumeChange}
-                      max={containerSpecs[announcement.container?.type || '20'].maxAvailable}
+                                    <VolumeSelector
+                      value={formData.availableVolume}
+                      onChange={handleAvailableVolumeChange}
+                      max={announcement.requestType === 'offer' ? containerSpecs[(announcement as OfferAnnouncementData).container.type].maxAvailable : containerSpecs['20'].maxAvailable}
                       label="Volume disponible"
-                />
+                    />
               </div>
               
               <div>
