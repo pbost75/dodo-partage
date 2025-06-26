@@ -17,10 +17,21 @@ interface AnnouncementFromBackend {
   arrival_postal_code: string;
   shipping_date: string;
   shipping_date_formatted: string;
+  
+  // Champs pour les annonces "offer"
   container_type: string;
-  container_available_volume: number;
-  container_minimum_volume: number;
-  offer_type: string;
+  container_available_volume?: number;
+  container_minimum_volume?: number;
+  offer_type?: string;
+  
+  // Champs pour les annonces "search"  
+  request_type: 'offer' | 'search';
+  volume_needed?: number;
+  accepts_cost_sharing?: boolean;
+  shipping_period_formatted?: string;
+  shipping_period_start?: string;
+  shipping_period_end?: string;
+  
   announcement_text: string;
   announcement_text_length: number;
 }
@@ -30,6 +41,7 @@ interface AnnouncementFormatted {
   id: string;
   reference: string;
   type: 'offer' | 'request';
+  requestType: 'offer' | 'search'; // Type original du backend
   title: string;
   departure: string;
   departureCity: string;
@@ -45,6 +57,9 @@ interface AnnouncementFormatted {
   publishedAt: string;
   description: string;
   status: string;
+  // Champs spécifiques aux demandes "search"
+  acceptsCostSharing?: boolean;
+  periodFormatted?: string;
 }
 
 // Fonction pour déterminer les objets à partir du texte d'annonce
@@ -307,33 +322,71 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Formatage des annonces pour le frontend
     const announcements: AnnouncementFromBackend[] = result.data || [];
     const formattedAnnouncements: AnnouncementFormatted[] = announcements.map((announcement) => {
-      const items = extractItemsFromText(announcement.announcement_text, announcement.offer_type);
+      // Détecter le type d'annonce
+      const isSearchRequest = announcement.request_type === 'search';
       
-      return {
-        id: announcement.id,
-        reference: announcement.reference,
-        type: 'offer', // Pour l'instant, toutes les annonces sont des offres
-        title: generateTitle(
-          announcement.departure_country,
-          announcement.arrival_country,
-          announcement.container_available_volume,
-          announcement.offer_type
-        ),
-        departure: announcement.departure_country,
-        departureCity: `${announcement.departure_city} (${announcement.departure_postal_code})`,
-        arrival: announcement.arrival_country,
-        arrivalCity: `${announcement.arrival_city} (${announcement.arrival_postal_code})`,
-        volume: `${announcement.container_available_volume} m³`,
-        volumeCategory: getVolumeCategory(announcement.container_available_volume),
-        date: formatShippingDate(announcement.shipping_date),
-        year: formatShippingYear(announcement.shipping_date),
-        price: announcement.offer_type === 'paid' ? 'Prix à négocier' : undefined,
-        items,
-        author: announcement.contact_first_name,
-        publishedAt: getTimeAgo(announcement.created_at),
-        description: announcement.announcement_text,
-        status: announcement.status
-      };
+      // Traitement différencié selon le type
+      if (isSearchRequest) {
+        // Annonce "search" - demande de place
+        const volume = announcement.volume_needed || 0;
+        const items = extractItemsFromText(announcement.announcement_text, 'request');
+        
+        return {
+          id: announcement.id,
+          reference: announcement.reference,
+          type: 'request' as const,
+          requestType: 'search' as const,
+          title: `Recherche place ${announcement.departure_country} → ${announcement.arrival_country}`,
+          departure: announcement.departure_country,
+          departureCity: `${announcement.departure_city} (${announcement.departure_postal_code})`,
+          arrival: announcement.arrival_country,
+          arrivalCity: `${announcement.arrival_city} (${announcement.arrival_postal_code})`,
+          volume: `${volume} m³`,
+          volumeCategory: getVolumeCategory(volume),
+          date: announcement.shipping_period_formatted || 'Période flexible',
+          year: '',
+          price: announcement.accepts_cost_sharing ? 'Accepte participation' : 'Transport gratuit souhaité',
+          items,
+          author: announcement.contact_first_name,
+          publishedAt: getTimeAgo(announcement.created_at),
+          description: announcement.announcement_text,
+          status: announcement.status,
+          acceptsCostSharing: announcement.accepts_cost_sharing,
+          periodFormatted: announcement.shipping_period_formatted
+        };
+      } else {
+        // Annonce "offer" - proposition de place
+        const volume = announcement.container_available_volume || 0;
+        const offerType = announcement.offer_type || 'free';
+        const items = extractItemsFromText(announcement.announcement_text, offerType);
+        
+        return {
+          id: announcement.id,
+          reference: announcement.reference,
+          type: 'offer' as const,
+          requestType: 'offer' as const,
+          title: generateTitle(
+            announcement.departure_country,
+            announcement.arrival_country,
+            volume,
+            offerType
+          ),
+          departure: announcement.departure_country,
+          departureCity: `${announcement.departure_city} (${announcement.departure_postal_code})`,
+          arrival: announcement.arrival_country,
+          arrivalCity: `${announcement.arrival_city} (${announcement.arrival_postal_code})`,
+          volume: `${volume} m³`,
+          volumeCategory: getVolumeCategory(volume),
+          date: formatShippingDate(announcement.shipping_date),
+          year: formatShippingYear(announcement.shipping_date),
+          price: offerType === 'paid' ? 'Prix à négocier' : undefined,
+          items,
+          author: announcement.contact_first_name,
+          publishedAt: getTimeAgo(announcement.created_at),
+          description: announcement.announcement_text,
+          status: announcement.status
+        };
+      }
     });
 
     // Statistiques pour debug

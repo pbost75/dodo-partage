@@ -180,25 +180,25 @@ export default function ModifierAnnoncePage() {
         } else {
           // Pour les offres de place (type 'offer')
           const initialFormData: FormData = {
-            shippingDate: announcementData.shippingDate || '',
+          shippingDate: announcementData.shippingDate || '',
             announcementText: announcementData.announcementText || '',
-            availableVolume: announcementData.container?.availableVolume || 0,
-            minimumVolume: announcementData.container?.minimumVolume || 0,
-            offerType: announcementData.offerType || 'free',
+          availableVolume: announcementData.container?.availableVolume || 0,
+          minimumVolume: announcementData.container?.minimumVolume || 0,
+          offerType: announcementData.offerType || 'free',
             // Valeurs par défaut pour les champs search (non utilisés)
             volumeNeeded: 0,
             acceptsCostSharing: false,
             shippingPeriod: []
-          };
-          setFormData(initialFormData);
-          
+        };
+        setFormData(initialFormData);
+        
           // Validation initiale des volumes pour les offres
-          if (announcementData.container?.type) {
-            validateVolumes(
-              initialFormData.availableVolume,
-              initialFormData.minimumVolume,
-              announcementData.container.type
-            );
+        if (announcementData.container?.type) {
+          validateVolumes(
+            initialFormData.availableVolume,
+            initialFormData.minimumVolume,
+            announcementData.container.type
+          );
           }
           console.log('📦 Données offer initialisées:', {
             availableVolume: initialFormData.availableVolume,
@@ -407,7 +407,7 @@ export default function ModifierAnnoncePage() {
 
   const handleSave = async () => {
     if (!announcement) return;
-
+    
     // Validation finale selon le type
     if (announcement.requestType === 'search') {
       if (formData.volumeNeeded <= 0) {
@@ -437,7 +437,7 @@ export default function ModifierAnnoncePage() {
       showErrorToast('Veuillez corriger les erreurs avant de sauvegarder');
       return;
     }
-
+    
     try {
       setIsSaving(true);
       
@@ -590,27 +590,27 @@ export default function ModifierAnnoncePage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Retour aux annonces</span>
-          </button>
-          <div className="flex items-center gap-3">
-            <Edit3 className="w-6 h-6" />
-            <h1 className="text-xl font-semibold">Modifier l'annonce</h1>
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <button
+              onClick={() => router.push('/')}
+              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Retour aux annonces</span>
+            </button>
+            <div className="flex items-center gap-3">
+              <Edit3 className="w-6 h-6" />
+              <h1 className="text-xl font-semibold">Modifier l'annonce</h1>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Contenu */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto px-4 py-8">
         {error ? (
           <div className="bg-white rounded-xl border border-red-200 p-8 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -646,8 +646,8 @@ export default function ModifierAnnoncePage() {
                 <p><strong>Trajet:</strong> {announcement.departure.displayName} → {announcement.arrival.displayName}</p>
                 <p><strong>Contact:</strong> {announcement.contact.firstName} ({announcement.contact.email})</p>
                 <p><strong>Conteneur:</strong> {announcement.container?.type} pieds {containerSpecs[announcement.container?.type || '20'].description}</p>
-              </div>
-            </div>
+        </div>
+      </div>
 
             {/* Formulaire de modification */}
             <div className="space-y-8">
@@ -670,14 +670,14 @@ export default function ModifierAnnoncePage() {
                     <div className="flex items-center justify-between">
                       <div className="truncate font-['Lato']">
                         {getPeriodDisplayText()}
-                      </div>
+          </div>
                       <span className="text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                         </svg>
                       </span>
-                    </div>
-                  </div>
+        </div>
+      </div>
 
                   {/* Label flottant */}
                   <label
@@ -750,7 +750,7 @@ export default function ModifierAnnoncePage() {
                             </button>
                           );
                         })}
-                      </div>
+              </div>
 
                       {/* Boutons de validation */}
                       <div className="mt-4 pt-4 border-t border-gray-100">
@@ -774,20 +774,20 @@ export default function ModifierAnnoncePage() {
                           >
                             Valider
                           </button>
-                        </div>
-                      </div>
-                    </div>
+              </div>
+            </div>
+          </div>
                   )}
                 </div>
               ) : (
-                <div>
-                  <CustomDatePicker
+            <div>
+              <CustomDatePicker
                     label="Date d'expédition souhaitée"
-                    value={formData.shippingDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, shippingDate: e.target.value }))}
+                value={formData.shippingDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, shippingDate: e.target.value }))}
                     placeholder="Sélectionner une date"
-                  />
-                </div>
+              />
+            </div>
               )}
 
               {/* Volume - Conditionnel selon le type */}
@@ -808,30 +808,30 @@ export default function ModifierAnnoncePage() {
               ) : (
                 // Pour les offres de place
                 <>
-                  <div>
+              <div>
                     <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
                       <Package className="w-5 h-5 text-[#243163]" />
                       Volume disponible (m³)
                     </label>
-                    <VolumeSelector
-                      value={formData.availableVolume}
-                      onChange={handleAvailableVolumeChange}
+                <VolumeSelector
+                  value={formData.availableVolume}
+                  onChange={handleAvailableVolumeChange}
                       max={containerSpecs[announcement.container?.type || '20'].maxAvailable}
                       label="Volume disponible"
-                    />
-                  </div>
-
-                  <div>
+                />
+              </div>
+              
+              <div>
                     <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
                       <Package className="w-5 h-5 text-[#243163]" />
                       Volume minimum accepté (m³)
                     </label>
-                    <VolumeSelector
-                      value={formData.minimumVolume}
-                      onChange={handleMinimumVolumeChange}
-                      max={5}
+                <VolumeSelector
+                  value={formData.minimumVolume}
+                  onChange={handleMinimumVolumeChange}
+                  max={5}
                       label="Volume minimum"
-                      step={1}
+                  step={1}
                       min={0}
                     />
                     <p className="text-sm text-gray-500 mt-2">
@@ -855,47 +855,47 @@ export default function ModifierAnnoncePage() {
                     value={formData.acceptsCostSharing === true ? 'yes' : formData.acceptsCostSharing === false ? 'no' : ''}
                     onChange={(value) => handleCostSharingChange(value === 'yes')}
                   />
-                </div>
+                  </div>
               ) : (
                 // Pour les offres de place
-                <div>
+            <div>
                   <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
                     <DollarSign className="w-5 h-5 text-[#243163]" />
-                    Type d'offre
-                  </label>
+                Type d'offre
+              </label>
                   <div className="space-y-3">
                     <label className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="offerType" 
-                        value="free"
-                        checked={formData.offerType === 'free'}
-                        onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
-                        className="mr-3"
-                      />
+                  <input
+                    type="radio"
+                    name="offerType"
+                    value="free"
+                    checked={formData.offerType === 'free'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
+                    className="mr-3"
+                  />
                       <span>Gratuit</span>
-                    </label>
+                </label>
                     <label className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="offerType" 
-                        value="paid"
-                        checked={formData.offerType === 'paid'}
-                        onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
-                        className="mr-3"
-                      />
+                  <input
+                    type="radio"
+                    name="offerType"
+                    value="paid"
+                    checked={formData.offerType === 'paid'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
+                    className="mr-3"
+                  />
                       <span>Avec participation aux frais</span>
                     </label>
                   </div>
-                </div>
+              </div>
               )}
 
-              {/* Description */}
-              <div>
+            {/* Description */}
+            <div>
                 <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
                   <FileText className="w-5 h-5 text-[#243163]" />
                   {announcement.requestType === 'search' ? 'Description de votre demande' : 'Description de votre offre'}
-                </label>
+              </label>
                 <textarea
                   value={formData.announcementText}
                   onChange={(e) => setFormData(prev => ({ ...prev, announcementText: e.target.value }))}
@@ -935,33 +935,33 @@ export default function ModifierAnnoncePage() {
                           <li key={index}>• {warning}</li>
                         ))}
                       </ul>
-                    </div>
-                  </div>
-                </div>
+              </div>
+            </div>
+          </div>
               )}
 
               {/* Bouton de sauvegarde */}
               <div className="flex justify-end pt-6 border-t border-gray-200">
-                <Button
-                  variant="primary"
-                  onClick={handleSave}
-                  disabled={isSaving || errors.length > 0}
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={isSaving || errors.length > 0}
                   className="flex items-center gap-2"
-                >
-                  {isSaving ? (
+            >
+              {isSaving ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Sauvegarde...
                     </>
-                  ) : (
+              ) : (
                     <>
-                      <Save className="w-4 h-4" />
+                  <Save className="w-4 h-4" />
                       Sauvegarder les modifications
                     </>
-                  )}
-                </Button>
-              </div>
-            </div>
+              )}
+            </Button>
+          </div>
+        </div>
           </div>
         ) : null}
       </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { 
   Ship, 
+  Search,
   Anchor, 
   ArrowLeft, 
   Share2, 
@@ -12,7 +13,9 @@ import {
   MapPin,
   Clock,
   Copy,
-  Check
+  Check,
+  CalendarDays,
+  DollarSign
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ContactModal from '@/components/partage/ContactModal';
@@ -22,6 +25,7 @@ interface AnnouncementDetail {
   id: string;
   reference: string;
   type: 'offer' | 'request';
+  requestType: 'offer' | 'search'; // Type original du backend
   title: string;
   departure: string;
   departureCity: string;
@@ -37,6 +41,9 @@ interface AnnouncementDetail {
   publishedAt: string;
   description: string;
   status: string;
+  // Champs spécifiques aux demandes "search"
+  acceptsCostSharing?: boolean;
+  periodFormatted?: string;
 }
 
 export default function AnnouncementDetailPage() {
@@ -106,6 +113,23 @@ export default function AnnouncementDetailPage() {
       {isPort(city) && <Anchor className="w-3 h-3 text-gray-400 opacity-60" strokeWidth={1.5} />}
     </div>
   );
+
+  // Fonctions utilitaires pour l'affichage selon le type
+  const getAnnouncementIcon = () => {
+    return announcement?.type === 'request' ? Search : Ship;
+  };
+
+  const getAnnouncementColor = () => {
+    return announcement?.type === 'request' ? '#3B82F6' : '#F47D6C'; // Bleu pour search, rouge-orange pour offer
+  };
+
+  const getDateLabel = () => {
+    return announcement?.type === 'request' ? 'Période souhaitée' : 'Date prévue';
+  };
+
+  const getDateIcon = () => {
+    return announcement?.type === 'request' ? CalendarDays : Calendar;
+  };
 
   // Fonction de partage
   const handleShare = async () => {
@@ -271,8 +295,17 @@ export default function AnnouncementDetailPage() {
                 {/* Informations principales */}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-[#F47D6C]/10 rounded-lg flex items-center justify-center border border-[#F47D6C]/20">
-                      <Ship className="w-6 h-6 text-[#F47D6C]" />
+                    <div 
+                      className="w-12 h-12 rounded-lg flex items-center justify-center border"
+                      style={{ 
+                        backgroundColor: `${getAnnouncementColor()}10`, 
+                        borderColor: `${getAnnouncementColor()}20` 
+                      }}
+                    >
+                      {React.createElement(getAnnouncementIcon(), { 
+                        className: "w-6 h-6", 
+                        style: { color: getAnnouncementColor() } 
+                      })}
                     </div>
                     <div>
                       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
@@ -284,21 +317,31 @@ export default function AnnouncementDetailPage() {
                     </div>
                   </div>
 
-                  {/* Étiquette type d'offre */}
+                  {/* Étiquette type d'offre/demande */}
                   <div className="mb-4">
                     <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
-                      announcement.price 
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                        : 'bg-green-50 text-green-700 border border-green-200'
+                      announcement.type === 'request' 
+                        ? (announcement.acceptsCostSharing 
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                            : 'bg-green-50 text-green-700 border border-green-200')
+                        : (announcement.price 
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                            : 'bg-green-50 text-green-700 border border-green-200')
                     }`}>
-                      {announcement.price ? 'Participation aux frais' : 'Gratuit'}
+                      {announcement.type === 'request' 
+                        ? (announcement.acceptsCostSharing ? 'Accepte participation aux frais' : 'Transport gratuit souhaité')
+                        : (announcement.price ? 'Participation aux frais' : 'Gratuit')
+                      }
                     </span>
                   </div>
                 </div>
 
                 {/* Volume */}
                 <div className="text-center sm:text-right">
-                  <div className="text-3xl font-bold text-[#F47D6C] mb-1">
+                  <div 
+                    className="text-3xl font-bold mb-1"
+                    style={{ color: getAnnouncementColor() }}
+                  >
                     {announcement.volume}
                   </div>
                   <div className="text-sm text-gray-500">
@@ -311,7 +354,7 @@ export default function AnnouncementDetailPage() {
             {/* Trajet */}
             <div className="p-6 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[#F47D6C]" />
+                <MapPin className="w-5 h-5" style={{ color: getAnnouncementColor() }} />
                 Itinéraire
               </h2>
               
@@ -342,11 +385,16 @@ export default function AnnouncementDetailPage() {
                 </div>
               </div>
 
-              {/* Date de transport */}
+              {/* Date de transport ou période */}
               <div className="mt-4 flex items-center gap-2 text-gray-600">
-                <Calendar className="w-4 h-4" />
-                <span className="font-medium">Date prévue:</span>
-                <span>{announcement.date} {announcement.year}</span>
+                {React.createElement(getDateIcon(), { className: "w-4 h-4" })}
+                <span className="font-medium">{getDateLabel()}:</span>
+                <span>
+                  {announcement.type === 'request' 
+                    ? (announcement.periodFormatted || announcement.date)
+                    : `${announcement.date} ${announcement.year}`
+                  }
+                </span>
               </div>
             </div>
 
@@ -382,7 +430,7 @@ export default function AnnouncementDetailPage() {
                   onClick={() => setIsContactModalOpen(true)}
                   className="w-full sm:w-auto"
                 >
-                  {announcement.type === 'offer' ? 'Contacter' : 'Proposer'}
+                  {announcement.type === 'offer' ? 'Contacter' : 'Proposer mes services'}
                 </Button>
               </div>
             </div>
@@ -399,8 +447,17 @@ export default function AnnouncementDetailPage() {
               {/* En-tête avec titre et référence */}
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#F47D6C]/10 rounded-lg flex items-center justify-center border border-[#F47D6C]/20">
-                    <Ship className="w-6 h-6 text-[#F47D6C]" />
+                  <div 
+                    className="w-12 h-12 rounded-lg flex items-center justify-center border"
+                    style={{ 
+                      backgroundColor: `${getAnnouncementColor()}10`, 
+                      borderColor: `${getAnnouncementColor()}20` 
+                    }}
+                  >
+                    {React.createElement(getAnnouncementIcon(), { 
+                      className: "w-6 h-6", 
+                      style: { color: getAnnouncementColor() } 
+                    })}
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900 leading-tight">
@@ -416,7 +473,7 @@ export default function AnnouncementDetailPage() {
               {/* Trajet */}
               <div className="p-6 border-b border-gray-100">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-[#F47D6C]" />
+                  <MapPin className="w-5 h-5" style={{ color: getAnnouncementColor() }} />
                   Itinéraire
                 </h2>
                 
@@ -469,20 +526,30 @@ export default function AnnouncementDetailPage() {
               {/* Card Volume et Type */}
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="text-center mb-4">
-                  <div className="text-4xl font-bold text-[#F47D6C] mb-2">
+                  <div 
+                    className="text-4xl font-bold mb-2"
+                    style={{ color: getAnnouncementColor() }}
+                  >
                     {announcement.volume}
                   </div>
                   <div className="text-sm text-gray-500 mb-4">
                     {announcement.type === 'offer' ? 'Disponible' : 'Recherché'}
                   </div>
                   
-                  {/* Étiquette type d'offre */}
+                  {/* Étiquette type d'offre/demande */}
                   <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
-                    announcement.price 
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                      : 'bg-green-50 text-green-700 border border-green-200'
+                    announcement.type === 'request' 
+                      ? (announcement.acceptsCostSharing 
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                          : 'bg-green-50 text-green-700 border border-green-200')
+                      : (announcement.price 
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                          : 'bg-green-50 text-green-700 border border-green-200')
                   }`}>
-                    {announcement.price ? 'Participation aux frais' : 'Gratuit'}
+                    {announcement.type === 'request' 
+                      ? (announcement.acceptsCostSharing ? 'Accepte participation aux frais' : 'Transport gratuit souhaité')
+                      : (announcement.price ? 'Participation aux frais' : 'Gratuit')
+                    }
                   </span>
                 </div>
               </div>
@@ -490,11 +557,17 @@ export default function AnnouncementDetailPage() {
               {/* Card Date */}
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <Calendar className="w-5 h-5 text-[#F47D6C]" />
-                  <span className="font-semibold text-gray-900">Date prévue</span>
+                  {React.createElement(getDateIcon(), { 
+                    className: "w-5 h-5", 
+                    style: { color: getAnnouncementColor() } 
+                  })}
+                  <span className="font-semibold text-gray-900">{getDateLabel()}</span>
                 </div>
                 <p className="text-lg font-medium text-gray-700">
-                  {announcement.date} {announcement.year}
+                  {announcement.type === 'request' 
+                    ? (announcement.periodFormatted || announcement.date)
+                    : `${announcement.date} ${announcement.year}`
+                  }
                 </p>
               </div>
 
@@ -515,7 +588,7 @@ export default function AnnouncementDetailPage() {
                   onClick={() => setIsContactModalOpen(true)}
                   className="w-full"
                 >
-                  {announcement.type === 'offer' ? 'Contacter' : 'Proposer'}
+                  {announcement.type === 'offer' ? 'Contacter' : 'Proposer mes services'}
                 </Button>
               </div>
             </div>
