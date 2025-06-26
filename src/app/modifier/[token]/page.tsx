@@ -950,19 +950,11 @@ export default function ModifierAnnoncePage() {
               variant="primary"
               onClick={handleSave}
               disabled={isSaving || errors.length > 0}
-                  className="flex items-center gap-2"
+              loading={isSaving}
+              icon={!isSaving ? <Save className="w-4 h-4" /> : undefined}
+              iconPosition="left"
             >
-              {isSaving ? (
-                    <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Sauvegarde...
-                    </>
-              ) : (
-                    <>
-                  <Save className="w-4 h-4" />
-                      Sauvegarder les modifications
-                    </>
-              )}
+              {isSaving ? 'Sauvegarde...' : 'Sauvegarder les modifications'}
             </Button>
           </div>
         </div>
