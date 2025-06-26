@@ -130,8 +130,8 @@ export default function ModifierAnnoncePage() {
         setLoading(true);
         setError(null);
         
-        const backendUrl = 'https://web-production-7b738.up.railway.app';
-        const response = await fetch(`${backendUrl}/api/partage/edit-form/${token}`);
+        // Utiliser la nouvelle route GET qui traite les données de période
+        const response = await fetch(`/api/update-announcement/${token}`);
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -150,6 +150,13 @@ export default function ModifierAnnoncePage() {
         const announcementData = result.data;
         setAnnouncement(announcementData);
         
+        console.log('📋 Données récupérées:', {
+          requestType: announcementData.requestType,
+          hasShippingPeriod: !!announcementData.shippingPeriod,
+          shippingPeriodLength: announcementData.shippingPeriod?.length || 0,
+          hasShippingDate: !!announcementData.shippingDate
+        });
+        
         // Initialiser les données du formulaire selon le type
         if (announcementData.requestType === 'search') {
           // Pour les demandes de place
@@ -158,13 +165,18 @@ export default function ModifierAnnoncePage() {
             announcementText: announcementData.announcementText || '',
             volumeNeeded: announcementData.container?.volumeNeeded || 0,
             acceptsCostSharing: announcementData.acceptsCostSharing || false,
-            shippingPeriod: [], // À implémenter : conversion depuis la date
+            shippingPeriod: announcementData.shippingPeriod || [], // Maintenant disponible depuis le backend
             // Valeurs par défaut pour les champs offer (non utilisés)
             availableVolume: 0,
             minimumVolume: 0,
             offerType: 'free'
           };
           setFormData(initialFormData);
+          console.log('🔍 Données search initialisées:', {
+            volumeNeeded: initialFormData.volumeNeeded,
+            acceptsCostSharing: initialFormData.acceptsCostSharing,
+            shippingPeriod: initialFormData.shippingPeriod
+          });
         } else {
           // Pour les offres de place (type 'offer')
           const initialFormData: FormData = {
@@ -188,6 +200,11 @@ export default function ModifierAnnoncePage() {
               announcementData.container.type
             );
           }
+          console.log('📦 Données offer initialisées:', {
+            availableVolume: initialFormData.availableVolume,
+            minimumVolume: initialFormData.minimumVolume,
+            offerType: initialFormData.offerType
+          });
         }
         
       } catch (err) {
@@ -397,6 +414,10 @@ export default function ModifierAnnoncePage() {
         showErrorToast('Le volume recherché doit être supérieur à 0');
         return;
       }
+      if (formData.shippingPeriod.length === 0) {
+        showErrorToast('Veuillez sélectionner au moins une période d\'expédition');
+        return;
+      }
     } else {
       if (formData.availableVolume <= 0) {
         showErrorToast('Le volume disponible doit être supérieur à 0');
@@ -404,6 +425,10 @@ export default function ModifierAnnoncePage() {
       }
       if (formData.minimumVolume > formData.availableVolume) {
         showErrorToast('Le volume minimum ne peut pas être supérieur au volume disponible');
+        return;
+      }
+      if (!formData.shippingDate) {
+        showErrorToast('Veuillez sélectionner une date d\'expédition');
         return;
       }
     }
@@ -416,37 +441,57 @@ export default function ModifierAnnoncePage() {
     try {
       setIsSaving(true);
       
-      const backendUrl = 'https://web-production-7b738.up.railway.app';
-      
       // Préparer les données selon le type d'annonce
-      let updateData;
+      let updateData: any = {
+        reference: announcement.reference,
+        status: announcement.status,
+        contact: announcement.contact,
+        departure: announcement.departure,
+        arrival: announcement.arrival,
+        announcementText: formData.announcementText,
+        updatedAt: new Date().toISOString()
+      };
       
       if (announcement.requestType === 'search') {
+        // Pour les demandes de place
         updateData = {
-          shippingDate: formData.shippingDate,
-          announcementText: formData.announcementText,
+          ...updateData,
           volumeNeeded: formData.volumeNeeded,
-          acceptsCostSharing: formData.acceptsCostSharing
+          acceptsFees: formData.acceptsCostSharing,
+          shippingPeriod: formData.shippingPeriod // Envoyer la période sélectionnée
         };
+        console.log('💾 Sauvegarde search avec:', {
+          volumeNeeded: formData.volumeNeeded,
+          acceptsFees: formData.acceptsCostSharing,
+          shippingPeriod: formData.shippingPeriod
+        });
       } else {
+        // Pour les offres de place
         updateData = {
+          ...updateData,
           shippingDate: formData.shippingDate,
-          announcementText: formData.announcementText,
+          container: {
+            type: announcement.container.type,
+            availableVolume: formData.availableVolume,
+            minimumVolume: formData.minimumVolume
+          },
+          offerType: formData.offerType
+        };
+        console.log('💾 Sauvegarde offer avec:', {
+          shippingDate: formData.shippingDate,
           availableVolume: formData.availableVolume,
           minimumVolume: formData.minimumVolume,
           offerType: formData.offerType
-        };
+        });
       }
       
-      const response = await fetch(`${backendUrl}/api/partage/update-announcement`, {
+      // Utiliser la nouvelle route PUT
+      const response = await fetch(`/api/update-announcement/${token}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          token: token,
-          ...updateData
-        })
+        body: JSON.stringify(updateData)
       });
 
       const result = await response.json();
@@ -455,11 +500,14 @@ export default function ModifierAnnoncePage() {
         throw new Error(result.error || 'Erreur lors de la sauvegarde');
       }
 
+      console.log('✅ Annonce sauvegardée avec succès');
+      
       // Afficher la popup de succès
       setShowSuccessModal(true);
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur de sauvegarde';
+      console.error('❌ Erreur de sauvegarde:', errorMessage);
       showErrorToast(errorMessage);
     } finally {
       setIsSaving(false);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { convertSingleDateToPeriod } from '@/utils/dateUtils';
 
 // Interface complète pour les données de l'annonce avec toutes les données du funnel
 interface AnnouncementData {
@@ -107,6 +108,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Conversion de la date unique en période pour les champs Airtable
+    const periodData = convertSingleDateToPeriod(data.shippingDate);
+
     // Enrichissement des données avant envoi au backend
     const enrichedData = {
       ...data,
@@ -118,12 +122,12 @@ export async function POST(request: NextRequest) {
       request_type: 'offer', // Différencier des demandes "search"
       
       // Formatage de la date d'expédition en français
-      shippingDateFormatted: new Date(data.shippingDate).toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }),
+      shippingDateFormatted: periodData.formattedPeriod,
+      
+      // Nouvelles données de période pour Airtable
+      shipping_period_start: periodData.startDate,
+      shipping_period_end: periodData.endDate,
+      shipping_period_formatted: periodData.formattedPeriod,
       
       // Ajout d'informations sur le conteneur en texte
       containerTypeDisplay: data.container.type === '20' ? '20 pieds' : '40 pieds',

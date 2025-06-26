@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { convertSelectedMonthsToDates } from '@/utils/dateUtils';
 
 // Interface pour les données de demande de place (funnel search)
 interface SearchRequestData {
@@ -112,6 +113,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Conversion des mois sélectionnés en dates pour les champs Airtable
+    const periodData = convertSelectedMonthsToDates(data.shippingPeriod.selectedMonths || []);
+
     // Enrichissement des données avant envoi au backend
     const enrichedData = {
       ...data,
@@ -121,6 +125,11 @@ export async function POST(request: NextRequest) {
       
       // Formatage des mois sélectionnés
       shippingMonthsFormatted: data.shippingPeriod.selectedMonths?.join(', ') || 'Flexible',
+      
+      // Nouvelles données de période pour Airtable
+      shipping_period_start: periodData.startDate,
+      shipping_period_end: periodData.endDate,
+      shipping_period_formatted: periodData.formattedPeriod,
       
       // Ajout d'informations sur le volume en texte
       volumeDisplay: `${data.volumeNeeded.neededVolume} m³`,
