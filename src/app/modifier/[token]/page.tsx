@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye, Search } from 'lucide-react';
+import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VolumeSelector from '@/components/ui/VolumeSelector';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
-import MonthPicker from '@/components/ui/MonthPicker';
 import CardRadioGroup from '@/components/ui/CardRadioGroup';
 import { useToast } from '@/hooks/useToast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,11 +107,21 @@ export default function ModifierAnnoncePage() {
   // Nouvel état pour la popup de confirmation
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // États pour le sélecteur de période (search)
+  const [isPeriodOpen, setIsPeriodOpen] = useState(false);
+  const [isPeriodFocused, setIsPeriodFocused] = useState(false);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  
   // Spécifications des conteneurs
   const containerSpecs = {
     '20': { totalVolume: 33, maxAvailable: 25, description: '~33 m³ total' },
     '40': { totalVolume: 67, maxAvailable: 50, description: '~67 m³ total' }
   };
+
+  const months = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
 
   // Charger les données de l'annonce
   useEffect(() => {
@@ -274,6 +283,93 @@ export default function ModifierAnnoncePage() {
 
   const handleShippingPeriodChange = (months: string[]) => {
     setFormData(prev => ({ ...prev, shippingPeriod: months }));
+  };
+
+  // Fonctions utilitaires pour la gestion des mois (similaires au funnel)
+  const formatMonthKey = (month: string, year: number) => `${month} ${year}`;
+
+  const getMonthIndex = (monthName: string, year: number) => {
+    const monthIndex = months.indexOf(monthName);
+    return year * 12 + monthIndex;
+  };
+
+  const getMonthFromIndex = (index: number) => {
+    const year = Math.floor(index / 12);
+    const monthIndex = index % 12;
+    return { month: months[monthIndex], year };
+  };
+
+  const createConsecutiveRange = (startIndex: number, endIndex: number) => {
+    const range = [];
+    const start = Math.min(startIndex, endIndex);
+    const end = Math.max(startIndex, endIndex);
+    
+    for (let i = start; i <= end; i++) {
+      const { month, year } = getMonthFromIndex(i);
+      range.push(formatMonthKey(month, year));
+    }
+    return range;
+  };
+
+  // Gestion de la sélection des mois
+  const handleMonthToggle = (month: string, year: number) => {
+    const clickedIndex = getMonthIndex(month, year);
+    
+    if (formData.shippingPeriod.length === 0) {
+      // Premier mois sélectionné
+      handleShippingPeriodChange([formatMonthKey(month, year)]);
+    } else {
+      // Calculer les indices actuels
+      const currentIndices = formData.shippingPeriod.map(m => {
+        const [monthName, yearStr] = m.split(' ');
+        return getMonthIndex(monthName, parseInt(yearStr));
+      });
+      
+      const minIndex = Math.min(...currentIndices);
+      const maxIndex = Math.max(...currentIndices);
+      
+      // Si on clique sur un mois déjà dans la sélection, on repart de ce mois uniquement
+      if (currentIndices.includes(clickedIndex)) {
+        handleShippingPeriodChange([formatMonthKey(month, year)]);
+      } else {
+        // Étendre la sélection pour créer une période consécutive
+        let newRange;
+        if (clickedIndex < minIndex) {
+          // Étendre vers le début
+          newRange = createConsecutiveRange(clickedIndex, maxIndex);
+        } else if (clickedIndex > maxIndex) {
+          // Étendre vers la fin
+          newRange = createConsecutiveRange(minIndex, clickedIndex);
+        } else {
+          // Le mois est au milieu, on repart de ce mois
+          newRange = [formatMonthKey(month, year)];
+        }
+        handleShippingPeriodChange(newRange);
+      }
+    }
+  };
+
+  const clearAllPeriods = () => {
+    handleShippingPeriodChange([]);
+  };
+
+  // Fonction pour afficher la période sélectionnée
+  const getPeriodDisplayText = () => {
+    if (formData.shippingPeriod.length === 0) return 'Sélectionnez une période';
+    if (formData.shippingPeriod.length === 1) return formData.shippingPeriod[0];
+    
+    // Afficher la période de début à fin
+    const sortedMonths = [...formData.shippingPeriod].sort((a, b) => {
+      const [monthA, yearA] = a.split(' ');
+      const [monthB, yearB] = b.split(' ');
+      if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
+      return months.indexOf(monthA) - months.indexOf(monthB);
+    });
+    
+    const firstMonth = sortedMonths[0];
+    const lastMonth = sortedMonths[sortedMonths.length - 1];
+    
+    return `${firstMonth} - ${lastMonth}`;
   };
 
   // Options pour la participation aux frais - style CardRadioGroup
@@ -509,16 +605,131 @@ export default function ModifierAnnoncePage() {
             <div className="space-y-8">
               {/* Date/Période d'expédition selon le type */}
               {announcement.requestType === 'search' ? (
-                <div>
-                  <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                    <Calendar className="w-5 h-5 text-[#243163]" />
+                <div className="relative">
+                  {/* Interface visuelle identique au CustomDatePicker */}
+                  <div
+                    className={`peer block w-full border rounded-xl px-4 h-16 md:h-20 pt-5 md:pt-7 pb-2 text-base md:text-lg bg-white text-gray-900 cursor-pointer focus:outline-none transition-all duration-200
+                      ${isPeriodFocused ? 'border-blue-500' : 'border-gray-300'}
+                      ${isPeriodOpen ? 'shadow-sm' : ''}`}
+                    onClick={() => {
+                      setIsPeriodOpen(!isPeriodOpen);
+                      setIsPeriodFocused(true);
+                    }}
+                    role="textbox"
+                    aria-expanded={isPeriodOpen}
+                    tabIndex={0}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="truncate font-['Lato']">
+                        {getPeriodDisplayText()}
+                      </div>
+                      <span className="text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Label flottant */}
+                  <label
+                    className={`absolute left-4 bg-white px-2 text-base -top-2 -translate-y-1 scale-90 transition-colors duration-200 pointer-events-none z-10
+                      ${isPeriodFocused ? 'text-blue-700' : 'text-gray-500'}`}
+                  >
                     Période d'expédition souhaitée
                   </label>
-                  <MonthPicker
-                    selectedMonths={formData.shippingPeriod}
-                    onMonthsChange={handleShippingPeriodChange}
-                    placeholder="Sélectionner une période"
-                  />
+
+                  {/* Picker modal quand ouvert */}
+                  {isPeriodOpen && (
+                    <div className="absolute z-50 top-full mt-1 left-0 bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-md">
+                      {/* Instructions */}
+                      {formData.shippingPeriod.length === 0 && (
+                        <div className="text-center py-2 mb-4">
+                          <p className="text-xs text-gray-500">
+                            Cliquez sur un mois, puis étendez votre sélection
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Sélecteur d'année */}
+                      <div className="flex items-center justify-between mb-4">
+                        <button
+                          onClick={() => setCurrentYear(currentYear - 1)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <span className="font-semibold text-gray-900">{currentYear}</span>
+                        <button
+                          onClick={() => setCurrentYear(currentYear + 1)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <ChevronRight className="w-4 h-4 text-gray-600" />
+                        </button>
+                      </div>
+
+                      {/* Grille des mois */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {months.map(month => {
+                          const monthKey = formatMonthKey(month, currentYear);
+                          const isSelected = formData.shippingPeriod.includes(monthKey);
+                          const isPast = currentYear === new Date().getFullYear() && 
+                                       months.indexOf(month) < new Date().getMonth();
+
+                          return (
+                            <button
+                              key={month}
+                              onClick={() => {
+                                handleMonthToggle(month, currentYear);
+                              }}
+                              disabled={isPast}
+                              className={`
+                                p-3 rounded-lg text-sm font-medium transition-all duration-200 relative group
+                                ${isSelected 
+                                  ? 'bg-[#F47D6C] text-white shadow-sm transform scale-105' 
+                                  : isPast 
+                                    ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                                    : 'bg-gray-50 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 hover:shadow-sm cursor-pointer'
+                                }
+                                ${!isPast && !isSelected ? 'border border-transparent hover:scale-102' : ''}
+                              `}
+                              title={isPast ? 'Mois passé' : isSelected ? 'Cliquez pour modifier la sélection' : 'Cliquez pour sélectionner cette période'}
+                            >
+                              {month}
+                              {!isPast && !isSelected && (
+                                <div className="absolute inset-0 rounded-lg border-2 border-blue-300 opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Boutons de validation */}
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <div className="flex gap-2">
+                          {formData.shippingPeriod.length > 0 && (
+                            <button
+                              onClick={() => {
+                                clearAllPeriods();
+                              }}
+                              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                            >
+                              Effacer
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setIsPeriodOpen(false);
+                              setIsPeriodFocused(false);
+                            }}
+                            className="ml-auto px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            Valider
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div>
