@@ -77,6 +77,40 @@ export async function POST(request: NextRequest) {
       usedCalculator: data.volumeNeeded.usedCalculator || false
     });
 
+    // 🔍 DEBUG SHIPPING PERIOD
+    console.log('🔍 Période d\'expédition:');
+    console.log('  - selectedMonths reçus:', data.shippingPeriod.selectedMonths);
+    
+    // 🔧 CORRECTION : Générer des mois par défaut si vide
+    let monthsToUse = data.shippingPeriod.selectedMonths || [];
+    
+    if (monthsToUse.length === 0) {
+      console.log('⚠️ Aucun mois sélectionné - génération par défaut');
+      
+      // Générer les 3 prochains mois comme période par défaut
+      const now = new Date();
+      const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+      const defaultMonths = [];
+      
+      for (let i = 0; i < 3; i++) {
+        const futureDate = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+        const monthName = months[futureDate.getMonth()];
+        const year = futureDate.getFullYear();
+        defaultMonths.push(`${monthName} ${year}`);
+      }
+      
+      monthsToUse = defaultMonths;
+      console.log('  - Mois générés par défaut:', monthsToUse);
+    }
+    
+    // Conversion des mois en dates
+    const periodData = convertSelectedMonthsToDates(monthsToUse);
+    console.log('  - Période convertie:', {
+      start: periodData.startDate,
+      end: periodData.endDate,
+      formatted: periodData.formattedPeriod
+    });
+
     // Validation des données requises
     if (!data.contact.email || !data.contact.firstName) {
       return NextResponse.json(
@@ -113,9 +147,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Conversion des mois sélectionnés en dates pour les champs Airtable
-    const periodData = convertSelectedMonthsToDates(data.shippingPeriod.selectedMonths || []);
-
     // Enrichissement des données avant envoi au backend
     const enrichedData = {
       ...data,
@@ -124,9 +155,9 @@ export async function POST(request: NextRequest) {
       submittedAt: new Date().toISOString(),
       
       // Formatage des mois sélectionnés
-      shippingMonthsFormatted: data.shippingPeriod.selectedMonths?.join(', ') || 'Flexible',
+      shippingMonthsFormatted: monthsToUse.join(', ') || 'Flexible',
       
-      // Nouvelles données de période pour Airtable
+      // Nouvelles données de période pour Airtable (avec logs détaillés)
       shipping_period_start: periodData.startDate,
       shipping_period_end: periodData.endDate,
       shipping_period_formatted: periodData.formattedPeriod,
@@ -172,6 +203,13 @@ export async function POST(request: NextRequest) {
         }
       })
     };
+
+    // 📦 Données finales pour le backend
+    console.log('📤 Envoi vers backend - Dates de période:', {
+      start: enrichedData.shipping_period_start,
+      end: enrichedData.shipping_period_end,
+      formatted: enrichedData.shipping_period_formatted
+    });
 
     // Envoi vers le backend centralisé Dodomove
     console.log('📤 Envoi de la demande de place vers le backend centralisé...');

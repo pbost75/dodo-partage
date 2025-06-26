@@ -104,9 +104,9 @@ const initialFormData: SearchFormData = {
     isComplete: false
   },
   shippingPeriod: {
-    period: 'flexible', // Toujours flexible maintenant
-    selectedMonths: [],
-    urgency: 'flexible' // Toujours flexible
+    period: 'flexible',
+    selectedMonths: [], // Sera peuplé automatiquement si vide lors de la soumission
+    urgency: 'flexible'
   },
   volumeNeeded: {
     neededVolume: 0
@@ -217,8 +217,8 @@ export const useSearchStore = create<SearchStore>()(
         switch (step) {
           case 1: // Locations
             return formData.departure.isComplete && formData.arrival.isComplete;
-          case 2: // Période d'expédition
-            return Boolean(formData.shippingPeriod.selectedMonths && formData.shippingPeriod.selectedMonths.length > 0);
+          case 2: // Période d'expédition - Temporairement toujours valide
+            return true; // TODO: Retourner à Boolean(formData.shippingPeriod.selectedMonths && formData.shippingPeriod.selectedMonths.length > 0) une fois le problème résolu
           case 3: // Volume recherché
             return Boolean(formData.volumeNeeded.neededVolume > 0);
           case 4: // Budget

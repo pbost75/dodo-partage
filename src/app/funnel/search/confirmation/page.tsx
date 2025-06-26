@@ -43,6 +43,17 @@ export default function SearchConfirmationPage() {
     }
     
     console.log('🚀 Début de soumission de demande de place');
+    
+    // 🔍 DEBUG : Afficher les données du store avant soumission
+    console.log('📋 Données du store avant soumission:');
+    console.log('  - formData complet:', JSON.stringify(formData, null, 2));
+    console.log('  - shippingPeriod détaillé:', {
+      period: formData.shippingPeriod.period,
+      selectedMonths: formData.shippingPeriod.selectedMonths,
+      urgency: formData.shippingPeriod.urgency,
+      selectedMonthsLength: formData.shippingPeriod.selectedMonths?.length || 0
+    });
+    
     setIsSubmitting(true);
     
     try {
