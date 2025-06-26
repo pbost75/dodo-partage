@@ -6,6 +6,8 @@ import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, Dol
 import Button from '@/components/ui/Button';
 import VolumeSelector from '@/components/ui/VolumeSelector';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
+import MonthPicker from '@/components/ui/MonthPicker';
+import CardRadioGroup from '@/components/ui/CardRadioGroup';
 import { useToast } from '@/hooks/useToast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -21,6 +23,7 @@ interface FormData {
   // Pour search:
   volumeNeeded: number;
   acceptsCostSharing: boolean;
+  shippingPeriod: string[]; // Périodes sélectionnées pour search
 }
 
 // Interface commune pour les deux types d'annonces
@@ -98,7 +101,8 @@ export default function ModifierAnnoncePage() {
     offerType: 'free',
     // Pour search:
     volumeNeeded: 0,
-    acceptsCostSharing: false
+    acceptsCostSharing: false,
+    shippingPeriod: []
   });
 
   // Nouvel état pour la popup de confirmation
@@ -145,6 +149,7 @@ export default function ModifierAnnoncePage() {
             announcementText: announcementData.announcementText || '',
             volumeNeeded: announcementData.container?.volumeNeeded || 0,
             acceptsCostSharing: announcementData.acceptsCostSharing || false,
+            shippingPeriod: [], // À implémenter : conversion depuis la date
             // Valeurs par défaut pour les champs offer (non utilisés)
             availableVolume: 0,
             minimumVolume: 0,
@@ -161,7 +166,8 @@ export default function ModifierAnnoncePage() {
             offerType: announcementData.offerType || 'free',
             // Valeurs par défaut pour les champs search (non utilisés)
             volumeNeeded: 0,
-            acceptsCostSharing: false
+            acceptsCostSharing: false,
+            shippingPeriod: []
           };
           setFormData(initialFormData);
           
@@ -265,6 +271,26 @@ export default function ModifierAnnoncePage() {
   const handleCostSharingChange = (accepts: boolean) => {
     setFormData(prev => ({ ...prev, acceptsCostSharing: accepts }));
   };
+
+  const handleShippingPeriodChange = (months: string[]) => {
+    setFormData(prev => ({ ...prev, shippingPeriod: months }));
+  };
+
+  // Options pour la participation aux frais - style CardRadioGroup
+  const participationOptions = [
+    {
+      value: 'yes',
+      label: 'Oui, je peux participer',
+      description: 'Avec participation aux frais',
+      emoji: '💰'
+    },
+    {
+      value: 'no', 
+      label: 'Non, transport gratuit',
+      description: 'Uniquement gratuit',
+      emoji: '🆓'
+    }
+  ];
 
   const handleSave = async () => {
     if (!announcement) return;
@@ -481,15 +507,29 @@ export default function ModifierAnnoncePage() {
 
             {/* Formulaire de modification */}
             <div className="space-y-8">
-              {/* Date d'expédition */}
-              <div>
-                <CustomDatePicker
-                  label="Date d'expédition souhaitée"
-                  value={formData.shippingDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, shippingDate: e.target.value }))}
-                  placeholder="Sélectionner une date"
-                />
-              </div>
+              {/* Date/Période d'expédition selon le type */}
+              {announcement.requestType === 'search' ? (
+                <div>
+                  <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                    <Calendar className="w-5 h-5 text-[#243163]" />
+                    Période d'expédition souhaitée
+                  </label>
+                  <MonthPicker
+                    selectedMonths={formData.shippingPeriod}
+                    onMonthsChange={handleShippingPeriodChange}
+                    placeholder="Sélectionner une période"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <CustomDatePicker
+                    label="Date d'expédition souhaitée"
+                    value={formData.shippingDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, shippingDate: e.target.value }))}
+                    placeholder="Sélectionner une date"
+                  />
+                </div>
+              )}
 
               {/* Volume - Conditionnel selon le type */}
               {announcement.requestType === 'search' ? (
@@ -550,28 +590,12 @@ export default function ModifierAnnoncePage() {
                     <DollarSign className="w-5 h-5 text-[#243163]" />
                     Participation aux frais
                   </label>
-                  <div className="space-y-3">
-                    <label className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="costSharing" 
-                        checked={formData.acceptsCostSharing === true}
-                        onChange={() => handleCostSharingChange(true)}
-                        className="mr-3"
-                      />
-                      <span>Oui, je peux participer aux frais</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="costSharing" 
-                        checked={formData.acceptsCostSharing === false}
-                        onChange={() => handleCostSharingChange(false)}
-                        className="mr-3"
-                      />
-                      <span>Non, je cherche un transport gratuit</span>
-                    </label>
-                  </div>
+                  <CardRadioGroup
+                    name="participation"
+                    options={participationOptions}
+                    value={formData.acceptsCostSharing === true ? 'yes' : formData.acceptsCostSharing === false ? 'no' : ''}
+                    onChange={(value) => handleCostSharingChange(value === 'yes')}
+                  />
                 </div>
               ) : (
                 // Pour les offres de place
