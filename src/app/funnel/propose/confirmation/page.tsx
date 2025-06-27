@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, Mail, Home, AlertCircle } from 'lucide-react';
 import { useProposeStore } from '@/store/proposeStore';
@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import SubmissionLoader from '@/components/ui/SubmissionLoader';
 
 export default function ConfirmationPage() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, reset } = useProposeStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);

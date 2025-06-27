@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, ArrowRight, Info, AlertTriangle } from 'lucide-react';
 import { useProposeStore } from '@/store/proposeStore';
@@ -27,7 +27,7 @@ const minimumVolumeOptions = [
 ];
 
 export default function ContainerDetailsStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setContainerDetails } = useProposeStore();
   
   // États locaux

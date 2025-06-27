@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye, Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VolumeSelector from '@/components/ui/VolumeSelector';
@@ -80,7 +81,7 @@ type AnnouncementData = OfferAnnouncementData | SearchAnnouncementData;
 
 export default function ModifierAnnoncePage() {
   const params = useParams();
-  const router = useRouter();
+  const router = useSmartRouter();
   const { success: showSuccessToast, error: showErrorToast } = useToast();
   const token = params.token as string;
   

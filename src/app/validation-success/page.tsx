@@ -1,12 +1,12 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
 
 function ValidationSuccessContent() {
-  const router = useRouter();
+  const router = useSmartRouter();
 
   const handleViewAnnouncements = () => {
     router.push('/#annonces');

@@ -14,8 +14,9 @@ import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import DeletedNotification from '@/components/partage/DeletedNotification';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
+import { useSmartRouter } from '@/utils/navigation';
 
 interface FilterState {
   priceType: string; // Gratuit, payant ou tous
@@ -23,7 +24,7 @@ interface FilterState {
 }
 
 function HomePageContent() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const searchParams = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);

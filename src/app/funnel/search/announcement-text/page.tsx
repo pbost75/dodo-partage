@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import HelpBlock from '@/components/ui/HelpBlock';
 
 
 export default function AnnouncementTextStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setAnnouncementText } = useSearchStore();
   
   const [text, setText] = useState(formData.announcementText || '');

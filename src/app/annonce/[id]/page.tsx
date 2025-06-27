@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { 
   Ship, 
   Search,
@@ -48,7 +49,7 @@ interface AnnouncementDetail {
 
 export default function AnnouncementDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  const router = useSmartRouter();
   const searchParams = useSearchParams();
   const [announcement, setAnnouncement] = useState<AnnouncementDetail | null>(null);
   const [loading, setLoading] = useState(true);

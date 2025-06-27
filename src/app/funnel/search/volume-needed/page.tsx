@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import VolumeSelector from '@/components/ui/VolumeSelector';
@@ -18,7 +18,7 @@ interface CalculatorItem {
 }
 
 export default function VolumeNeededStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setVolumeNeeded } = useSearchStore();
   
   const [neededVolume, setNeededVolume] = useState(formData.volumeNeeded.neededVolume);

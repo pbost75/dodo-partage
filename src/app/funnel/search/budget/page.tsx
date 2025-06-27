@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import CardRadioGroup from '@/components/ui/CardRadioGroup';
@@ -28,7 +28,7 @@ const participationOptions = [
 ];
 
 export default function BudgetStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setBudget } = useSearchStore();
   
   // Protection contre l'erreur d'hydratation - s'assurer que budget existe

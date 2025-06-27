@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 
 export default function ShippingPeriodStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setShippingPeriod } = useSearchStore();
   
   const [selectedMonths, setSelectedMonths] = useState<string[]>(

@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useProposeStore } from '@/store/proposeStore';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { AlertTriangle } from 'lucide-react';
 import CardRadioGroup from '@/components/ui/CardRadioGroup';
 import HelpBlock from '@/components/ui/HelpBlock';
 
 export default function MinimumVolumeStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setContainerDetails } = useProposeStore();
   
   // État local pour le volume minimum

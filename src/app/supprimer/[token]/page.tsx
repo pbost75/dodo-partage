@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { ArrowLeft, Trash2, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 export default function DeleteAnnouncementPage() {
   const params = useParams();
-  const router = useRouter();
+  const router = useSmartRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<any>(null);

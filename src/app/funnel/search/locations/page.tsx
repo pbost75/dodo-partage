@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
 import FloatingSelect from '@/components/ui/FloatingSelect';
@@ -24,7 +24,7 @@ const countryOptions = [
 ];
 
 export default function LocationsPage() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData: storeData, setDeparture, setArrival } = useSearchStore();
   
   // Ref pour l'autoscroll

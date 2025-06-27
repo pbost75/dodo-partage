@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { useProposeStore } from '@/store/proposeStore';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
 
 export default function ShippingDateStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setShippingDate } = useProposeStore();
   
   const [selectedDate, setSelectedDate] = useState(formData.shippingDate);

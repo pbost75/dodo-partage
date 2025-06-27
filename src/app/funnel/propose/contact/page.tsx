@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
 import { useProposeStore } from '@/store/proposeStore';
@@ -9,7 +9,7 @@ import FloatingInput from '@/components/ui/FloatingInput';
 import PhoneInput from '@/components/ui/PhoneInput';
 
 export default function ContactStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, setContact } = useProposeStore();
   
   const [firstName, setFirstName] = useState(formData.contact.firstName);

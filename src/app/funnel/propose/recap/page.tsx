@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, Edit3, Send, MapPin, Calendar, Package, Mail, Heart, FileText } from 'lucide-react';
 import { useProposeStore } from '@/store/proposeStore';
 import Button from '@/components/ui/Button';
 
 export default function RecapStep() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const { formData, reset } = useProposeStore();
   
   const [isSubmitting, setIsSubmitting] = useState(false);

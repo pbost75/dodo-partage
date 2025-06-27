@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Check, X, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -42,7 +43,7 @@ const deletionReasons: DeletionReason[] = [
 
 export default function DeleteAlertPage() {
   const params = useParams();
-  const router = useRouter();
+  const router = useSmartRouter();
   const token = params.token as string;
   
   const [step, setStep] = useState<'reason' | 'confirm' | 'success' | 'error'>('reason');

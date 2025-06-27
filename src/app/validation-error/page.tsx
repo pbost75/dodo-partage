@@ -1,7 +1,8 @@
 'use client';
 
 import React, { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Home, Mail, RefreshCw } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -54,7 +55,7 @@ const defaultError: ErrorInfo = {
 };
 
 function ValidationErrorContent() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const searchParams = useSearchParams();
   const [errorInfo, setErrorInfo] = useState<ErrorInfo>(defaultError);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
@@ -78,7 +79,7 @@ function ValidationErrorContent() {
   const handleRetryValidation = () => {
     if (currentToken) {
       // Réessayer avec le même token
-      window.location.href = `/api/validate-announcement?token=${encodeURIComponent(currentToken)}`;
+              window.location.href = `${window.location.origin}/api/validate-announcement?token=${encodeURIComponent(currentToken)}`;
     } else {
       // Pas de token, retourner à l'accueil
       handleGoHome();
