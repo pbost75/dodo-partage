@@ -85,35 +85,35 @@ export async function POST(request: NextRequest) {
     if (!data.contact.email || !data.contact.firstName) {
       return NextResponse.json(
         { error: 'Email et prénom sont requis' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (!data.departure.country || !data.arrival.country) {
       return NextResponse.json(
         { error: 'Destinations de départ et d\'arrivée sont requises' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (!data.container.type || !data.container.availableVolume) {
       return NextResponse.json(
         { error: 'Informations du conteneur sont requises' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (!data.shippingDate) {
       return NextResponse.json(
         { error: 'Date d\'expédition est requise' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (!data.announcementText || data.announcementText.length < 10) {
       return NextResponse.json(
         { error: 'Description de l\'annonce doit contenir au moins 10 caractères' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
             'Si vous n\'avez pas reçu d\'email, vérifiez vos spams',
             'L\'annonce sera visible après validation par email'
           ]
-        }, { status: 200 }); // 200 au lieu de 429 pour éviter l'erreur côté frontend
+        }, { status: 200, headers: CORS_HEADERS }); // 200 au lieu de 429 pour éviter l'erreur côté frontend
       }
       
       // Gestion spécifique des doublons détectés dans la base de données
@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
             'Si vous souhaitez créer une nouvelle annonce, attendez quelques minutes',
             'Si vous n\'avez pas reçu d\'email, vérifiez vos spams'
           ]
-        }, { status: 200 }); // 200 au lieu de 409 pour éviter l'erreur côté frontend
+        }, { status: 200, headers: CORS_HEADERS }); // 200 au lieu de 409 pour éviter l'erreur côté frontend
       }
       
       return NextResponse.json(
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
           details: errorData.error || `Erreur serveur (${response.status})`,
           suggestion: 'Veuillez réessayer dans quelques instants'
         },
-        { status: response.status }
+        { status: response.status, headers: CORS_HEADERS }
       );
     }
 
@@ -316,7 +316,7 @@ export async function POST(request: NextRequest) {
           error: true
         }
       },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 } 

@@ -124,35 +124,35 @@ export async function POST(request: NextRequest) {
     if (!data.contact.email || !data.contact.firstName) {
       return NextResponse.json(
         { error: 'Email et prénom sont requis' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (!data.departure.country || !data.arrival.country) {
       return NextResponse.json(
         { error: 'Destinations de départ et d\'arrivée sont requises' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (!data.volumeNeeded.neededVolume || data.volumeNeeded.neededVolume <= 0) {
       return NextResponse.json(
         { error: 'Volume recherché doit être supérieur à 0' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (data.budget.acceptsFees === null) {
       return NextResponse.json(
         { error: 'Position sur la participation aux frais est requise' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
     if (!data.announcementText || data.announcementText.length < 10) {
       return NextResponse.json(
         { error: 'Description de la demande doit contenir au moins 10 caractères' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
             'Si vous n\'avez pas reçu d\'email, vérifiez vos spams',
             'La demande sera visible après validation par email'
           ]
-        }, { status: 200 });
+        }, { status: 200, headers: CORS_HEADERS });
       }
       
       // Gestion spécifique des doublons détectés dans la base de données
@@ -280,7 +280,7 @@ export async function POST(request: NextRequest) {
             'Consultez votre email de confirmation pour la gérer',
             'Vous pouvez modifier ou supprimer votre demande via les liens dans l\'email'
           ]
-        }, { status: 200 });
+        }, { status: 200, headers: CORS_HEADERS });
       }
       
       throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
@@ -299,6 +299,8 @@ export async function POST(request: NextRequest) {
         'Votre demande sera ensuite visible par les transporteurs',
         'Vous recevrez un email de confirmation une fois la demande publiée'
       ]
+    }, {
+      headers: CORS_HEADERS
     });
 
   } catch (error) {
@@ -309,7 +311,7 @@ export async function POST(request: NextRequest) {
         error: error instanceof Error ? error.message : 'Erreur interne du serveur',
         details: 'Une erreur s\'est produite lors de la soumission de votre demande de place'
       },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 } 
