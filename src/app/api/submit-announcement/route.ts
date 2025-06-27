@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { convertSingleDateToPeriod } from '@/utils/dateUtils';
+import { CORS_HEADERS } from '@/utils/cors';
 
 // Interface complète pour les données de l'annonce avec toutes les données du funnel
 interface AnnouncementData {
@@ -52,6 +53,14 @@ interface AnnouncementData {
   // Timestamps pour le suivi
   createdAt?: string;
   submittedAt?: string;
+}
+
+// Handler OPTIONS pour les requêtes preflight CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: CORS_HEADERS,
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -278,6 +287,8 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
         dataCompleteness: 'full'
       }
+    }, {
+      headers: CORS_HEADERS
     });
 
   } catch (error) {

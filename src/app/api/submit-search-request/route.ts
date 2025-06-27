@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { CORS_HEADERS } from '@/utils/cors';
 import { convertSelectedMonthsToDates } from '@/utils/dateUtils';
 
 // Interface pour les données de demande de place (funnel search)
@@ -57,6 +58,14 @@ interface SearchRequestData {
   // Timestamps pour le suivi
   createdAt?: string;
   submittedAt?: string;
+}
+
+// Handler OPTIONS pour les requêtes preflight CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: CORS_HEADERS,
+  });
 }
 
 export async function POST(request: NextRequest) {
