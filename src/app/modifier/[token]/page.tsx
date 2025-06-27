@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye, Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VolumeSelector from '@/components/ui/VolumeSelector';
 import CustomDatePicker from '@/components/ui/CustomDatePicker';
@@ -460,13 +460,15 @@ export default function ModifierAnnoncePage() {
         // Pour les demandes de place
         updateData = {
           ...updateData,
-          volumeNeeded: formData.volumeNeeded,
+          volumeNeeded: {
+            neededVolume: formData.volumeNeeded
+          },
           acceptsFees: formData.acceptsCostSharing,
           shippingPeriod: formData.shippingPeriod, // Envoyer la période sélectionnée
           request_type: 'search'
         };
         console.log('💾 Sauvegarde search avec:', {
-          volumeNeeded: formData.volumeNeeded,
+          volumeNeeded: { neededVolume: formData.volumeNeeded },
           acceptsFees: formData.acceptsCostSharing,
           shippingPeriod: formData.shippingPeriod
         });
@@ -546,9 +548,17 @@ export default function ModifierAnnoncePage() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center shadow-xl"
+            className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center shadow-xl relative"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Bouton fermer en haut à droite */}
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Save className="w-8 h-8 text-green-600" />
             </div>
@@ -561,18 +571,11 @@ export default function ModifierAnnoncePage() {
               Vos modifications ont été sauvegardées avec succès.
             </p>
             
-            <div className="flex gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setShowSuccessModal(false)}
-                className="flex-1"
-              >
-                Continuer à modifier
-              </Button>
+            <div className="flex justify-center">
               <Button
                 variant="primary"
                 onClick={() => router.push('/')}
-                className="flex-1"
+                className="min-w-48"
               >
                 Retour aux annonces
               </Button>

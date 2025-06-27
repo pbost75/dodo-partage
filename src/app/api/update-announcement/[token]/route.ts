@@ -210,8 +210,7 @@ export async function PUT(
       };
     }
     
-    // ⚠️ WORKAROUND: Le backend n'est pas encore adapté pour search
-    // Il faut envoyer TOUS les champs requis même pour search
+    // Préparer les données à envoyer
     const mergedData = {
       contact: {
         firstName: currentData.contact.firstName, // Garder le prénom actuel (non modifiable)
@@ -232,21 +231,16 @@ export async function PUT(
       // Ajouter les données de période converties
       ...periodData,
       
-      // ⚠️ WORKAROUND: Toujours envoyer les champs offer (requis par le backend)
-      container: currentData.requestType === 'search' ? {
-        // Pour search, utiliser des valeurs factices NON-ZÉRO pour satisfaire la validation backend
-        type: '20', // Valeur par défaut
-        availableVolume: 1, // ✅ Valeur non-zéro pour passer la validation
-        minimumVolume: 1 // ✅ Valeur non-zéro pour passer la validation
-      } : {
-        type: currentData.container.type,
-        availableVolume: data.container?.availableVolume || 1,
-        minimumVolume: data.container?.minimumVolume || 0
-      },
-      offerType: currentData.requestType === 'search' ? 'free' : (data.offerType || 'free'), // Valeur par défaut pour search
-      shippingDate: currentData.requestType === 'search' ? 
-        (periodData.shipping_period_start || '2025-01-01') : // Utiliser la date de début de période pour search
-        (data.shippingDate || '2025-01-01'),
+      // Champs conditionnels selon le type d'annonce
+      ...(currentData.requestType === 'offer' ? {
+        container: {
+          type: currentData.container.type,
+          availableVolume: data.container?.availableVolume || 1,
+          minimumVolume: data.container?.minimumVolume || 0
+        },
+        offerType: data.offerType || 'free',
+        shippingDate: data.shippingDate || '2025-01-01'
+      } : {}),
       
       // Champs spécifiques search (stockés séparément dans Airtable)
       ...(currentData.requestType === 'search' ? {
