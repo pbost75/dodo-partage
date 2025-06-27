@@ -2,7 +2,31 @@
 
 ## Vue d'ensemble
 
-DodoPartage est conçu comme une extension naturelle de l'écosystème Dodomove, réutilisant les mêmes technologies et patterns pour garantir une cohérence maximale.
+DodoPartage est conçu comme une extension naturelle de l'écosystème Dodomove, avec une **infrastructure multi-domaine** utilisant Cloudflare et une architecture backend centralisée pour garantir une cohérence maximale.
+
+## Infrastructure de déploiement
+
+### Architecture multi-domaine
+```
+┌─ Client ─────────────────────────────────────────┐
+│                                                  │
+│  🌐 www.dodomove.fr/partage (URL SEO-friendly)  │
+│  🔗 partage.dodomove.fr (URL technique)         │
+│                                                  │
+│  ↓ Cloudflare Worker (proxy intelligent)        │
+│  ↓ Next.js App (navigation cross-domain)        │
+│  ↓ API calls (CORS automatique)                 │
+│  ↓ Backend centralisé Railway                   │
+│  ↓ Airtable + Resend                            │
+│                                                  │
+└──────────────────────────────────────────────────┘
+```
+
+### Domaines et proxy
+- **URL principale** : `www.dodomove.fr/partage` (Cloudflare Worker → Vercel)
+- **URL technique** : `partage.dodomove.fr` (Vercel direct)
+- **Navigation intelligente** : Détection automatique du contexte
+- **API transparente** : Appels cross-domain seamless
 
 ## Stack technique
 
@@ -162,11 +186,19 @@ src/
 
 ### Backend centralisé
 ```
-POST /api/dodo-partage/submit
-POST /api/dodo-partage/validate
-POST /api/dodo-partage/contact
-GET  /api/dodo-partage/announcements
+POST /api/partage/submit-announcement
+POST /api/partage/submit-search-request
+POST /api/partage/validate-announcement
+POST /api/partage/contact-announcement
+POST /api/partage/update-announcement
+GET  /api/partage/get-announcements
 ```
+
+### Infrastructure cross-domain
+- **Utilitaires navigation** : `useSmartRouter()`, `buildUrl()`, `isProxiedContext()`
+- **API calls universels** : `apiFetch()` avec détection automatique
+- **Headers CORS complets** : Tous les endpoints supportent le cross-domain
+- **Configuration backend** : `PARTAGE_APP_URL=https://www.dodomove.fr/partage`
 
 ### Cohérence graphique
 - **Palette couleurs** : Variables CSS du funnel

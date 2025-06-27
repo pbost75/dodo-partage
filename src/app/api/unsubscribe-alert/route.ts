@@ -137,6 +137,7 @@ export async function GET(request: NextRequest) {
 
 // Fonction pour générer la page HTML de succès
 function generateSuccessHtml(): string {
+  const homeUrl = process.env.NEXT_PUBLIC_SEO_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.dodomove.fr/partage';
   return `
     <!DOCTYPE html>
     <html lang="fr">
@@ -194,7 +195,7 @@ function generateSuccessHtml(): string {
           Vous avez été désabonné avec succès de cette alerte email.<br>
           Vous ne recevrez plus de notifications pour ce trajet.
         </p>
-        <a href="https://partage.dodomove.fr" class="button">
+        <a href="${homeUrl}" class="button">
           Retour à DodoPartage
         </a>
       </div>
@@ -205,6 +206,7 @@ function generateSuccessHtml(): string {
 
 // Fonction pour générer la page HTML d'erreur
 function generateErrorHtml(errorMessage: string): string {
+  const homeUrl = process.env.NEXT_PUBLIC_SEO_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.dodomove.fr/partage';
   return `
     <!DOCTYPE html>
     <html lang="fr">
@@ -259,7 +261,7 @@ function generateErrorHtml(errorMessage: string): string {
           ${errorMessage}<br>
           Veuillez réessayer plus tard ou contactez notre support.
         </p>
-        <a href="https://partage.dodomove.fr" class="button">
+        <a href="${homeUrl}" class="button">
           Retour à DodoPartage
         </a>
       </div>

@@ -51,6 +51,14 @@
 - ✅ **Validation et modération** des annonces par email
 - ✅ **Logs centralisés** pour monitoring et debug
 
+### 🌐 **Infrastructure multi-domaine (OPÉRATIONNEL)**
+- ✅ **Proxy Cloudflare Worker** - www.dodomove.fr/partage → partage.dodomove.fr
+- ✅ **Navigation cross-domain intelligente** - useSmartRouter() et buildUrl()
+- ✅ **API calls transparents** - apiFetch() avec détection automatique du contexte
+- ✅ **Headers CORS complets** - Tous les endpoints supportent le cross-domain
+- ✅ **Backend adapté** - PARTAGE_APP_URL configuré pour www.dodomove.fr/partage
+- ✅ **URLs SEO-friendly** - Intégration parfaite avec le site principal
+
 ### 🛠️ **Fonctionnalités avancées**
 - ✅ **Gestion d'état Zustand** pour le funnel
 - ✅ **Hook useAnnouncements** pour la récupération de données
@@ -141,7 +149,9 @@
 - **Funnel "cherche"** : ❌ 0%
 - **Modération admin** : ❌ 0%
 
-### **Estimation globale d'achèvement : 92%** 🎉
+### **Estimation globale d'achèvement : 95%** 🎉
+
+**Nouveau :** Infrastructure multi-domaine complète avec proxy Cloudflare ! 🌐
 
 ---
 

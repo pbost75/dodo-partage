@@ -411,6 +411,22 @@ export default function ModifierAnnoncePage() {
     }
   ];
 
+  // Options pour le type d'offre - style CardRadioGroup compact
+  const offerTypeOptions = [
+    {
+      value: 'free',
+      label: 'Gratuit',
+      description: 'Transport sans participation financière',
+      emoji: '🆓'
+    },
+    {
+      value: 'paid',
+      label: 'Avec participation aux frais',
+      description: 'Partage des coûts de transport',
+      emoji: '💰'
+    }
+  ];
+
   const handleSave = async () => {
     if (!announcement) return;
     
@@ -881,36 +897,20 @@ export default function ModifierAnnoncePage() {
                   </div>
               ) : (
                 // Pour les offres de place
-            <div>
+                <div>
                   <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
                     <DollarSign className="w-5 h-5 text-[#243163]" />
-                Type d'offre
-              </label>
-                  <div className="space-y-3">
-                    <label className="flex items-center">
-                  <input
-                    type="radio"
+                    Type d'offre
+                  </label>
+                  <CardRadioGroup
                     name="offerType"
-                    value="free"
-                    checked={formData.offerType === 'free'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
-                    className="mr-3"
+                    options={offerTypeOptions}
+                    value={formData.offerType}
+                    onChange={(value) => setFormData(prev => ({ ...prev, offerType: value as 'free' | 'paid' }))}
+                    layout="column"
+                    compact={true}
                   />
-                      <span>Gratuit</span>
-                </label>
-                    <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="offerType"
-                    value="paid"
-                    checked={formData.offerType === 'paid'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, offerType: e.target.value as 'free' | 'paid' }))}
-                    className="mr-3"
-                  />
-                      <span>Avec participation aux frais</span>
-                    </label>
-                  </div>
-              </div>
+                </div>
               )}
 
             {/* Description */}
@@ -926,7 +926,7 @@ export default function ModifierAnnoncePage() {
                     "Décrivez ce que vous souhaitez transporter..." : 
                     "Décrivez votre offre de transport..."
                   }
-                  className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-[#243163] focus:border-transparent"
+                  className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-[#243163] focus:border-transparent text-gray-900 placeholder-gray-500"
                 />
               </div>
 
