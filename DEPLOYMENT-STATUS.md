@@ -1,6 +1,16 @@
 # 🚀 Statut du déploiement DodoPartage
 
-## ✅ État actuel - Déploiement fonctionnel
+## ✅ État actuel - Déploiement multi-domaine fonctionnel
+
+### 🌐 URLs de production
+- **URL technique** : [https://partage.dodomove.fr](https://partage.dodomove.fr) (Vercel)
+- **URL SEO-friendly** : [https://www.dodomove.fr/partage](https://www.dodomove.fr/partage) (Cloudflare Worker → Vercel)
+
+### 🔄 Infrastructure proxy Cloudflare
+- ✅ **Worker configuré** : Proxy transparent www.dodomove.fr/partage → partage.dodomove.fr
+- ✅ **Navigation cross-domain** : Fonctionne sur les 2 URLs
+- ✅ **API calls CORS** : Headers complets sur tous les endpoints
+- ✅ **Backend compatible** : PARTAGE_APP_URL=https://www.dodomove.fr/partage
 
 ### Backend centralisé (Railway) 
 - ✅ **Déploiement actif** : Routes DodoPartage opérationnelles
@@ -125,13 +135,27 @@ NEXT_PUBLIC_BACKEND_URL=https://web-production-7b738.up.railway.app
 NEXT_PUBLIC_DODOMOVE_URL=https://dodomove.fr
 NEXT_PUBLIC_FUNNEL_URL=https://devis.dodomove.fr
 NEXT_PUBLIC_APP_URL=https://partage.dodomove.fr
+NEXT_PUBLIC_SEO_URL=https://www.dodomove.fr/partage
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-VWE8386BQC
 ```
 
-### Domaine cible
-- **URL** : `partage.dodomove.fr`
-- **SSL** : Certificat automatique via Vercel
-- **CDN** : Distribution mondiale des assets
+### Variables d'environnement Railway (Backend)
+```bash
+PARTAGE_APP_URL=https://www.dodomove.fr/partage
+AIRTABLE_API_KEY=pat...
+AIRTABLE_BASE_ID=app...
+RESEND_API_KEY=re_...
+```
+
+### Domaines configurés
+- **Vercel** : `partage.dodomove.fr` + certificat SSL automatique
+- **Cloudflare** : Proxy actif sur `www.dodomove.fr/partage/*`
+- **CDN** : Distribution mondiale via Cloudflare + Vercel Edge
+
+### Architecture déployée
+```
+📱 Client → 🔄 Cloudflare Worker → 🚀 Vercel → 🖥️ Railway Backend → 📊 Airtable
+```
 
 ---
 

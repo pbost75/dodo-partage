@@ -98,6 +98,40 @@ Outil de mise en relation pour le partage de conteneurs entre la France métropo
 
 ## Architecture technique
 
+### Infrastructure multi-domaine avec proxy Cloudflare
+
+**DodoPartage est accessible via 2 URLs :**
+- `https://partage.dodomove.fr` - Sous-domaine dédié (URL technique)
+- `https://www.dodomove.fr/partage` - URL SEO-friendly (via proxy Cloudflare)
+
+```
+┌─ URL SEO-friendly ─────────────────────┐
+│  www.dodomove.fr/partage               │
+│  ↓ (Cloudflare Worker proxy)          │
+│  partage.dodomove.fr                   │
+│  ↓ (Next.js App)                      │
+│  Navigation & API calls intelligents   │
+│  ↓ (Backend calls)                    │
+│  dodomove-backend (Railway)            │
+│  ↓ (Stockage + emails)                │
+│  Airtable + Resend                     │
+└────────────────────────────────────────┘
+```
+
+### Gestion intelligente des URLs
+
+#### Navigation cross-domain automatique
+- **Détection contexte** : `isProxiedContext()` détecte si on est sur www.dodomove.fr
+- **URLs adaptatives** : `buildUrl()` ajoute automatiquement `/partage` si nécessaire
+- **Router intelligent** : `useSmartRouter()` remplace `useRouter()` standard
+- **Navigation seamless** : Fonctionne identique sur les 2 domaines
+
+#### Appels API cross-domain
+- **Fonction universelle** : `apiFetch()` remplace `fetch()` standard  
+- **Détection automatique** : Appels vers `partage.dodomove.fr/api/*` depuis www.dodomove.fr
+- **Headers CORS complets** : Tous les endpoints API supportent le cross-domain
+- **Gestion d'erreurs** : Fallback et retry automatiques
+
 ### Intégration écosystème Dodomove
 ```
 partage.dodomove.fr (ce projet)
@@ -133,10 +167,15 @@ src/
 │   │   └── confirmation/  # Page finale avec loader bateau
 │   ├── validation-success/ # Page succès après validation email
 │   ├── validation-error/  # Page erreur validation email
-│   ├── api/               # API routes Next.js
+│   ├── test-navigation/   # Page de test des URLs cross-domain
+│   ├── debug-store/       # Debug des stores Zustand 
+│   ├── api/               # API routes Next.js avec CORS complet
 │   │   ├── submit-announcement/ # Soumission annonce → backend
+│   │   ├── submit-search-request/ # Soumission demande → backend  
 │   │   ├── validate-announcement/ # Validation email → backend
 │   │   ├── contact-announcement/ # Contact entre utilisateurs → backend
+│   │   ├── update-announcement/[token]/ # Modification annonces → backend
+│   │   ├── get-announcements/ # Récupération annonces → backend
 │   │   ├── test-backend/  # Test connexion backend centralisé
 │   │   ├── create-alert/  # Création d'alertes email
 │   │   ├── unsubscribe-alert/ # Désabonnement alertes
@@ -148,13 +187,19 @@ src/
 │   │   ├── PhoneInput.tsx     # Téléphone avec indicatifs DOM-TOM
 │   │   └── SubmissionLoader.tsx # Loader bateau animé
 │   ├── partage/          # Composants spécifiques DodoPartage
-│   └── layout/           # Header, Footer, Navigation
+│   └── layout/           # Header, Footer, Navigation cross-domain
 ├── store/                # Gestion d'état Zustand
-│   └── proposeStore.ts   # Store du funnel (8 étapes)
+│   ├── proposeStore.ts   # Store du funnel propose (8 étapes)
+│   └── searchStore.ts    # Store du funnel search (6 étapes)
 ├── utils/                # Fonctions utilitaires
 │   ├── countries.ts      # Gestion pays et territoires DOM-TOM
 │   ├── cityAutocomplete.ts # Autocomplétion des villes
-│   └── autoScroll.ts     # Utilitaires de scroll
+│   ├── autoScroll.ts     # Utilitaires de scroll
+│   ├── navigation.ts     # 🆕 Gestion URLs cross-domain
+│   ├── apiUtils.ts       # 🆕 Appels API cross-domain  
+│   └── cors.ts           # 🆕 Headers CORS centralisés
+├── hooks/                # Hooks personnalisés
+│   └── useSmartRouter.ts # 🆕 Router intelligent cross-domain
 ├── scripts/              # Scripts de test et maintenance
 │   └── test-email-alerts.js # Test système d'alertes
 └── docs/                 # Documentation technique détaillée
@@ -182,10 +227,13 @@ npm run dev
 # Backend centralisé Dodomove
 NEXT_PUBLIC_BACKEND_URL=https://web-production-7b738.up.railway.app
 
+# Configuration multi-domaine
+NEXT_PUBLIC_APP_URL=https://partage.dodomove.fr
+NEXT_PUBLIC_SEO_URL=https://www.dodomove.fr/partage
+
 # Intégration avec l'écosystème
 NEXT_PUBLIC_DODOMOVE_URL=https://dodomove.fr
 NEXT_PUBLIC_FUNNEL_URL=https://devis.dodomove.fr
-NEXT_PUBLIC_APP_URL=https://partage.dodomove.fr
 
 # Analytics (si nécessaire)
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-VWE8386BQC
@@ -193,6 +241,21 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-VWE8386BQC
 # Sécurité et tokens (développement uniquement)
 ADMIN_SECRET_KEY=your-admin-secret-key
 EMAIL_VALIDATION_SECRET=your-email-validation-secret
+```
+
+## Configuration Cloudflare
+
+### Worker de proxy configuré
+```javascript
+// Cloudflare Worker actif sur www.dodomove.fr/partage/*
+// Proxifie automatiquement vers partage.dodomove.fr
+// Headers CORS et gestion des redirections incluses
+```
+
+### Backend Railway
+```env
+# Variable importante côté backend
+PARTAGE_APP_URL=https://www.dodomove.fr/partage
 ```
 
 ## Sécurité et modération
@@ -232,8 +295,10 @@ npm run test:email-alerts
 
 ### Production (Vercel)
 - **Push sur git** → Déploiement automatique
-- **Domaine** : `partage.dodomove.fr`
-- **Configuration** : Vercel + sous-domaine
+- **Domaines accessibles** :
+  - `partage.dodomove.fr` - URL technique (Vercel)
+  - `www.dodomove.fr/partage` - URL SEO-friendly (Cloudflare Worker → Vercel)
+- **Configuration** : Vercel + Cloudflare proxy
 
 ## Workflows utilisateur
 
