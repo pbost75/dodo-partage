@@ -70,7 +70,9 @@ interface SearchAnnouncementData extends BaseAnnouncementData {
     neededVolume: number;
     usedCalculator?: boolean;
   };
-  acceptsCostSharing: boolean; // Accepte de participer aux frais
+  budget: {
+    acceptsFees: boolean;
+  };
   shippingPeriod?: string[]; // Périodes sélectionnées pour search
 }
 
@@ -165,7 +167,7 @@ export default function ModifierAnnoncePage() {
             shippingDate: announcementData.shippingDate || '',
             announcementText: announcementData.announcementText || '',
             volumeNeeded: announcementData.volumeNeeded?.neededVolume || 0,
-            acceptsCostSharing: announcementData.acceptsCostSharing || false,
+            acceptsCostSharing: announcementData.budget?.acceptsFees || false,
             shippingPeriod: announcementData.shippingPeriod || [], // Maintenant disponible depuis le backend
             // Valeurs par défaut pour les champs offer (non utilisés)
             availableVolume: 0,
@@ -647,7 +649,9 @@ export default function ModifierAnnoncePage() {
                 <p><strong>Type:</strong> {announcement.requestType === 'search' ? '🔍 Cherche de la place' : '📦 Propose de la place'}</p>
                 <p><strong>Trajet:</strong> {announcement.departure.displayName} → {announcement.arrival.displayName}</p>
                 <p><strong>Contact:</strong> {announcement.contact.firstName} ({announcement.contact.email})</p>
-                <p><strong>Conteneur:</strong> {announcement.requestType === 'offer' ? `${(announcement as OfferAnnouncementData).container.type} pieds ${containerSpecs[(announcement as OfferAnnouncementData).container.type].description}` : 'Variable selon l\'espace disponible'}</p>
+                {announcement.requestType === 'offer' && (
+                  <p><strong>Conteneur:</strong> {`${(announcement as OfferAnnouncementData).container.type} pieds ${containerSpecs[(announcement as OfferAnnouncementData).container.type].description}`}</p>
+                )}
         </div>
       </div>
 
