@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '@/utils/apiUtils';
 
 // Interface pour les annonces
 export interface Announcement {
@@ -117,18 +118,10 @@ export function useAnnouncements(initialFilters: AnnouncementFilters = {}) {
         queryParams.append('status', searchFilters.status);
       }
 
-      // Construire l'URL API - utiliser le bon domaine selon le contexte
-      const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'www.dodomove.fr' 
-        ? 'https://partage.dodomove.fr' 
-        : '';
-      const url = `${baseUrl}/api/get-announcements${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      console.log('📡 Appel API:', url);
-
-      const response = await fetch(url, {
+      // Utiliser apiFetch qui gère automatiquement le bon domaine
+      const apiPath = `/api/get-announcements${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const response = await apiFetch(apiPath, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
 
       if (!response.ok) {
