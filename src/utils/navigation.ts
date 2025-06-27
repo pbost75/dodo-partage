@@ -85,26 +85,15 @@ export function useSmartRouter() {
     push: (path: string, options?: { scroll?: boolean }) => {
       const smartPath = buildUrl(path);
       
-      if (isProxiedContext()) {
-        // Dans le contexte proxifié, utiliser window.location pour éviter les problèmes de routing
-        if (options?.scroll === false) {
-          window.location.replace(smartPath);
-        } else {
-          window.location.href = smartPath;
-        }
-      } else {
-        // Dans le contexte normal, utiliser le router Next.js classique
-        router.push(smartPath, options);
-      }
+      // TOUJOURS utiliser le router Next.js pour préserver le state
+      // (Zustand, form state, etc.)
+      router.push(smartPath, options);
     },
     replace: (path: string) => {
       const smartPath = buildUrl(path);
       
-      if (isProxiedContext()) {
-        window.location.replace(smartPath);
-      } else {
-        router.replace(smartPath);
-      }
+      // TOUJOURS utiliser le router Next.js pour préserver le state
+      router.replace(smartPath);
     },
     back: () => {
       router.back();
