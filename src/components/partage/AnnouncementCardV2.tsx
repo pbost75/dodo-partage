@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Ship, Anchor } from 'lucide-react';
+import { Ship, Anchor, Search } from 'lucide-react';
 
 interface AnnouncementProps {
   id: string;
@@ -68,22 +68,45 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
     </div>
   );
 
+  // Fonctions utilitaires pour l'affichage selon le type
+  const getIcon = () => {
+    return type === 'request' ? Search : Ship;
+  };
+
+  const getColor = () => {
+    return type === 'request' ? '#3B82F6' : '#F47D6C'; // Bleu pour search, rouge-orange pour offer
+  };
+
+  const getBgColor = () => {
+    return type === 'request' ? 'bg-blue-500/10' : 'bg-[#F47D6C]/10';
+  };
+
+  const getBorderColor = () => {
+    return type === 'request' ? 'border-blue-500/20' : 'border-[#F47D6C]/20';
+  };
+
+  const getTextColor = () => {
+    return type === 'request' ? 'text-blue-600' : 'text-[#F47D6C]';
+  };
+
   // Construire l'URL de détail avec les paramètres de recherche
   const detailUrl = searchParams 
     ? `/annonce/${reference}?${searchParams}`
     : `/annonce/${reference}`;
+
+  const IconComponent = getIcon();
 
   return (
     <Link href={detailUrl} className="block">
       <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 p-4 sm:p-6 cursor-pointer">
         {/* Version Mobile Optimisée */}
         <div className="sm:hidden">
-                      {/* Layout horizontal compact : Date + Trajet + Volume */}
-            <div className="flex items-start gap-3 mb-4">
+          {/* Layout horizontal compact : Date + Trajet + Volume */}
+          <div className="flex items-start gap-3 mb-4">
             {/* Date alignée avec la hauteur du trajet */}
-            <div className="w-16 h-16 bg-[#F47D6C]/10 rounded-lg flex flex-col items-center justify-center border border-[#F47D6C]/20 flex-shrink-0">
-              <Ship className="w-4 h-4 text-[#F47D6C] mb-1" />
-              <div className="text-xs font-semibold text-[#F47D6C] text-center leading-tight px-1">
+            <div className={`w-16 h-16 ${getBgColor()} rounded-lg flex flex-col items-center justify-center ${getBorderColor()} border flex-shrink-0`}>
+              <IconComponent className={`w-4 h-4 ${getTextColor()} mb-1`} />
+              <div className={`text-xs font-semibold ${getTextColor()} text-center leading-tight px-1`}>
                 {date.includes('-') ? 'Période' : (
                   <>
                     <div>{date}</div>
@@ -127,7 +150,7 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
             
             {/* Volume compact */}
             <div className="text-right flex-shrink-0">
-              <div className="text-lg font-bold text-[#F47D6C]">{volume}</div>
+              <div className={`text-lg font-bold ${getTextColor()}`}>{volume}</div>
               <div className="text-xs text-gray-500">
                 {type === 'offer' ? 'Disponible' : 'Recherché'}
               </div>
@@ -159,9 +182,9 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
         {/* Version Desktop */}
         <div className="hidden sm:flex gap-6">
           {/* Zone Date (remplace l'image) */}
-          <div className="flex-shrink-0 w-20 h-20 bg-[#F47D6C]/10 rounded-xl flex flex-col items-center justify-center border border-[#F47D6C]/20 self-start">
-            <Ship className="w-6 h-6 text-[#F47D6C] mb-1" />
-            <div className="text-xs font-semibold text-[#F47D6C] text-center leading-tight px-1">
+          <div className={`flex-shrink-0 w-20 h-20 ${getBgColor()} rounded-xl flex flex-col items-center justify-center ${getBorderColor()} border self-start`}>
+            <IconComponent className={`w-6 h-6 ${getTextColor()} mb-1`} />
+            <div className={`text-xs font-semibold ${getTextColor()} text-center leading-tight px-1`}>
               {date.includes('-') ? 'Période' : (
                 <>
                   <div>{date}</div>
@@ -208,7 +231,7 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
 
               {/* Volume */}
               <div className="text-right">
-                <div className="text-lg font-bold text-[#F47D6C]">{volume}</div>
+                <div className={`text-lg font-bold ${getTextColor()}`}>{volume}</div>
                 <div className="text-xs text-gray-500">
                   {type === 'offer' ? 'Disponible' : 'Recherché'}
                 </div>
