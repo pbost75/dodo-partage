@@ -234,13 +234,13 @@ export async function PUT(
       
       // ⚠️ WORKAROUND: Toujours envoyer les champs offer (requis par le backend)
       container: currentData.requestType === 'search' ? {
-        // Pour search, utiliser des valeurs factices pour satisfaire la validation backend
+        // Pour search, utiliser des valeurs factices NON-ZÉRO pour satisfaire la validation backend
         type: '20', // Valeur par défaut
-        availableVolume: 0, // Non pertinent pour search
-        minimumVolume: 0 // Non pertinent pour search
+        availableVolume: 1, // ✅ Valeur non-zéro pour passer la validation
+        minimumVolume: 1 // ✅ Valeur non-zéro pour passer la validation
       } : {
         type: currentData.container.type,
-        availableVolume: data.container?.availableVolume || 0,
+        availableVolume: data.container?.availableVolume || 1,
         minimumVolume: data.container?.minimumVolume || 0
       },
       offerType: currentData.requestType === 'search' ? 'free' : (data.offerType || 'free'), // Valeur par défaut pour search
