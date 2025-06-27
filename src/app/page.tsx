@@ -475,12 +475,14 @@ function HomePageContent() {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-4">
-              <Button variant="outline" size="sm" className="hidden sm:inline-flex text-xs sm:text-sm px-2 sm:px-4 border-white/20 text-white hover:bg-white/10 hover:border-white/40">
-                ➕ Publier un trajet
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="hidden sm:inline-flex text-xs sm:text-sm px-2 sm:px-4 border-white/20 text-white hover:bg-white/10 hover:border-white/40"
+                onClick={handleCreateAnnouncement}
+              >
+                ➕ Publier une annonce
               </Button>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#F47D6C] flex items-center justify-center text-white text-sm font-semibold">
-                👤
-              </div>
             </div>
           </div>
 
