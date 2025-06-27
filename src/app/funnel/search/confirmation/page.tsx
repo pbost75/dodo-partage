@@ -7,6 +7,7 @@ import { CheckCircle, Mail, Home, AlertCircle } from 'lucide-react';
 import { useSearchStore } from '@/store/searchStore';
 import Button from '@/components/ui/Button';
 import SubmissionLoader from '@/components/ui/SubmissionLoader';
+import { apiFetch } from '@/utils/apiUtils';
 
 export default function SearchConfirmationPage() {
   const router = useSmartRouter();
@@ -58,11 +59,8 @@ export default function SearchConfirmationPage() {
     
     try {
       // Envoyer les données à l'API spécifique aux demandes de place
-      const response = await fetch('/api/submit-search-request', {
+      const response = await apiFetch('/api/submit-search-request', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(formData),
       });
 

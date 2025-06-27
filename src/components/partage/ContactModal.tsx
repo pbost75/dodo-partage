@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import FloatingInput from '@/components/ui/FloatingInput';
 import EmailInput from '@/components/ui/EmailInput';
 import FloatingTextarea from '@/components/ui/FloatingTextarea';
+import { apiFetch } from '@/utils/apiUtils';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -58,9 +59,8 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, announceme
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/contact-announcement', {
+      const response = await apiFetch('/api/contact-announcement', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           announcementId: announcement.id,
           contactName: form.name,

@@ -7,6 +7,7 @@ import { CheckCircle, Mail, Home, AlertCircle } from 'lucide-react';
 import { useProposeStore } from '@/store/proposeStore';
 import Button from '@/components/ui/Button';
 import SubmissionLoader from '@/components/ui/SubmissionLoader';
+import { apiFetch } from '@/utils/apiUtils';
 
 export default function ConfirmationPage() {
   const router = useSmartRouter();
@@ -45,11 +46,8 @@ export default function ConfirmationPage() {
     
     try {
       // Envoyer les données à l'API
-      const response = await fetch('/api/submit-announcement', {
+      const response = await apiFetch('/api/submit-announcement', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(formData),
       });
 

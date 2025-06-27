@@ -6,6 +6,7 @@ import { X, Bell, Check, Edit2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import FloatingInput from '@/components/ui/FloatingInput';
 import CustomSelect from '@/components/ui/CustomSelect';
+import { apiFetch } from '@/utils/apiUtils';
 
 interface AlertModalProps {
   isOpen: boolean;
@@ -168,11 +169,8 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
     setIsSubmitting(true);
     try {
       // Appel à l'API pour créer l'alerte
-      const response = await fetch('/api/create-alert', {
+      const response = await apiFetch('/api/create-alert', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           type: formData.type,
           departure: formData.departure, // Envoyer la value directement (ex: "france")

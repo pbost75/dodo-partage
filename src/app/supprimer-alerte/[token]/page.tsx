@@ -6,6 +6,7 @@ import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Check, X, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import { apiFetch } from '@/utils/apiUtils';
 
 interface DeletionReason {
   value: string;
@@ -66,11 +67,8 @@ export default function DeleteAlertPage() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('/api/unsubscribe-alert', {
+      const response = await apiFetch('/api/unsubscribe-alert', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           token,
           reason: selectedReason === 'other' ? customReason : selectedReason
