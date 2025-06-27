@@ -253,6 +253,18 @@ function generateTitle(departure: string, arrival: string, volume: number, offer
   }
 }
 
+// Gestion des requêtes OPTIONS pour CORS (preflight)
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     console.log('📋 Récupération des annonces depuis le backend centralisé...');
@@ -310,6 +322,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         message: 'Aucune annonce disponible pour le moment',
         total: 0,
         filtered: 0
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
       });
     }
 
@@ -415,6 +433,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         url: backendUrl,
         timestamp: new Date().toISOString()
       }
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
     });
 
   } catch (error) {
@@ -432,6 +456,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         timestamp: new Date().toISOString(),
         error: true
       }
-    }, { status: 500 });
+    }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
   }
 } 
