@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiFetch } from '@/utils/apiUtils';
 
 // Interface pour les annonces
 export interface Announcement {
@@ -118,10 +117,14 @@ export function useAnnouncements(initialFilters: AnnouncementFilters = {}) {
         queryParams.append('status', searchFilters.status);
       }
 
-      // Utiliser apiFetch qui gère automatiquement le bon domaine
-      const apiPath = `/api/get-announcements${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      const response = await apiFetch(apiPath, {
+      const url = `/api/get-announcements${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      console.log('📡 Appel API:', url);
+
+      const response = await fetch(url, {
         method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
