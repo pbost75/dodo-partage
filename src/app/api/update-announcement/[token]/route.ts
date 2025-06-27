@@ -136,7 +136,11 @@ export async function PUT(
       reference: data.reference,
       contact: data.contact.firstName,
       departure: `${data.departure.city} → ${data.arrival.city}`,
-      updatedAt: data.updatedAt
+      updatedAt: data.updatedAt,
+      hasShippingPeriod: !!data.shippingPeriod,
+      hasVolumeNeeded: !!data.volumeNeeded,
+      hasAcceptsFees: !!data.acceptsFees,
+      requestType: data.request_type
     });
 
     // Validation des données obligatoires
@@ -161,13 +165,23 @@ export async function PUT(
     console.log('📤 Envoi vers le backend centralisé...');
 
     // D'abord récupérer les données actuelles
+    console.log('🔍 Récupération des données actuelles...');
     const getCurrentResponse = await fetch(`${backendUrl}/api/partage/edit-form/${token}`);
     if (!getCurrentResponse.ok) {
-      throw new Error('Impossible de récupérer les données actuelles');
+      const errorText = await getCurrentResponse.text();
+      console.error('❌ Erreur lors de la récupération:', getCurrentResponse.status, errorText);
+      throw new Error(`Impossible de récupérer les données actuelles: ${getCurrentResponse.status} - ${errorText}`);
     }
     
     const currentResult = await getCurrentResponse.json();
+    console.log('📋 Données actuelles récupérées:', {
+      success: currentResult.success,
+      hasData: !!currentResult.data,
+      requestType: currentResult.data?.requestType
+    });
+    
     if (!currentResult.success || !currentResult.data) {
+      console.error('❌ Données actuelles manquantes:', currentResult);
       throw new Error('Données actuelles introuvables');
     }
     
@@ -249,6 +263,17 @@ export async function PUT(
       timestamp: new Date().toISOString()
     };
 
+    console.log('📤 Données envoyées au backend:', {
+      editToken: token,
+      requestType: currentData.requestType,
+      hasContainer: !!mergedData.container,
+      hasShippingDate: !!mergedData.shippingDate,
+      hasOfferType: !!mergedData.offerType,
+      hasVolumeNeeded: !!mergedData.volumeNeeded,
+      hasAcceptsFees: !!mergedData.acceptsFees,
+      announcementTextLength: mergedData.announcementText?.length
+    });
+
     // Appel au backend centralisé pour la mise à jour
     const response = await fetch(`${backendUrl}/api/partage/update-announcement`, {
       method: 'POST',
@@ -263,7 +288,11 @@ export async function PUT(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erreur du backend centralisé:', response.status, errorText);
+      console.error('❌ Erreur du backend centralisé:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
       throw new Error(`Backend error: ${response.status} - ${errorText}`);
     }
 

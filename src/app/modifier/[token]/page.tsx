@@ -492,6 +492,8 @@ export default function ModifierAnnoncePage() {
         });
       }
       
+      console.log('🚀 Envoi des données au serveur:', updateData);
+      
       // Utiliser la nouvelle route PUT
       const response = await fetch(`/api/update-announcement/${token}`, {
         method: 'PUT',
@@ -500,10 +502,18 @@ export default function ModifierAnnoncePage() {
         },
         body: JSON.stringify(updateData)
       });
+      
+      console.log('📡 Réponse reçue:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
 
       const result = await response.json();
+      console.log('📋 Résultat JSON:', result);
       
       if (!result.success) {
+        console.error('❌ Erreur dans la réponse:', result);
         throw new Error(result.error || 'Erreur lors de la sauvegarde');
       }
 
