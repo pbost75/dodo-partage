@@ -8,7 +8,7 @@
 const https = require('https');
 
 // Configuration
-const FRONTEND_URL = 'https://partage.dodomove.fr';
+const FRONTEND_URL = 'https://www.dodomove.fr/partage';
 const BACKEND_URL = 'https://web-production-7b738.up.railway.app';
 
 // Couleurs pour les logs

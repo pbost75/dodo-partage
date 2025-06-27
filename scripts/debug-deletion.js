@@ -9,7 +9,7 @@ async function debugDeletion() {
   try {
     // 1. Vérifier les données de l'annonce
     console.log('1️⃣ Récupération des données de l\'annonce...');
-    const getResponse = await fetch('https://partage.dodomove.fr/api/get-announcements');
+    const getResponse = await fetch('https://www.dodomove.fr/partage/api/get-announcements');
     
     if (getResponse.ok) {
       const result = await getResponse.json();

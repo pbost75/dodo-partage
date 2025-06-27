@@ -36,7 +36,7 @@ async function testFullProcess() {
       announcementText: 'Test de suppression - Annonce créée pour tester la fonctionnalité de suppression. Cette description contient le minimum de caractères requis.'
     };
     
-    const createResponse = await fetch('https://partage.dodomove.fr/api/submit-announcement', {
+    const createResponse = await fetch('https://www.dodomove.fr/partage/api/submit-announcement', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -60,7 +60,7 @@ async function testFullProcess() {
     // 2. Valider l'annonce (cela va générer les tokens edit/delete)
     console.log('2️⃣ Validation de l\'annonce...');
     
-    const validateResponse = await fetch('https://partage.dodomove.fr/api/validate-announcement', {
+          const validateResponse = await fetch('https://www.dodomove.fr/partage/api/validate-announcement', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

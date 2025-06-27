@@ -4,7 +4,7 @@
  */
 
 const BACKEND_URL = process.env.BACKEND_URL || 'https://web-production-7b738.up.railway.app';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://partage.dodomove.fr';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://www.dodomove.fr/partage';
 
 async function testAlertDeactivation() {
   console.log('🧪 Test du système de suppression d\'alertes DodoPartage');

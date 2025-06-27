@@ -30,7 +30,7 @@ async function testGetAnnouncements() {
   try {
     // Test API de production
     console.log('\n2️⃣ Test API de production...');
-    const prodResponse = await fetch('https://partage.dodomove.fr/api/get-announcements');
+    const prodResponse = await fetch('https://www.dodomove.fr/partage/api/get-announcements');
     
     if (prodResponse.ok) {
       const prodResult = await prodResponse.json();
