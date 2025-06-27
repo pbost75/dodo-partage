@@ -117,7 +117,11 @@ export function useAnnouncements(initialFilters: AnnouncementFilters = {}) {
         queryParams.append('status', searchFilters.status);
       }
 
-      const url = `/api/get-announcements${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      // Construire l'URL API - utiliser le bon domaine selon le contexte
+      const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'www.dodomove.fr' 
+        ? 'https://partage.dodomove.fr' 
+        : '';
+      const url = `${baseUrl}/api/get-announcements${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
       console.log('📡 Appel API:', url);
 
       const response = await fetch(url, {
