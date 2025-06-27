@@ -19,16 +19,17 @@ interface UpdateAnnouncementRequest {
     city: string;
     postalCode: string;
   };
-  shippingDate: string;
-  container: {
+  announcementText: string;
+  updatedAt: string;
+  // Champs pour les offres "offer"
+  shippingDate?: string;
+  container?: {
     type: string;
     availableVolume: number;
     minimumVolume: number;
   };
-  offerType: string;
-  announcementText: string;
-  updatedAt: string;
-  // Nouveaux champs pour les demandes "search"
+  offerType?: string;
+  // Champs pour les demandes "search"
   shippingPeriod?: string[];
   volumeNeeded?: number;
   acceptsFees?: boolean;
@@ -195,8 +196,8 @@ export async function PUT(
       };
     }
     
-    // Respecter l'API backend en envoyant tous les champs attendus
-    // mais en gardant les valeurs non-modifiables actuelles
+    // ⚠️ WORKAROUND: Le backend n'est pas encore adapté pour search
+    // Il faut envoyer TOUS les champs requis même pour search
     const mergedData = {
       contact: {
         firstName: currentData.contact.firstName, // Garder le prénom actuel (non modifiable)
@@ -216,18 +217,33 @@ export async function PUT(
       },
       // Ajouter les données de période converties
       ...periodData,
-      // Champs spécifiques selon le type
+      
+      // ⚠️ WORKAROUND: Toujours envoyer les champs offer (requis par le backend)
+      container: currentData.requestType === 'search' ? {
+        // Pour search, utiliser des valeurs factices pour satisfaire la validation backend
+        type: '20', // Valeur par défaut
+        availableVolume: 0, // Non pertinent pour search
+        minimumVolume: 0 // Non pertinent pour search
+      } : {
+        type: currentData.container.type,
+        availableVolume: data.container?.availableVolume || 0,
+        minimumVolume: data.container?.minimumVolume || 0
+      },
+      offerType: currentData.requestType === 'search' ? 'free' : (data.offerType || 'free'), // Valeur par défaut pour search
+      shippingDate: currentData.requestType === 'search' ? 
+        (periodData.shipping_period_start || '2025-01-01') : // Utiliser la date de début de période pour search
+        (data.shippingDate || '2025-01-01'),
+      
+      // Champs spécifiques search (stockés séparément dans Airtable)
       ...(currentData.requestType === 'search' ? {
         volumeNeeded: data.volumeNeeded,
-        acceptsFees: data.acceptsFees
+        acceptsFees: data.acceptsFees,
+        // Marquer explicitement que c'est une annonce search
+        request_type: 'search'
       } : {
-        container: {
-          type: currentData.container.type, // Garder le type de conteneur actuel
-          availableVolume: data.container.availableVolume,
-          minimumVolume: data.container.minimumVolume
-        },
-        offerType: data.offerType
+        request_type: 'offer'
       }),
+      
       announcementText: data.announcementText,
       source: 'dodo-partage-frontend',
       timestamp: new Date().toISOString()
@@ -254,6 +270,22 @@ export async function PUT(
     const result = await response.json();
     console.log('✅ Annonce mise à jour avec succès via le backend centralisé:', result);
 
+    // Préparer la réponse selon le type d'annonce
+    const announcementDetails: any = {
+      departure: `${data.departure.city}, ${data.departure.country}`,
+      arrival: `${data.arrival.city}, ${data.arrival.country}`
+    };
+
+    if (currentData.requestType === 'search') {
+      announcementDetails.volumeNeeded = data.volumeNeeded;
+      announcementDetails.acceptsFees = data.acceptsFees;
+      announcementDetails.shippingPeriod = data.shippingPeriod?.join(', ') || 'Période flexible';
+    } else {
+      announcementDetails.volume = data.container?.availableVolume;
+      announcementDetails.offerType = data.offerType;
+      announcementDetails.shippingDate = data.shippingDate;
+    }
+
     // Réponse de succès
     return NextResponse.json({
       success: true,
@@ -262,12 +294,7 @@ export async function PUT(
         reference: data.reference,
         updatedAt: data.updatedAt,
         contact: data.contact.firstName,
-        announcement: {
-          departure: `${data.departure.city}, ${data.departure.country}`,
-          arrival: `${data.arrival.city}, ${data.arrival.country}`,
-          volume: data.container.availableVolume,
-          offerType: data.offerType
-        }
+        announcement: announcementDetails
       },
       backend: {
         used: 'centralized',

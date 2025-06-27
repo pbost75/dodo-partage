@@ -462,7 +462,8 @@ export default function ModifierAnnoncePage() {
           ...updateData,
           volumeNeeded: formData.volumeNeeded,
           acceptsFees: formData.acceptsCostSharing,
-          shippingPeriod: formData.shippingPeriod // Envoyer la période sélectionnée
+          shippingPeriod: formData.shippingPeriod, // Envoyer la période sélectionnée
+          request_type: 'search'
         };
         console.log('💾 Sauvegarde search avec:', {
           volumeNeeded: formData.volumeNeeded,
@@ -471,15 +472,17 @@ export default function ModifierAnnoncePage() {
         });
       } else {
         // Pour les offres de place
+        const offerAnnouncement = announcement as OfferAnnouncementData;
         updateData = {
           ...updateData,
           shippingDate: formData.shippingDate,
           container: {
-            type: announcement.container.type,
+            type: offerAnnouncement.container.type,
             availableVolume: formData.availableVolume,
             minimumVolume: formData.minimumVolume
           },
-          offerType: formData.offerType
+          offerType: formData.offerType,
+          request_type: 'offer'
         };
         console.log('💾 Sauvegarde offer avec:', {
           shippingDate: formData.shippingDate,
