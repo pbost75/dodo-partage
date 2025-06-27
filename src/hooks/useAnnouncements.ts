@@ -20,6 +20,8 @@ export interface Announcement {
   publishedAt: string;
   description: string;
   status: string;
+  acceptsCostSharing?: boolean;
+  periodFormatted?: string;
 }
 
 // Interface pour les filtres

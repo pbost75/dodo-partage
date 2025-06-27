@@ -149,19 +149,30 @@ function HomePageContent() {
         return false;
       }
       
-      // Filtre par type de prix
+      // Filtre par type de prix - adapter la logique selon le type d'annonce
       if (filters.priceType !== 'all') {
-        const isAnnouncementFree = !announcement.price || announcement.price === 'Gratuit';
-        if (filters.priceType === 'free' && !isAnnouncementFree) {
-          return false;
-        }
-        if (filters.priceType === 'paid' && isAnnouncementFree) {
-          return false;
+        if (announcementType === 'offer') {
+          // Pour les offres : vérifier le champ price
+          const isAnnouncementFree = !announcement.price || announcement.price === 'Gratuit';
+          if (filters.priceType === 'free' && !isAnnouncementFree) {
+            return false;
+          }
+          if (filters.priceType === 'paid' && isAnnouncementFree) {
+            return false;
+          }
+        } else if (announcementType === 'request') {
+          // Pour les demandes : vérifier acceptsCostSharing
+          const acceptsFees = announcement.acceptsCostSharing === true;
+          if (filters.priceType === 'free' && acceptsFees) {
+            return false; // Afficher seulement ceux qui ne veulent pas payer
+          }
+          if (filters.priceType === 'paid' && !acceptsFees) {
+            return false; // Afficher seulement ceux qui acceptent de payer
+          }
         }
       }
 
       // Filtre par volume minimum
-      // Logique : filtrer par volume minimum disponible
       if (filters.minVolume !== 'all') {
         const volumeNum = parseFloat(announcement.volume.replace(' m³', ''));
         const minVolumeRequired = parseFloat(filters.minVolume);
@@ -193,34 +204,44 @@ function HomePageContent() {
 
       // Filtre par dates appliquées (période sélectionnée)
       if (appliedDates.length > 0) {
-        // L'annonce a une date de shipping au format "2025-12-18"
-        const announcementDate = announcement.date; // Format frontend: "18 décembre 2025"
+        // L'annonce a une date de shipping au format variable selon le type
+        const announcementDate = announcement.date;
         
-        // Parser le format date du frontend pour extraire mois/année
-        const dateMatch = announcementDate.match(/(\d{1,2})\s+([a-zA-Zàâäéèêëïîôöùûüÿç]+)\s+(\d{4})/);
-        if (dateMatch) {
-          const [, day, monthName, year] = dateMatch;
-          
-          // Mapping des noms de mois français
-          const monthsMap: Record<string, string> = {
-            'janvier': 'Janvier', 'février': 'Février', 'mars': 'Mars', 'avril': 'Avril',
-            'mai': 'Mai', 'juin': 'Juin', 'juillet': 'Juillet', 'août': 'Août',
-            'septembre': 'Septembre', 'octobre': 'Octobre', 'novembre': 'Novembre', 'décembre': 'Décembre'
-          };
-          
-          const normalizedMonth = monthsMap[monthName.toLowerCase()];
-          if (normalizedMonth) {
-            const announcementMonthYear = `${normalizedMonth} ${year}`;
+        // Gestion différente selon le type d'annonce
+        if (announcementType === 'offer') {
+          // Pour les offres : format "18 décembre 2025"
+          const dateMatch = announcementDate.match(/(\d{1,2})\s+([a-zA-Zàâäéèêëïîôöùûüÿç]+)\s+(\d{4})/);
+          if (dateMatch) {
+            const [, day, monthName, year] = dateMatch;
             
-            // Vérifier si ce mois/année est dans la période sélectionnée
-            const dateMatches = appliedDates.includes(announcementMonthYear);
-            if (!dateMatches) return false;
+            // Mapping des noms de mois français
+            const monthsMap: Record<string, string> = {
+              'janvier': 'Janvier', 'février': 'Février', 'mars': 'Mars', 'avril': 'Avril',
+              'mai': 'Mai', 'juin': 'Juin', 'juillet': 'Juillet', 'août': 'Août',
+              'septembre': 'Septembre', 'octobre': 'Octobre', 'novembre': 'Novembre', 'décembre': 'Décembre'
+            };
+            
+            const normalizedMonth = monthsMap[monthName.toLowerCase()];
+            if (normalizedMonth) {
+              const announcementMonthYear = `${normalizedMonth} ${year}`;
+              
+              // Vérifier si ce mois/année est dans la période sélectionnée
+              const dateMatches = appliedDates.includes(announcementMonthYear);
+              if (!dateMatches) return false;
+            }
           }
+        } else if (announcementType === 'request') {
+          // Pour les demandes : peut avoir un format de période flexible
+          // On vérifie si la période de la demande correspond à au moins un des mois sélectionnés
+          const hasDateMatch = appliedDates.some(selectedDate => 
+            announcementDate.toLowerCase().includes(selectedDate.toLowerCase())
+          );
+          if (!hasDateMatch) return false;
         }
       }
 
     return true;
-  });
+    });
   };
 
   const filteredAnnouncements = getFilteredAnnouncements();
@@ -241,6 +262,18 @@ function HomePageContent() {
     
     // Mettre à jour l'URL avec le nouveau type
     updateURLWithCurrentState(filters, newType);
+    
+    // Forcer une récupération des données pour le nouveau type
+    // Cela garantit qu'on récupère bien toutes les annonces du type sélectionné
+    applyFilters({
+      type: newType,
+      departure: appliedDeparture,
+      arrival: appliedDestination,
+      status: 'published'
+    });
+    
+    // Réinitialiser l'affichage
+    setDisplayedCount(4);
   };
 
   const loadMoreAnnouncements = () => {
@@ -361,50 +394,72 @@ function HomePageContent() {
 
   // Composant d'état vide
   const EmptyState = () => (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
-      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-        <MapPin className="w-8 h-8 text-gray-400" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="text-center py-12"
+    >
+      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <AlertCircle className="w-10 h-10 text-gray-400" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-        Aucune annonce trouvée
+      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        {announcementType === 'offer' 
+          ? 'Aucune offre de place disponible' 
+          : 'Aucune demande de place'
+        }
       </h3>
-      <p className="text-gray-600 mb-4">
-        {appliedDeparture || appliedDestination || appliedDates.length > 0 || filters.minVolume !== 'all'
-          ? 'Aucune annonce ne correspond à vos critères de recherche.'
-          : 'Il n\'y a pas encore d\'annonces publiées.'}
+      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+        {(() => {
+          const hasFilters = appliedDeparture || appliedDestination || appliedDates.length > 0;
+          if (announcementType === 'offer') {
+            return hasFilters
+              ? 'Aucune offre ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
+              : 'Aucune offre de conteneur n\'est disponible pour le moment.';
+          } else {
+            return hasFilters
+              ? 'Aucune demande ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
+              : 'Aucune demande de place n\'est active pour le moment.';
+          }
+        })()}
       </p>
-      <div className="space-y-2">
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <Button
           variant="primary"
           onClick={handleCreateAnnouncement}
-          icon={<Plus className="w-4 h-4" />}
+          className="bg-[#F47D6C] hover:bg-[#e66b5a]"
         >
-          Déposer une annonce
+          {announcementType === 'offer' 
+            ? '➕ Proposer un conteneur' 
+            : '➕ Créer une demande'
+          }
         </Button>
-        {(appliedDeparture || appliedDestination || appliedDates.length > 0 || filters.minVolume !== 'all') && (
+        {(appliedDeparture || appliedDestination || appliedDates.length > 0) && (
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => {
+              // Réinitialiser tous les filtres de recherche
               setAppliedDeparture('');
               setAppliedDestination('');
               setAppliedDates([]);
               setSearchDeparture('');
               setSearchDestination('');
               setSearchDates([]);
-              setFilters({ priceType: 'all', minVolume: 'all' });
-              setAnnouncementType('offer');
-              setDisplayedCount(4);
               
-              // Nettoyer l'URL également
-              router.push('/', { scroll: false });
+              // Récupérer toutes les annonces du type actuel
+              applyFilters({
+                type: announcementType,
+                status: 'published'
+              });
+              
+              // Nettoyer l'URL
+              router.push(`/?type=${announcementType}`, { scroll: false });
             }}
-            className="text-gray-600"
           >
-            Effacer les filtres
+            🔄 Réinitialiser les filtres
           </Button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 
   return (
@@ -789,12 +844,22 @@ function HomePageContent() {
         </div>
       </footer>
 
-      {/* Notification de suppression avec Suspense */}
-      <React.Suspense fallback={null}>
-        <DeletedNotification />
-      </React.Suspense>
+      {/* Notification de suppression avec Suspense amélioré */}
+      <Suspense fallback={null}>
+        <DeletedNotificationWrapper />
+      </Suspense>
     </div>
   );
+}
+
+// Wrapper pour gérer les erreurs de Suspense
+function DeletedNotificationWrapper() {
+  try {
+    return <DeletedNotification />;
+  } catch (error) {
+    console.warn('⚠️ Erreur Suspense DeletedNotification:', error);
+    return null;
+  }
 }
 
 export default function HomePage() {

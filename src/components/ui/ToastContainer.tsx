@@ -9,14 +9,14 @@ interface ToastContainerProps {
 
 const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemoveToast }) => {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
+    <div className="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none">
       {toasts.map((toast, index) => (
         <div
           key={toast.id}
           className="pointer-events-auto"
           style={{
             transform: `translateY(${index * 4}px)`,
-            zIndex: 50 - index
+            zIndex: 9999 - index
           }}
         >
           <Toast
