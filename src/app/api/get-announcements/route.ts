@@ -27,7 +27,7 @@ interface AnnouncementFromBackend {
   // Champs pour les annonces "search"  
   request_type: 'offer' | 'search';
   volume_needed?: number;
-  accepts_cost_sharing?: boolean;
+  accepts_fees?: boolean;
   shipping_period_formatted?: string;
   shipping_period_start?: string;
   shipping_period_end?: string;
@@ -345,13 +345,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           volumeCategory: getVolumeCategory(volume),
           date: announcement.shipping_period_formatted || 'Période flexible',
           year: '',
-          price: announcement.accepts_cost_sharing ? 'Accepte participation' : 'Transport gratuit souhaité',
+          price: announcement.accepts_fees ? 'Accepte participation' : 'Transport gratuit souhaité',
           items,
           author: announcement.contact_first_name,
           publishedAt: getTimeAgo(announcement.created_at),
           description: announcement.announcement_text,
           status: announcement.status,
-          acceptsCostSharing: announcement.accepts_cost_sharing,
+          acceptsCostSharing: announcement.accepts_fees,
           periodFormatted: announcement.shipping_period_formatted
         };
       } else {
