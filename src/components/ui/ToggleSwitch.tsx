@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Package, Search } from 'lucide-react';
+import { Ship, Search } from 'lucide-react';
 
 interface ToggleSwitchProps {
   value: 'offer' | 'request';
@@ -15,7 +15,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ value, onChange, className 
     {
       value: 'offer' as const,
       label: 'Propose',
-      icon: Package,
+      icon: Ship,
       description: 'J\'offre de la place'
     },
     {
