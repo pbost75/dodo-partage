@@ -63,9 +63,9 @@ const FunnelLayout: React.FC<FunnelLayoutProps> = ({
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-2 pt-6 pb-4">
             <div className="h-14 flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600 font-roboto-slab">
-                DodoPartage
-              </h1>
+                              <h1 className="text-2xl font-bold text-blue-600 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                  DodoPartage
+                </h1>
             </div>
             
             <div className="flex-1">
