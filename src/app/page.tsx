@@ -488,7 +488,7 @@ function HomePageContent() {
 
           {/* Titre principal */}
           <div className="text-center pb-20 sm:pb-24">
-            <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
               Partagez vos conteneurs de déménagement
             </h1>
             <p className="text-lg sm:text-xl text-white/90 font-light max-w-3xl mx-auto">
@@ -638,7 +638,7 @@ function HomePageContent() {
               {/* Titre et boutons - responsive layout */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
                     Annonces récentes
                   </h2>
                   <p className="text-base sm:text-lg text-gray-600 font-lato">
@@ -784,7 +784,7 @@ function HomePageContent() {
 
                 {/* Content */}
                 <div className="space-y-4">
-                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
                     Votre annonce ici !
                   </h3>
                   <p className="text-xl text-gray-600 max-w-2xl mx-auto font-lato">
