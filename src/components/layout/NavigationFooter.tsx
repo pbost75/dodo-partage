@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Button from '../ui/Button';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { useProposeStore } from '@/store/proposeStore';
-import { createHref } from '@/utils/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 
 // Mapping des étapes pour navigation du funnel propose
 const steps = [
@@ -47,7 +47,7 @@ const prevLabels = [
 ];
 
 export default function NavigationFooter() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const pathname = usePathname();
   
   // Récupérer les données du store pour validation
@@ -165,12 +165,11 @@ export default function NavigationFooter() {
     
     setTimeout(() => {
       if (currentIndex < steps.length - 1) {
-        const nextPath = createHref(`/funnel/propose/${steps[currentIndex + 1]}`);
-        window.location.href = nextPath;
+        const nextPath = `/funnel/propose/${steps[currentIndex + 1]}`;
+        router.push(nextPath);
       } else {
         // Dernière étape (contact) : aller à la confirmation
-        const confirmPath = createHref('/funnel/propose/confirmation');
-        window.location.href = confirmPath;
+        router.push('/funnel/propose/confirmation');
       }
       setIsLoading(false);
     }, 200);
@@ -181,8 +180,8 @@ export default function NavigationFooter() {
       setIsLoading(true);
       
       setTimeout(() => {
-        const prevPath = createHref(`/funnel/propose/${steps[currentIndex - 1]}`);
-        window.location.href = prevPath;
+        const prevPath = `/funnel/propose/${steps[currentIndex - 1]}`;
+        router.push(prevPath);
         setIsLoading(false);
       }, 200);
     }

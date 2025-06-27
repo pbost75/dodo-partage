@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Button from '../ui/Button';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { useSearchStore } from '@/store/searchStore';
-import { createHref } from '@/utils/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 
 // Mapping des étapes pour navigation du funnel search
 const steps = [
@@ -43,7 +43,7 @@ const prevLabels = [
 ];
 
 export default function SearchNavigationFooter() {
-  const router = useRouter();
+  const router = useSmartRouter();
   const pathname = usePathname();
   
   // Récupérer les données du store pour validation
@@ -158,12 +158,11 @@ export default function SearchNavigationFooter() {
     
     setTimeout(() => {
       if (currentIndex < steps.length - 1) {
-        const nextPath = createHref(`/funnel/search/${steps[currentIndex + 1]}`);
-        window.location.href = nextPath;
+        const nextPath = `/funnel/search/${steps[currentIndex + 1]}`;
+        router.push(nextPath);
       } else {
         // Dernière étape (contact) : aller à la confirmation
-        const confirmPath = createHref('/funnel/search/confirmation');
-        window.location.href = confirmPath;
+        router.push('/funnel/search/confirmation');
       }
       setIsLoading(false);
     }, 200);
@@ -174,8 +173,8 @@ export default function SearchNavigationFooter() {
       setIsLoading(true);
       
       setTimeout(() => {
-        const prevPath = createHref(`/funnel/search/${steps[currentIndex - 1]}`);
-        window.location.href = prevPath;
+        const prevPath = `/funnel/search/${steps[currentIndex - 1]}`;
+        router.push(prevPath);
         setIsLoading(false);
       }, 200);
     }
