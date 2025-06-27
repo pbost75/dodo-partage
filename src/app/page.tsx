@@ -9,7 +9,6 @@ import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
 import AlertModal from '@/components/partage/AlertModal';
 import ChoiceModal from '@/components/partage/ChoiceModal';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
@@ -768,71 +767,119 @@ function HomePageContent() {
         onChoice={handleChoice}
       />
 
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-blue-50 to-orange-50">
-        <div className="container mx-auto px-6 lg:px-8">
+      {/* CTA Section - Promotion Dodomove */}
+      <section className="w-full bg-gradient-to-br from-[#243163] to-[#1e2951] py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
+            className="text-center"
           >
-            <Card variant="gradient" padding="xl" className="text-center max-w-4xl mx-auto">
-              <div className="space-y-8">
-                {/* Icon */}
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white text-4xl">
-                  📦
-                </div>
+            {/* Badge leader */}
+            <div className="inline-flex items-center gap-2 bg-[#F47D6C] text-white text-sm font-medium px-4 py-2 rounded-full mb-6">
+              <span className="text-xs">🏆</span>
+              LEADER DU DÉMÉNAGEMENT MÉTROPOLE DOM-TOM
+            </div>
 
-                {/* Content */}
-                <div className="space-y-4">
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-                    Votre annonce ici !
-                  </h3>
-                  <p className="text-xl text-gray-600 max-w-2xl mx-auto font-lato">
-                    Vous avez de la place disponible dans un conteneur ou vous cherchez une solution d'expédition ?<br />
-                    <span className="text-[#F47D6C] font-semibold">Publiez votre annonce en 2 minutes</span>
-                  </p>
-                </div>
+            {/* Titre principal */}
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+              Besoin d'un conteneur complet ?<br />
+              <span className="text-yellow-400">Comparez les meilleurs devis !</span>
+            </h2>
 
-                {/* Features */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-                  <div className="bg-white/60 rounded-xl p-6 border border-white/50">
-                    <div className="text-2xl mb-2">🚀</div>
-                    <div className="font-semibold text-gray-900 mb-1">Rapide</div>
-                    <div className="text-sm text-gray-600">Publication en moins de 2 minutes</div>
-                  </div>
-                  <div className="bg-white/60 rounded-xl p-6 border border-white/50">
-                    <div className="text-2xl mb-2">🆓</div>
-                    <div className="font-semibold text-gray-900 mb-1">Gratuit</div>
-                    <div className="text-sm text-gray-600">Aucune commission, aucun frais</div>
-                  </div>
-                  <div className="bg-white/60 rounded-xl p-6 border border-white/50">
-                    <div className="text-2xl mb-2">🔒</div>
-                    <div className="font-semibold text-gray-900 mb-1">Sécurisé</div>
-                    <div className="text-sm text-gray-600">Vos données sont protégées</div>
-                  </div>
-                </div>
+            {/* Sous-titre */}
+            <p className="text-xl md:text-2xl text-white/90 mb-4 max-w-4xl mx-auto font-light">
+              Dodomove, c'est le choix n°1 pour trouver le meilleur devis de déménagement<br className="hidden md:block" />
+              de la métropole vers les DOM-TOM.
+            </p>
 
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <Button 
-                    variant="primary" 
-                    size="lg"
-                    onClick={handleCreateAnnouncement}
-                    className="bg-[#F47D6C] hover:bg-[#e66b5a] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                  >
-                    ➕ Déposer une annonce
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    ℹ️ En savoir plus
-                  </Button>
-                </div>
+            {/* Garantie en 2 minutes */}
+            <div className="inline-flex items-center gap-2 text-white/80 text-lg mb-8">
+              <span className="text-blue-300">🚚</span>
+              <span className="font-medium">en 2 minutes</span>
+            </div>
+
+            {/* Services et prix */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
+              {/* Groupage */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="text-3xl mb-3">📦</div>
+                <h3 className="text-xl font-bold text-white mb-2">Petit groupage</h3>
+                <p className="text-white/80 text-sm mb-3">Parfait si vous n'avez trouvé aucune place sur DodoPartage</p>
+                <div className="text-2xl font-bold text-yellow-400">À partir de 250€</div>
               </div>
-            </Card>
+
+              {/* Conteneur complet */}
+              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 border border-white/30 hover:bg-white/20 transition-all duration-300 transform scale-105">
+                <div className="text-3xl mb-3">🚛</div>
+                <h3 className="text-xl font-bold text-white mb-2">Conteneur complet</h3>
+                <p className="text-white/80 text-sm mb-3">La solution si vous déménagez tout votre logement</p>
+                <div className="text-2xl font-bold text-yellow-400">À partir de 2200€</div>
+              </div>
+
+              {/* Transport véhicule */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="text-3xl mb-3">🚗</div>
+                <h3 className="text-xl font-bold text-white mb-2">Transport véhicule</h3>
+                <p className="text-white/80 text-sm mb-3">Voiture, moto, bateau... on s'occupe de tout</p>
+                <div className="text-2xl font-bold text-yellow-400">À partir de 650€</div>
+              </div>
+            </div>
+
+            {/* Social proof */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-10">
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-xl">⭐</span>
+                  ))}
+                </div>
+                <span className="text-white font-semibold text-lg">1.5k avis</span>
+              </div>
+              <div className="text-white/80 text-center">
+                <div className="font-semibold text-white">Plus de 10 000</div>
+                <div className="text-sm">déménagements réussis</div>
+              </div>
+            </div>
+
+            {/* CTA Principal */}
+            <div className="space-y-4">
+              <a
+                href="https://www.dodomove.fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-[#F47D6C] hover:bg-[#e66b5a] text-white text-lg md:text-xl font-bold px-8 md:px-12 py-4 md:py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
+              >
+                <span className="text-2xl group-hover:scale-110 transition-transform duration-300">🎯</span>
+                Je Compare Les Devis
+                <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Gratuit</span>
+              </a>
+              
+              {/* Sous-texte rassurant */}
+              <p className="text-white/70 text-sm max-w-md mx-auto">
+                Recevez jusqu'à 5 devis personnalisés en 24h • Gratuit et sans engagement
+              </p>
+            </div>
+
+            {/* Garanties */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mt-12 text-center">
+              <div className="text-white/80">
+                <div className="text-2xl mb-2">⚡</div>
+                <div className="font-semibold text-white">Service rapide</div>
+                <div className="text-sm">Devis en moins de 6h</div>
+              </div>
+              <div className="text-white/80">
+                <div className="text-2xl mb-2">🛡️</div>
+                <div className="font-semibold text-white">Transporteurs vérifiés</div>
+                <div className="text-sm">0% de casse garantie</div>
+              </div>
+              <div className="text-white/80">
+                <div className="text-2xl mb-2">💰</div>
+                <div className="font-semibold text-white">Prix compétitifs</div>
+                <div className="text-sm">Pas de coûts cachés</div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
