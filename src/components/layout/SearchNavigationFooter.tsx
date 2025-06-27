@@ -3,6 +3,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Button from '../ui/Button';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { useSearchStore } from '@/store/searchStore';
+import { createHref } from '@/utils/navigation';
 
 // Mapping des étapes pour navigation du funnel search
 const steps = [
@@ -157,10 +158,12 @@ export default function SearchNavigationFooter() {
     
     setTimeout(() => {
       if (currentIndex < steps.length - 1) {
-        router.push(`/funnel/search/${steps[currentIndex + 1]}`);
+        const nextPath = createHref(`/funnel/search/${steps[currentIndex + 1]}`);
+        window.location.href = nextPath;
       } else {
         // Dernière étape (contact) : aller à la confirmation
-        router.push('/funnel/search/confirmation');
+        const confirmPath = createHref('/funnel/search/confirmation');
+        window.location.href = confirmPath;
       }
       setIsLoading(false);
     }, 200);
@@ -171,7 +174,8 @@ export default function SearchNavigationFooter() {
       setIsLoading(true);
       
       setTimeout(() => {
-        router.push(`/funnel/search/${steps[currentIndex - 1]}`);
+        const prevPath = createHref(`/funnel/search/${steps[currentIndex - 1]}`);
+        window.location.href = prevPath;
         setIsLoading(false);
       }, 200);
     }

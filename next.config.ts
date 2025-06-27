@@ -13,8 +13,10 @@ const nextConfig: NextConfig = {
   assetPrefix: process.env.NODE_ENV === 'production' 
     ? 'https://partage.dodomove.fr' 
     : undefined,
-  // Alternative: utiliser une configuration dynamique
-  // assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || undefined,
+  // BasePath pour les URLs quand l'app est servie via /partage
+  basePath: process.env.NODE_ENV === 'production' && process.env.USE_BASE_PATH === 'true'
+    ? '/partage'
+    : undefined,
 };
 
 export default nextConfig;

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { createHref } from '@/utils/navigation';
 import { Ship, Anchor, Search } from 'lucide-react';
 
 interface AnnouncementProps {
@@ -90,14 +91,15 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
   };
 
   // Construire l'URL de détail avec les paramètres de recherche
+  const basePath = `/annonce/${reference}`;
   const detailUrl = searchParams 
-    ? `/annonce/${reference}?${searchParams}`
-    : `/annonce/${reference}`;
+    ? `${basePath}?${searchParams}`
+    : basePath;
 
   const IconComponent = getIcon();
 
   return (
-    <Link href={detailUrl} className="block">
+    <Link href={createHref(detailUrl)} className="block">
       <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 p-4 sm:p-6 cursor-pointer">
         {/* Version Mobile Optimisée */}
         <div className="sm:hidden">

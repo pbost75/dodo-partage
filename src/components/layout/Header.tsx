@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Button from '../ui/Button';
+import { createHref } from '@/utils/navigation';
 
 const Header: React.FC = () => {
   return (
@@ -12,7 +13,7 @@ const Header: React.FC = () => {
           {/* Logo et titre */}
           <div className="flex items-center">
             <Link 
-              href="/" 
+              href={createHref("/")} 
               className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
               {/* Icône DodoPartage */}
@@ -47,19 +48,19 @@ const Header: React.FC = () => {
           {/* Navigation centrale */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
-              href="/" 
+              href={createHref("/")} 
               className="text-gray-700 hover:text-blue-600 font-medium font-['Lato'] transition-colors"
             >
               Annonces
             </Link>
             <Link 
-              href="/deposer" 
+              href={createHref("/funnel/propose/locations")} 
               className="text-gray-700 hover:text-blue-600 font-medium font-['Lato'] transition-colors"
             >
               Déposer une annonce
             </Link>
             <Link 
-              href="/aide" 
+              href={createHref("/aide")} 
               className="text-gray-700 hover:text-blue-600 font-medium font-['Lato'] transition-colors"
             >
               Aide
@@ -83,7 +84,7 @@ const Header: React.FC = () => {
 
             {/* Bouton CTA mobile */}
             <div className="md:hidden">
-              <Link href="/deposer">
+              <Link href={createHref("/funnel/propose/locations")}>
                 <Button variant="primary" size="sm">
                   Déposer
                 </Button>
@@ -92,7 +93,7 @@ const Header: React.FC = () => {
 
             {/* Bouton CTA desktop */}
             <div className="hidden md:block">
-              <Link href="/deposer">
+              <Link href={createHref("/funnel/propose/locations")}>
                 <Button variant="primary">
                   Déposer une annonce
                 </Button>
@@ -105,13 +106,13 @@ const Header: React.FC = () => {
         <div className="md:hidden border-t border-gray-100 py-3">
           <nav className="flex justify-around">
             <Link 
-              href="/" 
+              href={createHref("/")} 
               className="text-gray-600 hover:text-blue-600 font-medium text-sm font-['Lato'] transition-colors"
             >
               Annonces
             </Link>
             <Link 
-              href="/aide" 
+              href={createHref("/aide")} 
               className="text-gray-600 hover:text-blue-600 font-medium text-sm font-['Lato'] transition-colors"
             >
               Aide

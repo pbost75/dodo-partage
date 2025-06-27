@@ -7,6 +7,7 @@ import { useProposeStore } from '@/store/proposeStore';
 import { useSearchStore } from '@/store/searchStore';
 import NavigationFooter from './NavigationFooter';
 import SearchNavigationFooter from './SearchNavigationFooter';
+import { navigateTo } from '@/utils/navigation';
 
 interface FunnelLayoutProps {
   children: ReactNode;
@@ -44,14 +45,14 @@ const FunnelLayout: React.FC<FunnelLayoutProps> = ({
         // Supprimer les données du funnel search dans localStorage
         localStorage.removeItem('search-funnel-storage');
         // Rediriger vers la première étape du funnel search
-        window.location.href = '/funnel/search/locations';
+        navigateTo('/funnel/search/locations');
       } else if (isProposeFunnel) {
         // Réinitialiser le store propose
         resetPropose();
         // Supprimer les données du funnel propose dans localStorage
         localStorage.removeItem('dodo-partage-propose-store');
         // Rediriger vers la première étape du funnel propose
-        window.location.href = '/funnel/propose/locations';
+        navigateTo('/funnel/propose/locations');
       }
     }
   };
