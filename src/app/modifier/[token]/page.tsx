@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useSmartRouter } from '@/utils/navigation';
+import { apiFetch } from '@/utils/apiUtils';
 import { ArrowLeft, Edit3, Save, AlertTriangle, Calendar, Package, FileText, DollarSign, Eye, Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VolumeSelector from '@/components/ui/VolumeSelector';
@@ -135,7 +136,7 @@ export default function ModifierAnnoncePage() {
         setError(null);
         
         // Utiliser la nouvelle route GET qui traite les données de période
-        const response = await fetch(`/api/update-announcement/${token}`);
+        const response = await apiFetch(`/api/update-announcement/${token}`);
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -498,11 +499,8 @@ export default function ModifierAnnoncePage() {
       console.log('🚀 Envoi des données au serveur:', updateData);
       
       // Utiliser la nouvelle route PUT
-      const response = await fetch(`/api/update-announcement/${token}`, {
+      const response = await apiFetch(`/api/update-announcement/${token}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(updateData)
       });
       

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useSmartRouter } from '@/utils/navigation';
+import { apiFetch } from '@/utils/apiUtils';
 import { 
   Ship, 
   Search,
@@ -66,7 +67,7 @@ export default function AnnouncementDetailPage() {
         setError(null);
 
         // Appel API pour récupérer l'annonce spécifique
-        const response = await fetch(`/api/get-announcements`);
+        const response = await apiFetch(`/api/get-announcements`);
         if (!response.ok) {
           throw new Error('Erreur lors de la récupération de l\'annonce');
         }
