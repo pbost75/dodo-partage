@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { CORS_HEADERS } from '@/utils/cors';
 
 interface ContactRequest {
   announcementId: string;
@@ -14,6 +15,14 @@ interface ContactRequest {
     date: string;
     author: string;
   };
+}
+
+// Handler OPTIONS pour les requêtes preflight CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: CORS_HEADERS,
+  });
 }
 
 export async function POST(request: NextRequest) {

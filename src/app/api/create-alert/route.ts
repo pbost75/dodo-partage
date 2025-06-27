@@ -1,4 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { CORS_HEADERS } from '@/utils/cors';
+
+// Handler OPTIONS pour les requêtes preflight CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: CORS_HEADERS,
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {

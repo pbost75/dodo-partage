@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { CORS_HEADERS } from '@/utils/cors';
 import { convertSingleDateToPeriod, convertSelectedMonthsToDates, convertDatesToSelectedMonths } from '@/utils/dateUtils';
 
 interface UpdateAnnouncementRequest {
@@ -34,6 +35,14 @@ interface UpdateAnnouncementRequest {
   volumeNeeded?: number;
   acceptsFees?: boolean;
   request_type?: 'offer' | 'search';
+}
+
+// Handler OPTIONS pour les requêtes preflight CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: CORS_HEADERS,
+  });
 }
 
 // Route GET pour récupérer les données d'une annonce à modifier
