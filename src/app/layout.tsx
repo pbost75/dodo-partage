@@ -36,6 +36,14 @@ export const metadata: Metadata = {
   description: "Plateforme de mise en relation pour le partage de conteneurs entre la France métropolitaine et les DOM-TOM. Proposez ou cherchez de la place pour vos expéditions.",
   keywords: "groupage, conteneur, DOM-TOM, Réunion, Martinique, Guadeloupe, expédition, déménagement",
   authors: [{ name: "Dodomove" }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/png' },
+      { url: '/images/favicon-dodomove-rouge-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/images/favicon-dodomove-rouge 512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/images/favicon-dodomove-rouge 512x512.png',
+  },
   openGraph: {
     title: "DodoPartage - Groupage collaboratif DOM-TOM",
     description: "Partagez l'espace dans vos conteneurs de déménagement vers les DOM-TOM",
