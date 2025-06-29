@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
 import AnnouncementCard from '@/components/partage/AnnouncementCard';
 import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
@@ -749,6 +749,8 @@ function HomePageContent() {
         </div>
       </div>
 
+
+
       {/* Modal d'alerte */}
       <AlertModal
         isOpen={isAlertModalOpen}
@@ -767,127 +769,178 @@ function HomePageContent() {
         onChoice={handleChoice}
       />
 
-      {/* CTA Section - Promotion Dodomove */}
-      <section className="w-full bg-gradient-to-br from-[#243163] to-[#1e2951] py-16 md:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            {/* Badge leader */}
-            <div className="inline-flex items-center gap-2 bg-[#F47D6C] text-white text-sm font-medium px-4 py-2 rounded-full mb-6">
-              <span className="text-xs">🏆</span>
-              LEADER DU DÉMÉNAGEMENT MÉTROPOLE DOM-TOM
-            </div>
-
-            {/* Titre principal */}
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-              Besoin d'un conteneur complet ?<br />
-              <span className="text-yellow-400">Comparez les meilleurs devis !</span>
-            </h2>
-
-            {/* Sous-titre */}
-            <p className="text-xl md:text-2xl text-white/90 mb-4 max-w-4xl mx-auto font-light">
-              Dodomove, c'est le choix n°1 pour trouver le meilleur devis de déménagement<br className="hidden md:block" />
-              de la métropole vers les DOM-TOM.
-            </p>
-
-            {/* Garantie en 2 minutes */}
-            <div className="inline-flex items-center gap-2 text-white/80 text-lg mb-8">
-              <span className="text-blue-300">🚚</span>
-              <span className="font-medium">en 2 minutes</span>
-            </div>
-
-            {/* Services et prix */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
-              {/* Groupage */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                <div className="text-3xl mb-3">📦</div>
-                <h3 className="text-xl font-bold text-white mb-2">Petit groupage</h3>
-                <p className="text-white/80 text-sm mb-3">Parfait si vous n'avez trouvé aucune place sur DodoPartage</p>
-                <div className="text-2xl font-bold text-yellow-400">À partir de 250€</div>
-              </div>
-
-              {/* Conteneur complet */}
-              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 border border-white/30 hover:bg-white/20 transition-all duration-300 transform scale-105">
-                <div className="text-3xl mb-3">🚛</div>
-                <h3 className="text-xl font-bold text-white mb-2">Conteneur complet</h3>
-                <p className="text-white/80 text-sm mb-3">La solution si vous déménagez tout votre logement</p>
-                <div className="text-2xl font-bold text-yellow-400">À partir de 2200€</div>
-              </div>
-
-              {/* Transport véhicule */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                <div className="text-3xl mb-3">🚗</div>
-                <h3 className="text-xl font-bold text-white mb-2">Transport véhicule</h3>
-                <p className="text-white/80 text-sm mb-3">Voiture, moto, bateau... on s'occupe de tout</p>
-                <div className="text-2xl font-bold text-yellow-400">À partir de 650€</div>
-              </div>
-            </div>
-
-            {/* Social proof */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-10">
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-400 text-xl">⭐</span>
-                  ))}
-                </div>
-                <span className="text-white font-semibold text-lg">1.5k avis</span>
-              </div>
-              <div className="text-white/80 text-center">
-                <div className="font-semibold text-white">Plus de 10 000</div>
-                <div className="text-sm">déménagements réussis</div>
-              </div>
-            </div>
-
-            {/* CTA Principal */}
-            <div className="space-y-4">
-              <a
-                href="https://www.dodomove.fr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-[#F47D6C] hover:bg-[#e66b5a] text-white text-lg md:text-xl font-bold px-8 md:px-12 py-4 md:py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
-              >
-                <span className="text-2xl group-hover:scale-110 transition-transform duration-300">🎯</span>
-                Je Compare Les Devis
-                <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Gratuit</span>
-              </a>
+      {/* CTA Section - Structure exacte de la maquette avec 2 zones */}
+      <section className="w-full">
+        {/* Zone supérieure - Fond clair */}
+        <div className="bg-[#EDEEFF] pb-16 sm:pb-20 relative">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-16">
+            <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 items-center lg:items-start">
               
-              {/* Sous-texte rassurant */}
-              <p className="text-white/70 text-sm max-w-md mx-auto">
-                Recevez jusqu'à 5 devis personnalisés en 24h • Gratuit et sans engagement
-              </p>
-            </div>
+              {/* Colonne gauche - Contenu principal (45%) */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                className="w-full lg:w-[45%] space-y-3 sm:space-y-4 text-center lg:text-left"
+              >
+                {/* Logo DodoMove */}
+                <div className="w-48 sm:w-64 mx-auto lg:mx-0">
+                  <img 
+                    src="https://www.dodomove.fr/wp-content/uploads/2023/09/logo-Dodomove-positif.png" 
+                    alt="DodoMove" 
+                    className="w-full h-auto"
+                  />
+                </div>
 
-            {/* Garanties */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mt-12 text-center">
-              <div className="text-white/80">
-                <div className="text-2xl mb-2">⚡</div>
-                <div className="font-semibold text-white">Service rapide</div>
-                <div className="text-sm">Devis en moins de 6h</div>
+                {/* Badge leader */}
+                <div className="inline-flex items-center gap-2 sm:gap-3 text-[#1a2741] text-xs sm:text-sm font-medium">
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-sunflower font-bold">
+                    <span className="block sm:hidden">LEADER DU DÉMÉNAGEMENT</span>
+                    <span className="hidden sm:block">LEADER DU DÉMÉNAGEMENT MÉTROPOLE DOM-TOM</span>
+                  </span>
+                </div>
+
+                {/* Titre avec soulignement jaune */}
+                <div className="space-y-3 sm:space-y-4">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#243163] mb-2 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                    <span className="block">Déménagement en Outre-mer :</span>
+                    <span className="block mt-1 sm:mt-2">
+                      <span className="bg-[#EFB500] text-[#243163] px-2 py-1">
+                        Comparez les meilleurs devis !
+                      </span>
+                    </span>
+                  </h2>
+                </div>
+
+                {/* Texte descriptif */}
+                <p className="text-[#1a2741] text-base sm:text-lg mx-auto lg:mx-0 max-w-lg font-lato font-light">
+                  Avec Dodomove, trouvez <span className="text-blue-600">rapidement</span> les bons professionnels pour votre déménagement Outre-Mer.
+                </p>
+
+                {/* Bouton CTA et "en 2 minutes" */}
+                <div className="flex justify-center lg:justify-start">
+                  <div className="space-y-3 sm:space-y-4 text-center">
+                    <a
+                      href="https://devis.dodomove.fr/funnel/departure-address"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg transition-colors shadow-lg hover:shadow-xl font-lato"
+                    >
+                      Je Compare Les Devis
+                    </a>
+                    
+                    <div className="flex items-center justify-center gap-2 text-[#1a2741]">
+                      <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-[#F47F6B]" />
+                      <span className="font-lato font-bold text-sm sm:text-base">en 2 minutes</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Colonne droite - Images */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="w-full lg:w-[55%] flex justify-center lg:justify-end relative z-10"
+              >
+                {/* Image principale - Format carré sur mobile, original sur desktop */}
+                <div className="relative rounded-xl overflow-hidden shadow-2xl w-80 h-80 sm:w-96 sm:h-96 lg:max-w-72 lg:h-[32rem] mb-[-6rem] sm:mb-[-8rem] lg:mb-0 mx-auto lg:mx-0">
+                  <img 
+                    src="https://www.dodomove.fr/wp-content/uploads/2023/09/pexels-ketut-subiyanto-4246085.jpg" 
+                    alt="Couple préparant un déménagement" 
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Badge "1.5k avis" avec étoiles */}
+                  <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-white rounded-xl px-2 py-1 sm:px-3 sm:py-2 shadow-lg">
+                    <div className="text-center space-y-1">
+                      <div className="text-xs font-bold text-gray-800">1.5k avis</div>
+                      <div className="flex justify-center gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-orange-400 text-orange-400" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image secondaire - Femme avec cartons - Cachée sur mobile et tablet, visible sur desktop */}
+                <div className="hidden lg:block relative rounded-xl overflow-hidden shadow-xl max-w-72 mx-auto transform translate-y-8">
+                  <img 
+                    src="https://www.dodomove.fr/wp-content/uploads/2023/09/pexels-artem-podrez-5025510-scaled.jpg" 
+                    alt="Femme avec des cartons" 
+                    className="w-full h-108 md:h-[32rem] object-cover"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+
+        {/* Zone inférieure - Fond bleu foncé avec les 4 avantages */}
+        <div className="bg-[#071836] pt-24 sm:pt-32 lg:pt-20 pb-8 sm:pb-16">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-24 text-center lg:text-left">
+              {/* Avantage 1 - Gagnez un temps précieux */}
+              <div className="flex flex-col items-center lg:items-start">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none" className="w-6 h-6 sm:w-8 sm:h-8">
+                    <path d="M23.3566 17.3067C22.8584 16.8119 22.2366 16.46 21.5561 16.2875C20.8756 16.1152 20.1613 16.1287 19.4877 16.3266L8.19091 5.02397C9.30695 1.1489 4.53278 -1.68813 1.66417 1.15304C-1.20446 3.9942 1.66417 8.81219 5.54135 7.69144L16.8299 18.9858C16.0528 21.3886 18.0451 24.0809 20.5831 23.9981C24.0387 24.0354 25.8161 19.7385 23.3566 17.3067Z" fill="white"/>
+                    <path d="M12.0307 15.5262L11.9429 15.3948L9.99553 13.4512C9.95842 13.4139 9.91428 13.3842 9.86568 13.364C9.81704 13.3438 9.76488 13.3334 9.71221 13.3334C9.65953 13.3334 9.60738 13.3438 9.55873 13.364L6.28039 16.5936C2.55327 15.4745 -0.264015 20.0666 2.50139 22.8705C5.2668 25.6744 9.91173 22.8187 8.7904 19.1028L11.9429 15.9604C11.9956 15.9027 12.0316 15.8319 12.0471 15.7554C12.0625 15.679 12.0569 15.5998 12.0307 15.5262Z" fill="white"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Gagnez un temps précieux</h3>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Votre temps est précieux. En passant par dodomove vous obtenez en 2 minutes, 5 devis personnalisés.
+                </p>
               </div>
-              <div className="text-white/80">
-                <div className="text-2xl mb-2">🛡️</div>
-                <div className="font-semibold text-white">Transporteurs vérifiés</div>
-                <div className="text-sm">0% de casse garantie</div>
+
+              {/* Avantage 2 - Transporteurs fiables */}
+              <div className="flex flex-col items-center lg:items-start">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                  <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Transporteurs fiables et vérifiés</h3>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Tous nos transporteurs partenaires sont sélectionnés sont formées et équipées pour garantir la sécurité de vos biens. 0 casse assurée.
+                </p>
               </div>
-              <div className="text-white/80">
-                <div className="text-2xl mb-2">💰</div>
-                <div className="font-semibold text-white">Prix compétitifs</div>
-                <div className="text-sm">Pas de coûts cachés</div>
+
+              {/* Avantage 3 - Prix compétitifs */}
+              <div className="flex flex-col items-center lg:items-start">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                  <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Des prix vraiment compétitifs</h3>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Profitez d'un service de qualité au meilleur prix. Pas de coûts cachés, pas de mauvaises surprises.
+                </p>
+              </div>
+
+              {/* Avantage 4 - Support */}
+              <div className="flex flex-col items-center lg:items-start">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                  <LifeBuoy className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                  Besoin d'aide ?<br />
+                  On est là.
+                </h3>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Une question sur votre déménagement ? On vous répond, simplement et sans engagement.
+                </p>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Footer simple */}
-      <footer className="bg-gray-900 text-gray-300 py-8">
-        <div className="container mx-auto px-6 lg:px-8 text-center">
-          <p className="text-sm">
+      <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs sm:text-sm">
             © 2024 DodoPartage - Une initiative{' '}
             <span className="text-[#F47D6C] font-semibold">Dodomove</span>
           </p>

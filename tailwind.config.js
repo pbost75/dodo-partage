@@ -13,6 +13,7 @@ module.exports = {
         'body': ['var(--font-lato)', 'sans-serif'],
         'roboto-slab': ['var(--font-roboto-slab)', 'serif'],
         'lato': ['var(--font-lato)', 'sans-serif'],
+        'sunflower': ['var(--font-sunflower)', 'sans-serif'],
         'sans': ['var(--font-lato)', 'sans-serif'],
         'serif': ['var(--font-roboto-slab)', 'serif'],
       },
