@@ -786,7 +786,7 @@ function HomePageContent() {
                                 {/* Logo DodoMove */}
                 <div className="w-44 sm:w-60 mx-auto lg:mx-0">
                   <img 
-                    src="/images/logo-Dodomove-positif cropped.webp" 
+                    src="/images/logo-Dodomove-positif-cropped.webp" 
                     alt="DodoMove" 
                     className="w-full h-auto"
                   />
