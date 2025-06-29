@@ -774,7 +774,7 @@ function HomePageContent() {
         {/* Zone supérieure - Fond clair */}
         <div className="bg-[#EDEEFF] pb-16 sm:pb-20 relative">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-16">
-            <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 items-center lg:items-start">
+            <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 items-center lg:items-center">
               
               {/* Colonne gauche - Contenu principal (45%) */}
               <motion.div
@@ -783,10 +783,10 @@ function HomePageContent() {
                 transition={{ duration: 0.8 }}
                 className="w-full lg:w-[45%] space-y-3 sm:space-y-4 text-center lg:text-left"
               >
-                {/* Logo DodoMove */}
-                <div className="w-48 sm:w-64 mx-auto lg:mx-0">
+                                {/* Logo DodoMove */}
+                <div className="w-44 sm:w-60 mx-auto lg:mx-0">
                   <img 
-                    src="https://www.dodomove.fr/wp-content/uploads/2023/09/logo-Dodomove-positif.png" 
+                    src="/images/logo-Dodomove-positif cropped.webp" 
                     alt="DodoMove" 
                     className="w-full h-auto"
                   />
@@ -815,7 +815,7 @@ function HomePageContent() {
 
                 {/* Texte descriptif */}
                 <p className="text-[#1a2741] text-base sm:text-lg mx-auto lg:mx-0 max-w-lg font-lato font-light">
-                  Avec Dodomove, trouvez <span className="text-blue-600">rapidement</span> les bons professionnels pour votre déménagement Outre-Mer.
+                  Avec Dodomove, trouvez <span className="text-blue-600">rapidement et simplement</span> les bons professionnels pour vos envois par conteneur. Jusqu'à 3 devis en 24h.
                 </p>
 
                 {/* Bouton CTA et "en 2 minutes" */}
