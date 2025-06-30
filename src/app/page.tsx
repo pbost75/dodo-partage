@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star } from 'lucide-react';
+import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, Zap, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
 import AnnouncementCard from '@/components/partage/AnnouncementCard';
 import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
@@ -895,7 +895,7 @@ function HomePageContent() {
               {/* Avantage 1 - Gagnez un temps précieux */}
               <div className="flex flex-col items-center lg:items-start">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                  <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Gagnez un temps précieux</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
