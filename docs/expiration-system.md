@@ -296,6 +296,231 @@ const MAX_RECORDS_PER_RUN = 100;    // 100 annonces max
 - **GitHub Actions** : Repository dodomove-backend
 - **Base Airtable** : DodoPartage - Announcement
 
+## 🔧 API de Modification
+
+### **1. Route Frontend `/api/update-announcement/[token]`**
+- **Fonction** : Interface pour modifier une annonce
+- **Traitement** : Conversion et validation des données
+- **Redirection** : Vers l'API backend centralisée
+
+### **2. API Backend `/api/partage/update-announcement`**
+- **Fonction** : Mise à jour effective dans Airtable
+- **✅ Nouveauté** : **Recalcul automatique d'`expires_at`** *(corrigé 30/01/2025)*
+- **Logique** : Même règles que création d'annonce
+
+## 📧 Système de Notifications d'Expiration
+
+### **1. Email de Prévention (3 jours avant)**
+
+#### **Déclenchement**
+```bash
+# Script de rappel quotidien
+node scripts/send-expiration-reminders.js
+```
+
+#### **Logique de Sélection**
+- **Cible** : Annonces expirant dans exactement 3 jours
+- **Filtrage** : `expires_at = DATE + 3 jours`
+- **Statut** : Seulement les annonces `published`
+
+#### **Contenu de l'Email**
+- ⚠️ **Alerte** : "Votre annonce expire dans 3 jours"
+- 🛠️ **Actions** : Modifier, Prolonger, Supprimer
+- 📅 **Rappel** : Date d'expiration précise
+- 🔗 **Liens** : Directs vers les actions
+
+#### **Template Utilisé**
+```javascript
+{
+  contactName: "Jean",
+  announcementType: "Propose de la place", 
+  reference: "DP-OFFER-ABC123",
+  departureCountry: "France",
+  arrivalCountry: "Martinique",
+  expiresAt: "2025-02-03",
+  daysRemaining: 3,
+  
+  // Actions disponibles
+  editUrl: "https://partage.dodomove.fr/modifier/TOKEN",
+  deleteUrl: "https://partage.dodomove.fr/supprimer/TOKEN"
+}
+```
+
+### **2. Email Post-Expiration**
+
+#### **Déclenchement**
+```bash
+# Script de notification quotidien  
+node scripts/send-post-expiration-notifications.js
+```
+
+#### **Logique de Sélection**
+- **Cible** : Annonces expirées dans les dernières 24h
+- **Filtrage** : `status = 'expired' AND expired_at >= HIER`
+- **Fréquence** : Une seule fois par annonce
+
+#### **Contenu de l'Email**
+- 📅 **Information** : "Votre annonce a expiré"
+- 💡 **Explication** : Raison de l'expiration
+- 🔄 **Invitation** : Créer une nouvelle annonce
+- 📊 **Statistiques** : Nombre de vues/contacts reçus
+
+#### **Template Utilisé**
+```javascript
+{
+  contactName: "Jean",
+  announcementType: "Propose de la place",
+  reference: "DP-OFFER-ABC123", 
+  expiredAt: "2025-02-03T08:00:00Z",
+  expirationReason: "date_depart_passee",
+  
+  // Encourager nouvelle création
+  createNewUrl: "https://partage.dodomove.fr/funnel/propose",
+  // Stats si disponibles
+  totalViews: 45,
+  totalContacts: 3
+}
+```
+
+### **3. Intégration au Workflow d'Expiration**
+
+#### **Nouveau Workflow Complet**
+
+```mermaid
+flowchart TD
+    A[GitHub Cron 6h UTC] --> B[Rappels J-3]
+    B --> C[send-expiration-reminders.js]
+    C --> D{Annonces J-3?}
+    D -->|Oui| E[📧 Emails de rappel]
+    D -->|Non| F[Expiration automatique]
+    E --> F
+    F --> G[expire-announcements API]
+    G --> H{Annonces expirées?}
+    H -->|Oui| I[Status → expired]
+    H -->|Non| J[Fin]
+    I --> K[📧 Notifications post-expiration]
+    K --> L[send-post-expiration-notifications.js]
+    L --> J
+```
+
+#### **Configuration Cron Recommandée**
+```yaml
+# .github/workflows/daily-maintenance.yml
+schedule:
+  - cron: '0 5 * * *'  # 5h UTC - Rappels J-3
+  - cron: '0 6 * * *'  # 6h UTC - Expiration  
+  - cron: '0 7 * * *'  # 7h UTC - Notifications post-expiration
+```
+
+### **4. APIs Backend Requises**
+
+#### **Pour les Rappels**
+```javascript
+// GET /api/partage/get-expiring-soon?reminderDate=YYYY-MM-DD
+// POST /api/partage/send-expiration-reminder
+```
+
+#### **Pour les Notifications Post-Expiration**
+```javascript  
+// GET /api/partage/get-recently-expired
+// POST /api/partage/send-post-expiration-notification
+```
+
+### **5. Logging et Monitoring**
+
+#### **Métriques à Suivre**
+- **Taux d'ouverture** des rappels J-3
+- **Taux de clic** sur "Modifier l'annonce"  
+- **Conversions** : Actions prises suite au rappel
+- **Délai moyen** entre rappel et action
+
+#### **Logs Recommandés**
+```javascript
+// Table "DodoPartage Email Notifications"
+{
+  announcement_id: "rec123",
+  notification_type: "3_days_reminder",
+  sent_at: "2025-01-30T05:00:00Z",
+  opened_at: "2025-01-30T08:30:00Z", 
+  clicked_at: "2025-01-30T08:32:00Z",
+  action_taken: "modified_dates", // ou null
+  resend_id: "email_456"
+}
+```
+
+## 🎯 Gestion des Tests et Déploiement
+
+### **Scripts de Test**
+
+| Script | Fonction | Usage |
+|--------|----------|-------|
+| `test-notification-apis.js` | Teste toutes les APIs de notification | `node scripts/test-notification-apis.js` |
+| `test-email-alerts.js` | Teste le système d'alertes complet | `node scripts/test-email-alerts.js` |
+| `debug-expiration.js` | Diagnostic système d'expiration | `node scripts/debug-expiration.js` |
+
+### **Déploiement Backend**
+
+```bash
+# Backend centralisé (Railway)
+cd dodomove-backend
+git add -A
+git commit -m "Nouvelles APIs notification"
+git push origin main
+
+# Railway redéploie automatiquement
+# Vérification: https://web-production-7b738.up.railway.app/health
+```
+
+### **Planning d'Exécution Quotidien**
+
+| Heure | Tâche | Description |
+|-------|-------|-------------|
+| **7h** 🌅 | Rappels J-3 | Emails aux utilisateurs 3 jours avant expiration |
+| **8h** ⏰ | Expiration | Traitement automatique des annonces expirées |
+| **9h** 📧 | Notifications | Emails informatifs post-expiration |
+
+### **Monitoring et Surveillance**
+
+- **GitHub Actions** : https://github.com/pbost75/dodomove-backend/actions
+- **Backend Status** : https://web-production-7b738.up.railway.app/health
+- **Logs Railway** : Dashboard Railway pour debugging
+- **Scripts de diagnostic** : Vérification quotidienne recommandée
+
 ---
 
-🎉 **Le système d'expiration automatique DodoPartage est opérationnel et maintient automatiquement la fraîcheur des annonces !** 
+## 🎉 Système Complet Opérationnel
+
+### **✅ Fonctionnalités Implémentées**
+
+1. **🚨 Bug Critique Corrigé** : Recalcul automatique d'`expires_at` lors modifications
+2. **📧 Emails de Rappel** : Notifications J-3 avec boutons d'action
+3. **⏰ Expiration Automatique** : Traitement quotidien des annonces périmées
+4. **📮 Emails Post-Expiration** : Encouragement nouvelle annonce
+5. **🤖 Automatisation Complète** : GitHub Actions 3x par jour
+6. **🔧 APIs Backend** : 4 nouvelles routes de notification
+7. **📊 Monitoring** : Scripts de test et diagnostic complets
+
+### **🎯 Architecture Finale**
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  GitHub Actions │───▶│  Railway Backend │───▶│    Airtable     │
+│   (Automation)  │    │   (4 new APIs)   │    │  (Data Store)   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Resend API    │    │  Email Templates │    │  User Actions   │
+│  (Email Sender) │    │  (Beautiful UX)  │    │ (Modify/Delete) │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### **📈 Impact Utilisateur**
+
+- **🔔 Prévention** : Utilisateurs prévenus 3 jours avant expiration
+- **⚡ Action** : Boutons directs pour modifier ou supprimer
+- **📱 UX Moderne** : Emails responsives avec design professionnel  
+- **🔄 Automatique** : Zéro intervention manuelle requise
+- **📊 Transparent** : Logs détaillés et monitoring complet
+
+**Le système DodoPartage d'expiration automatique est maintenant 100% production-ready ! 🚀** 
