@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
@@ -42,23 +42,24 @@ function HomePageContent() {
   const [searchDestination, setSearchDestination] = useState<string>('');
   const [searchDates, setSearchDates] = useState<string[]>([]);
 
-  // États pour les filtres appliqués (ne changent qu'au clic sur "Rechercher")
+  // États pour les filtres appliqués (pour éviter la re-recherche constante)
   const [appliedDeparture, setAppliedDeparture] = useState<string>('');
   const [appliedDestination, setAppliedDestination] = useState<string>('');
   const [appliedDates, setAppliedDates] = useState<string[]>([]);
 
+  // CORRECTION : Utiliser un ref pour éviter les re-exécutions inutiles du modal
+  const hasProcessedModalParam = useRef(false);
+
   // Fonction helper pour mettre à jour l'URL avec l'état actuel
   const updateURLWithCurrentState = (currentFilters?: FilterState, currentType?: 'offer' | 'request') => {
-    const params = new URLSearchParams();
+    const filtersToUse = currentFilters || filters;
+    const typeToUse = currentType || announcementType;
     
+    const params = new URLSearchParams();
     if (appliedDeparture) params.set('departure', appliedDeparture);
     if (appliedDestination) params.set('destination', appliedDestination);
     if (appliedDates.length > 0) params.set('dates', appliedDates.join(','));
-    
-    const typeToUse = currentType || announcementType;
     params.set('type', typeToUse);
-    
-    const filtersToUse = currentFilters || filters;
     if (filtersToUse.priceType !== 'all') params.set('priceType', filtersToUse.priceType);
     if (filtersToUse.minVolume !== 'all') params.set('minVolume', filtersToUse.minVolume);
     
@@ -66,7 +67,24 @@ function HomePageContent() {
     router.push(url, { scroll: false });
   };
 
-  // Initialiser les états depuis les URL parameters au chargement
+  // CORRECTION : Séparer la gestion du modal dans un useEffect séparé
+  useEffect(() => {
+    const modalParam = searchParams.get('modal');
+    
+    if (modalParam === 'open' && !hasProcessedModalParam.current) {
+      setIsChoiceModalOpen(true);
+      console.log('🎯 Popup de choix ouverte automatiquement via URL');
+      hasProcessedModalParam.current = true;
+      
+      // Nettoyer l'URL en supprimant le paramètre modal
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('modal');
+      const newUrl = newParams.toString() ? `/?${newParams.toString()}` : '/';
+      router.replace(newUrl);
+    }
+  }, [searchParams, router]);
+
+  // CORRECTION : useEffect séparé pour la restauration d'état (sans modification d'URL)
   useEffect(() => {
     const departure = searchParams.get('departure') || '';
     const destination = searchParams.get('destination') || '';
@@ -74,7 +92,6 @@ function HomePageContent() {
     const type = searchParams.get('type') as 'offer' | 'request' || 'offer';
     const priceType = searchParams.get('priceType') || 'all';
     const minVolume = searchParams.get('minVolume') || 'all';
-    const modalParam = searchParams.get('modal');
 
     // Mettre à jour tous les états
     setSearchDeparture(departure);
@@ -86,22 +103,10 @@ function HomePageContent() {
     setAnnouncementType(type);
     setFilters({ priceType, minVolume });
 
-    // Ouvrir automatiquement la popup de choix si le paramètre modal=open est présent
-    if (modalParam === 'open') {
-      setIsChoiceModalOpen(true);
-      console.log('🎯 Popup de choix ouverte automatiquement via URL');
-      
-      // Nettoyer l'URL en supprimant le paramètre modal pour éviter la réouverture
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete('modal');
-      const newUrl = newParams.toString() ? `/?${newParams.toString()}` : '/';
-      router.replace(newUrl);
-    }
-
     console.log('🔄 États restaurés depuis URL:', {
-      departure, destination, dates, type, priceType, minVolume, modal: modalParam
+      departure, destination, dates, type, priceType, minVolume
     });
-  }, [searchParams, router]);
+  }, [searchParams]);
 
   // Hook pour récupérer les annonces depuis le backend
   const {
@@ -762,8 +767,6 @@ function HomePageContent() {
         </div>
       </div>
 
-
-
       {/* Modal d'alerte */}
       <AlertModal
         isOpen={isAlertModalOpen}
@@ -920,7 +923,7 @@ function HomePageContent() {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Le bon prix, sans mauvaise surprise</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                Des devis transparents, sans frais cachés. Comparez et choisissez l’offre qui vous convient, au juste prix.
+                Des devis transparents, sans frais cachés. Comparez et choisissez l'offre qui vous convient, au juste prix.
                 </p>
               </div>
 

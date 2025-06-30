@@ -1,17 +1,18 @@
 /**
  * Utilitaires de navigation pour gérer les deux contextes :
  * - partage.dodomove.fr (sans préfixe)
- * - www.dodomove.fr/partage (avec préfixe /partage)
+ * - www.dodomove.fr/partage OU dodomove.fr/partage (avec préfixe /partage)
  */
 
 import { useRouter } from 'next/navigation';
 
 /**
- * Détermine si on est dans le contexte proxifié (www.dodomove.fr)
+ * Détermine si on est dans le contexte proxifié (www.dodomove.fr ou dodomove.fr)
  */
 export function isProxiedContext(): boolean {
   if (typeof window === 'undefined') return false;
-  return window.location.hostname === 'www.dodomove.fr';
+  const hostname = window.location.hostname;
+  return hostname === 'www.dodomove.fr' || hostname === 'dodomove.fr';
 }
 
 /**
@@ -24,7 +25,7 @@ export function buildUrl(path: string): string {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   
   if (isProxiedContext()) {
-    // Si on est sur www.dodomove.fr, ajouter le préfixe /partage
+    // Si on est sur dodomove.fr ou www.dodomove.fr, ajouter le préfixe /partage
     return `/partage${cleanPath}`;
   }
   
