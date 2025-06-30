@@ -17,6 +17,7 @@ interface ListingSchemaProps {
     author: string;
     publishedAt: string;
     description: string;
+    acceptsCostSharing?: boolean;
   }>;
   total: number;
 }
@@ -98,15 +99,18 @@ const ListingJsonLD: React.FC<ListingSchemaProps> = ({ announcements, total }) =
               "@type": "PropertyValue",
               "name": "Objets acceptés",
               "value": announcement.items.join(', ')
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Tarification",
+              "value": announcement.type === 'offer' 
+                ? (!announcement.price || announcement.price === 'Gratuit' ? 'Service gratuit' : 'Participation aux frais')
+                : (announcement.acceptsCostSharing ? 'Accepte participation aux frais' : 'Transport gratuit souhaité')
             }
           ],
-          ...(announcement.price && {
-            "offers": {
-              "@type": "Offer",
-              "price": announcement.price === 'Gratuit' ? 0 : announcement.price,
-              "priceCurrency": "EUR"
-            }
-          }),
+          "isAccessibleForFree": announcement.type === 'offer' 
+            ? (!announcement.price || announcement.price === 'Gratuit')
+            : (!announcement.acceptsCostSharing),
           "dateCreated": announcement.publishedAt
         }
       }))

@@ -37,12 +37,26 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
     ? 'Transport de marchandises - Place disponible'
     : 'Recherche de transport - Demande de place';
 
-  // Nettoyer et formater le prix
-  const formatPrice = (price?: string) => {
-    if (!price || price === 'Gratuit') return null;
-    // Extraire les chiffres du prix (ex: "150€" -> "150")
-    const numericPrice = price.replace(/[^\d.,]/g, '').replace(',', '.');
-    return numericPrice ? parseFloat(numericPrice) : null;
+  // Déterminer si le service est gratuit
+  const isFreeService = () => {
+    if (announcement.type === 'offer') {
+      return !announcement.price || announcement.price === 'Gratuit';
+    } else {
+      return !announcement.acceptsCostSharing;
+    }
+  };
+
+  // Obtenir le label de tarification
+  const getPricingLabel = () => {
+    if (announcement.type === 'offer') {
+      return !announcement.price || announcement.price === 'Gratuit' 
+        ? 'Service gratuit' 
+        : 'Participation aux frais';
+    } else {
+      return announcement.acceptsCostSharing 
+        ? 'Accepte participation aux frais' 
+        : 'Transport gratuit souhaité';
+    }
   };
 
   // Déterminer la disponibilité
@@ -111,6 +125,11 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
           "@type": "PropertyValue",
           "name": "Type d'annonce",
           "value": announcement.type === 'offer' ? 'Offre de transport' : 'Recherche de transport'
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Tarification",
+          "value": getPricingLabel()
         }
       ]
     },
@@ -124,12 +143,17 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
     ...(announcement.type === 'offer' && {
       "offers": {
         "@type": "Offer",
-        "price": formatPrice(announcement.price) || 0,
-        "priceCurrency": "EUR",
+        "price": isFreeService() ? 0 : null,
+        "priceCurrency": isFreeService() ? "EUR" : undefined,
+        "priceSpecification": {
+          "@type": "PriceSpecification",
+          "price": isFreeService() ? 0 : null,
+          "priceCurrency": "EUR",
+          "description": getPricingLabel()
+        },
         "availability": `https://schema.org/${availability}`,
         "validFrom": announcement.publishedAt,
         "validThrough": announcement.date,
-        "priceValidUntil": announcement.date,
         "seller": {
           "@type": "Person",
           "name": announcement.author
@@ -137,7 +161,7 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
         "itemOffered": {
           "@type": "Service",
           "name": `Transport ${announcement.departure} → ${announcement.arrival}`,
-          "description": `${announcement.volume} disponible`
+          "description": `${announcement.volume} disponible - ${getPricingLabel()}`
         }
       }
     }),
@@ -168,7 +192,7 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
     "dateCreated": announcement.publishedAt,
     "dateModified": announcement.publishedAt,
     "inLanguage": "fr-FR",
-    "isAccessibleForFree": !announcement.price || announcement.price === 'Gratuit',
+    "isAccessibleForFree": isFreeService(),
     
     // Mots-clés pour le référencement
     "keywords": [
