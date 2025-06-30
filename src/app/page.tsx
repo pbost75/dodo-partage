@@ -895,10 +895,7 @@ function HomePageContent() {
               {/* Avantage 1 - Gagnez un temps précieux */}
               <div className="flex flex-col items-center lg:items-start">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none" className="w-6 h-6 sm:w-8 sm:h-8">
-                    <path d="M23.3566 17.3067C22.8584 16.8119 22.2366 16.46 21.5561 16.2875C20.8756 16.1152 20.1613 16.1287 19.4877 16.3266L8.19091 5.02397C9.30695 1.1489 4.53278 -1.68813 1.66417 1.15304C-1.20446 3.9942 1.66417 8.81219 5.54135 7.69144L16.8299 18.9858C16.0528 21.3886 18.0451 24.0809 20.5831 23.9981C24.0387 24.0354 25.8161 19.7385 23.3566 17.3067Z" fill="white"/>
-                    <path d="M12.0307 15.5262L11.9429 15.3948L9.99553 13.4512C9.95842 13.4139 9.91428 13.3842 9.86568 13.364C9.81704 13.3438 9.76488 13.3334 9.71221 13.3334C9.65953 13.3334 9.60738 13.3438 9.55873 13.364L6.28039 16.5936C2.55327 15.4745 -0.264015 20.0666 2.50139 22.8705C5.2668 25.6744 9.91173 22.8187 8.7904 19.1028L11.9429 15.9604C11.9956 15.9027 12.0316 15.8319 12.0471 15.7554C12.0625 15.679 12.0569 15.5998 12.0307 15.5262Z" fill="white"/>
-                  </svg>
+                  <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Gagnez un temps précieux</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
