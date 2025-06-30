@@ -796,8 +796,8 @@ function HomePageContent() {
                 <div className="inline-flex items-center gap-2 sm:gap-3 text-[#1a2741] text-xs sm:text-sm font-medium">
                   <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="font-sunflower font-bold">
-                    <span className="block sm:hidden">LEADER DU DÉMÉNAGEMENT MÉTROPOLE DOM-TOM</span>
-                    <span className="hidden sm:block">LEADER DU DÉMÉNAGEMENT MÉTROPOLE DOM-TOM</span>
+                    <span className="block sm:hidden">1ER COMPARATEUR DE DÉMÉNAGEMENT DOM-TOM</span>
+                    <span className="hidden sm:block">1ER COMPARATEUR DE DÉMÉNAGEMENT DOM-TOM</span>
                   </span>
                 </div>
 
@@ -888,8 +888,7 @@ function HomePageContent() {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Gagnez un temps précieux</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                  Votre temps est précieux. En passant par dodomove vous obtenez en 2 minutes, 5 devis personnalisés.
-                </p>
+                Votre temps est précieux. En passant par dodomove, obtenez juqu'à 3 devis personnalisés en 24h.                </p>
               </div>
 
               {/* Avantage 2 - Transporteurs fiables */}
@@ -899,7 +898,7 @@ function HomePageContent() {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Transporteurs fiables et vérifiés</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                  Tous nos transporteurs partenaires sont sélectionnés sont formées et équipées pour garantir la sécurité de vos biens. 0 casse assurée.
+                On ne vous propose que des transporteurs sérieux, formés et assurés pour les envois DOM-TOM.
                 </p>
               </div>
 
@@ -908,9 +907,9 @@ function HomePageContent() {
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                   <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Des prix vraiment compétitifs</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Le bon prix, sans mauvaise surprise</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                  Profitez d'un service de qualité au meilleur prix. Pas de coûts cachés, pas de mauvaises surprises.
+                Des devis transparents, sans frais cachés. Comparez et choisissez l’offre qui vous convient, au juste prix.
                 </p>
               </div>
 
@@ -920,11 +919,11 @@ function HomePageContent() {
                   <LifeBuoy className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-                  Besoin d'aide ?<br />
-                  On est là.
+                  Une question ?<br />
+                  On vous guide.
                 </h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                  Une question sur votre déménagement ? On vous répond, simplement et sans engagement.
+                Un doute sur votre volume, vos options ou vos démarches ? On vous répond, gratuitement.
                 </p>
               </div>
             </div>
