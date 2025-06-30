@@ -10,9 +10,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   // Configuration pour supporter les deux domaines
-  assetPrefix: process.env.NODE_ENV === 'production' 
-    ? 'https://partage.dodomove.fr' 
-    : undefined,
+  // assetPrefix retiré pour permettre le chargement des assets sur les deux domaines
   // BasePath pour les URLs quand l'app est servie via /partage
   basePath: process.env.NODE_ENV === 'production' && process.env.USE_BASE_PATH === 'true'
     ? '/partage'
