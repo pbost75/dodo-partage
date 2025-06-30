@@ -56,51 +56,19 @@ function shouldExpire(announcement) {
   const now = new Date();
   const record = announcement.fields;
   
-  // Vérification de l'expiration basée sur expires_at
+  // Vérification de l'expiration basée sur expires_at (désormais calculé correctement dans le backend)
   if (record.expires_at) {
     const expirationDate = new Date(record.expires_at);
     if (now >= expirationDate) {
+      // Déterminer la raison selon le type d'annonce
+      const reason = record.request_type === 'offer' ? 'date_depart_passee' : 'delai_recherche_expire';
+      
       return {
         shouldExpire: true,
-        reason: 'date_expiration_depassee',
-        expirationDate: expirationDate.toISOString()
+        reason: reason,
+        expirationDate: expirationDate.toISOString(),
+        requestType: record.request_type
       };
-    }
-  }
-
-  // Logique spécifique selon le type d'annonce
-  const requestType = record.request_type;
-  
-  if (requestType === 'offer') {
-    // Pour les offres : expiration le jour de la date de départ
-    if (record.shipping_date) {
-      const shippingDate = new Date(record.shipping_date);
-      const dayAfterShipping = new Date(shippingDate);
-      dayAfterShipping.setDate(dayAfterShipping.getDate() + 1); // Le lendemain du départ
-      
-      if (now >= dayAfterShipping) {
-        return {
-          shouldExpire: true,
-          reason: 'date_depart_passee',
-          shippingDate: shippingDate.toISOString()
-        };
-      }
-    }
-  } else if (requestType === 'search') {
-    // Pour les demandes : expiration après 60 jours de création
-    if (record.created_at) {
-      const createdDate = new Date(record.created_at);
-      const expirationDate = new Date(createdDate);
-      expirationDate.setDate(expirationDate.getDate() + 60); // 60 jours après création
-      
-      if (now >= expirationDate) {
-        return {
-          shouldExpire: true,
-          reason: 'delai_recherche_expire',
-          createdDate: createdDate.toISOString(),
-          calculatedExpiration: expirationDate.toISOString()
-        };
-      }
     }
   }
 
