@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Roboto_Slab, Inter, Lato, Sunflower } from 'next/font/google'
 import "./globals.css";
 import { ToastProvider } from '@/contexts/ToastContext';
+import GoogleTagManager from '@/components/analytics/GoogleTagManager';
+import GTMNoScript from '@/components/analytics/GTMNoScript';
 
 const robotoSlab = Roboto_Slab({
   subsets: ['latin'],
@@ -52,6 +54,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Configuration GTM
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-MRHKMB9Z';
+const ENABLE_ANALYTICS = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
+
 export default function RootLayout({
   children,
 }: {
@@ -59,7 +65,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${robotoSlab.variable} ${inter.variable} ${lato.variable} ${sunflower.variable}`}>
+      <head>
+        {ENABLE_ANALYTICS && <GoogleTagManager gtmId={GTM_ID} />}
+      </head>
       <body className="font-lato" suppressHydrationWarning={true}>
+        {ENABLE_ANALYTICS && <GTMNoScript gtmId={GTM_ID} />}
         <ToastProvider>
           {children}
         </ToastProvider>
