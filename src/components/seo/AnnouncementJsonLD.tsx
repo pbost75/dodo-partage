@@ -1,0 +1,197 @@
+'use client';
+
+import React from 'react';
+
+interface AnnouncementSchemaProps {
+  announcement: {
+    id: string;
+    reference: string;
+    type: 'offer' | 'request';
+    title: string;
+    departure: string;
+    departureCity: string;
+    arrival: string;
+    arrivalCity: string;
+    volume: string;
+    volumeCategory: string;
+    date: string;
+    year: string;
+    price?: string;
+    items: string[];
+    author: string;
+    publishedAt: string;
+    description: string;
+    status: string;
+    acceptsCostSharing?: boolean;
+    periodFormatted?: string;
+  };
+}
+
+const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement }) => {
+  // Générer l'URL canonique de l'annonce
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.dodomove.fr';
+  const announcementUrl = `${baseUrl}/partage/annonce/${announcement.reference || announcement.id}`;
+
+  // Déterminer le type de service selon offer/request
+  const serviceType = announcement.type === 'offer' 
+    ? 'Transport de marchandises - Place disponible'
+    : 'Recherche de transport - Demande de place';
+
+  // Nettoyer et formater le prix
+  const formatPrice = (price?: string) => {
+    if (!price || price === 'Gratuit') return null;
+    // Extraire les chiffres du prix (ex: "150€" -> "150")
+    const numericPrice = price.replace(/[^\d.,]/g, '').replace(',', '.');
+    return numericPrice ? parseFloat(numericPrice) : null;
+  };
+
+  // Déterminer la disponibilité
+  const availability = announcement.status === 'published' ? 'InStock' : 'OutOfStock';
+
+  // Créer le schema JSON-LD
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": announcementUrl,
+    "name": announcement.title,
+    "description": announcement.description,
+    "url": announcementUrl,
+    "serviceType": serviceType,
+    "category": "Transport et Logistique",
+    
+    // Informations sur le fournisseur
+    "provider": {
+      "@type": "Person",
+      "name": announcement.author,
+      "memberOf": {
+        "@type": "Organization",
+        "name": "DodoPartage",
+        "url": `${baseUrl}/partage`,
+        "description": "Plateforme de groupage collaboratif pour le transport entre la France métropolitaine et les DOM-TOM"
+      }
+    },
+
+    // Zone géographique couverte
+    "areaServed": [
+      {
+        "@type": "Place",
+        "name": announcement.departure,
+        "addressLocality": announcement.departureCity
+      },
+      {
+        "@type": "Place", 
+        "name": announcement.arrival,
+        "addressLocality": announcement.arrivalCity
+      }
+    ],
+
+    // Détails du service
+    "serviceOutput": {
+      "@type": "Product",
+      "name": `Transport ${announcement.departure} → ${announcement.arrival}`,
+      "description": `${announcement.volume} de volume disponible pour ${announcement.items.join(', ')}`,
+      "category": "Service de transport",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Volume",
+          "value": announcement.volume
+        },
+        {
+          "@type": "PropertyValue", 
+          "name": "Catégorie de volume",
+          "value": announcement.volumeCategory
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Types d'objets acceptés",
+          "value": announcement.items.join(', ')
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Type d'annonce",
+          "value": announcement.type === 'offer' ? 'Offre de transport' : 'Recherche de transport'
+        }
+      ]
+    },
+
+    // Disponibilité et dates
+    "validFrom": announcement.publishedAt,
+    "validThrough": announcement.date,
+    "availabilityStarts": announcement.type === 'offer' ? announcement.date : undefined,
+    
+    // Offre commerciale si applicable
+    ...(announcement.type === 'offer' && {
+      "offers": {
+        "@type": "Offer",
+        "price": formatPrice(announcement.price) || 0,
+        "priceCurrency": "EUR",
+        "availability": `https://schema.org/${availability}`,
+        "validFrom": announcement.publishedAt,
+        "validThrough": announcement.date,
+        "priceValidUntil": announcement.date,
+        "seller": {
+          "@type": "Person",
+          "name": announcement.author
+        },
+        "itemOffered": {
+          "@type": "Service",
+          "name": `Transport ${announcement.departure} → ${announcement.arrival}`,
+          "description": `${announcement.volume} disponible`
+        }
+      }
+    }),
+
+    // Données spécifiques aux recherches
+    ...(announcement.type === 'request' && {
+      "seeks": {
+        "@type": "Service",
+        "name": `Transport ${announcement.departure} → ${announcement.arrival}`,
+        "description": `Recherche ${announcement.volume} pour ${announcement.items.join(', ')}`,
+        "serviceType": "Service de transport",
+        "additionalProperty": [
+          {
+            "@type": "PropertyValue",
+            "name": "Accepte participation aux frais",
+            "value": announcement.acceptsCostSharing ? "Oui" : "Non"
+          },
+          {
+            "@type": "PropertyValue",
+            "name": "Période souhaitée", 
+            "value": announcement.periodFormatted || announcement.date
+          }
+        ]
+      }
+    }),
+
+    // Métadonnées techniques
+    "dateCreated": announcement.publishedAt,
+    "dateModified": announcement.publishedAt,
+    "inLanguage": "fr-FR",
+    "isAccessibleForFree": !announcement.price || announcement.price === 'Gratuit',
+    
+    // Mots-clés pour le référencement
+    "keywords": [
+      "transport",
+      "groupage", 
+      "conteneur",
+      "dom-tom",
+      "france métropolitaine",
+      announcement.departure.toLowerCase(),
+      announcement.arrival.toLowerCase(),
+      announcement.volumeCategory.toLowerCase(),
+      ...announcement.items.map(item => item.toLowerCase())
+    ].join(', ')
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(schemaData, null, 2)
+      }}
+    />
+  );
+};
+
+export default AnnouncementJsonLD; 

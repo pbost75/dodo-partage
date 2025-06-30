@@ -16,6 +16,7 @@ import DeletedNotification from '@/components/partage/DeletedNotification';
 import FAQSection from '@/components/partage/FAQSection';
 import { SEOHead } from '@/components/seo/SEOHead';
 import FAQJsonLD from '@/components/seo/FAQJsonLD';
+import { ListingJsonLD } from '@/components/seo';
 import { useSearchParams } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
 import { useSmartRouter } from '@/utils/navigation';
@@ -1050,6 +1051,12 @@ function HomePageContent() {
 
       {/* Section FAQ */}
       <FAQSection />
+
+      {/* Schema.org JSON-LD pour la page de listing */}
+      <ListingJsonLD 
+        announcements={filteredAnnouncements.slice(0, displayedCount)}
+        total={filteredAnnouncements.length}
+      />
 
       {/* Footer simple */}
       <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ContactModal from '@/components/partage/ContactModal';
+import { AnnouncementJsonLD } from '@/components/seo';
 
 // Interface pour les données d'annonce
 interface AnnouncementDetail {
@@ -608,6 +609,9 @@ export default function AnnouncementDetailPage() {
           </Button>
         </div>
       </div>
+
+      {/* Schema.org JSON-LD pour le référencement */}
+      <AnnouncementJsonLD announcement={announcement} />
 
       {/* Modal de contact */}
       <ContactModal
