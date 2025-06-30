@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Sitemap principal
+Sitemap: https://www.dodomove.fr/partage/sitemap.xml
+
+# Directive pour éviter l'indexation du domaine technique
+# (Géré dynamiquement par les balises meta robots côté client)
+
+# Bloquer les pages d'administration si elles existent
+Disallow: /admin/
+Disallow: /api/
+Disallow: /debug/
+Disallow: /test-*/
+
+# Autoriser l'indexation des pages publiques
+Allow: /funnel/
+Allow: /annonce/
+Allow: /validation-success
+Allow: /modifier/
+Allow: /supprimer/ 

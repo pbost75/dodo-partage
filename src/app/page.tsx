@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, Zap, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star } from 'lucide-react';
+import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, Zap, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star, Search, FileText, BellRing, HandHeart } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
 import AnnouncementCard from '@/components/partage/AnnouncementCard';
 import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
@@ -13,6 +13,9 @@ import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import DeletedNotification from '@/components/partage/DeletedNotification';
+import FAQSection from '@/components/partage/FAQSection';
+import { SEOHead } from '@/components/seo/SEOHead';
+import FAQJsonLD from '@/components/seo/FAQJsonLD';
 import { useSearchParams } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
 import { useSmartRouter } from '@/utils/navigation';
@@ -482,6 +485,15 @@ function HomePageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* SEO Head pour canonical et robots */}
+      <SEOHead 
+        title="DodoPartage - Groupage conteneurs collaboratif DOM-TOM"
+        description="Plateforme de mise en relation pour le partage de conteneurs entre la France métropolitaine et les DOM-TOM. Proposez ou cherchez de la place pour vos expéditions."
+      />
+      
+      {/* FAQ JSON-LD pour le référencement AEO */}
+      <FAQJsonLD />
+      
       {/* Header bleu simplifié */}
       <div className="bg-gradient-to-br from-[#243163] to-[#1e2951] relative">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -785,6 +797,100 @@ function HomePageContent() {
         onChoice={handleChoice}
       />
 
+      {/* Section Comment ça marche */}
+      <section className="w-full bg-white py-16 sm:py-20 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
+            {/* Colonne gauche - Titre et description */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="w-full lg:w-2/5 lg:sticky lg:top-8"
+            >
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                Comment fonctionne DodoPartage ?
+              </h2>
+              <p className="text-lg text-gray-600 font-lato leading-relaxed">
+                DodoPartage facilite la mise en relation entre ceux qui cherchent de la place dans un conteneur et ceux qui en proposent. Tout se fait sans compte, en toute simplicité.
+              </p>
+            </motion.div>
+
+            {/* Colonne droite - Grille des étapes */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="w-full lg:w-3/5"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-12">
+                
+                {/* Étape 1 - Recherchez une annonce */}
+                <div className="flex flex-col items-start space-y-4">
+                  <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
+                    <Search className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-bold text-gray-900 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                      Recherchez une annonce
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed font-lato">
+                      Utilisez la barre de recherche pour trouver une place dans un conteneur selon votre trajet et vos dates. Filtrez par type (gratuit ou payant), volume ou lieu de départ.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Étape 2 - Pas trouvé ? Postez votre annonce */}
+                <div className="flex flex-col items-start space-y-4">
+                  <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
+                    <FileText className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-bold text-gray-900 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                      Pas trouvé ? Postez votre annonce
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed font-lato">
+                      Publiez votre propre annonce en 2 minutes, sans création de compte. Vous recevez les réponses directement par email.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Étape 3 - Activez les alertes email */}
+                <div className="flex flex-col items-start space-y-4">
+                  <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
+                    <BellRing className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-bold text-gray-900 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                      Activez les alertes email
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed font-lato">
+                      Gagnez du temps : soyez notifié automatiquement dès qu'une nouvelle annonce correspond à votre recherche.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Étape 4 - Organisez-vous librement */}
+                <div className="flex flex-col items-start space-y-4">
+                  <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
+                    <HandHeart className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-bold text-gray-900 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                      Organisez-vous librement
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed font-lato">
+                      La plateforme ne gère ni paiement ni contrat : vous échangez directement par email pour définir vos conditions.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section - Structure exacte de la maquette avec 2 zones */}
       <section className="w-full">
         {/* Zone supérieure - Fond clair */}
@@ -941,6 +1047,9 @@ function HomePageContent() {
           </div>
         </div>
       </section>
+
+      {/* Section FAQ */}
+      <FAQSection />
 
       {/* Footer simple */}
       <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">
