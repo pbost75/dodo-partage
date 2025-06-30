@@ -840,6 +840,14 @@ function HomePageContent() {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="w-full lg:w-[55%] flex justify-center lg:justify-end relative z-10"
               >
+                {/* Badge d'étoiles flottant */}
+                <div className="absolute -top-4 right-4 sm:-top-6 sm:right-6 lg:top-4 lg:right-8 bg-white rounded-xl px-3 py-2 shadow-lg z-20">
+                  <div className="flex justify-center gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-orange-400 text-orange-400" />
+                    ))}
+                  </div>
+                </div>
                 {/* Image principale - Format carré sur mobile, original sur desktop */}
                 <div className="relative rounded-xl overflow-hidden shadow-2xl w-80 h-80 sm:w-96 sm:h-96 lg:max-w-72 lg:h-[32rem] mb-[-6rem] sm:mb-[-8rem] lg:mb-0 mx-auto lg:mx-0">
                   <img 
@@ -848,17 +856,7 @@ function HomePageContent() {
                     className="w-full h-full object-cover"
                   />
                   
-                  {/* Badge "1.5k avis" avec étoiles */}
-                  <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-white rounded-xl px-2 py-1 sm:px-3 sm:py-2 shadow-lg">
-                    <div className="text-center space-y-1">
-                      <div className="text-xs font-bold text-gray-800">1.5k avis</div>
-                      <div className="flex justify-center gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-3 h-3 fill-orange-400 text-orange-400" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
 
                 {/* Image secondaire - Femme avec cartons - Cachée sur mobile et tablet, visible sur desktop */}
