@@ -796,7 +796,7 @@ function HomePageContent() {
                 <div className="inline-flex items-center gap-2 sm:gap-3 text-[#1a2741] text-xs sm:text-sm font-medium">
                   <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="font-sunflower font-bold">
-                    <span className="block sm:hidden">LEADER DU DÉMÉNAGEMENT</span>
+                    <span className="block sm:hidden">LEADER DU DÉMÉNAGEMENT MÉTROPOLE DOM-TOM</span>
                     <span className="hidden sm:block">LEADER DU DÉMÉNAGEMENT MÉTROPOLE DOM-TOM</span>
                   </span>
                 </div>
@@ -804,18 +804,13 @@ function HomePageContent() {
                 {/* Titre avec soulignement jaune */}
                 <div className="space-y-3 sm:space-y-4">
                   <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#243163] mb-2 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-                    <span className="block">Déménagement en Outre-mer :</span>
-                    <span className="block mt-1 sm:mt-2">
-                      <span className="bg-[#EFB500] text-[#243163] px-2 py-1">
-                        Comparez les meilleurs devis !
-                      </span>
-                    </span>
+                    <span className="block">Gagnez du temps et comparez les <span className="bg-[#EFB500] text-[#243163] px-2 py-1">solutions groupage</span> avec Dodomove</span>
                   </h2>
                 </div>
 
                 {/* Texte descriptif */}
                 <p className="text-[#1a2741] text-base sm:text-lg mx-auto lg:mx-0 max-w-lg font-lato font-light">
-                  Avec Dodomove, trouvez <span className="text-blue-600">rapidement et simplement</span> les bons professionnels pour vos envois par conteneur. Jusqu'à 3 devis en 24h.
+                  Trouvez <span className="text-blue-600">rapidement et simplement</span> les bons professionnels pour vos envois par conteneur. Jusqu'à 3 devis en 24h !
                 </p>
 
                 {/* Bouton CTA et "en 2 minutes" */}
