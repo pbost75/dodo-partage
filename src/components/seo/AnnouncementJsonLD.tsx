@@ -99,56 +99,46 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
       }
     ],
 
-    // Détails du service
-    "serviceOutput": {
-      "@type": "Product",
-      "name": `Transport ${announcement.departure} → ${announcement.arrival}`,
-      "description": `${announcement.volume} de volume disponible pour ${announcement.items.join(', ')}`,
-      "category": "Service de transport",
-      "additionalProperty": [
-        {
-          "@type": "PropertyValue",
-          "name": "Volume",
-          "value": announcement.volume
-        },
-        {
-          "@type": "PropertyValue", 
-          "name": "Catégorie de volume",
-          "value": announcement.volumeCategory
-        },
-        {
-          "@type": "PropertyValue",
-          "name": "Types d'objets acceptés",
-          "value": announcement.items.join(', ')
-        },
-        {
-          "@type": "PropertyValue",
-          "name": "Type d'annonce",
-          "value": announcement.type === 'offer' ? 'Offre de transport' : 'Recherche de transport'
-        },
-        {
-          "@type": "PropertyValue",
-          "name": "Tarification",
-          "value": getPricingLabel()
-        }
-      ]
-    },
+    // Détails du service - Propriétés additionnelles
+    "additionalProperty": [
+      {
+        "@type": "PropertyValue",
+        "name": "Volume",
+        "value": announcement.volume
+      },
+      {
+        "@type": "PropertyValue", 
+        "name": "Catégorie de volume",
+        "value": announcement.volumeCategory
+      },
+      {
+        "@type": "PropertyValue",
+        "name": "Types d'objets acceptés",
+        "value": announcement.items.join(', ')
+      },
+      {
+        "@type": "PropertyValue",
+        "name": "Type d'annonce",
+        "value": announcement.type === 'offer' ? 'Offre de transport' : 'Recherche de transport'
+      },
+      {
+        "@type": "PropertyValue",
+        "name": "Tarification",
+        "value": getPricingLabel()
+      }
+    ],
 
     // Disponibilité et dates
     "validFrom": announcement.publishedAt,
     "validThrough": announcement.date,
     "availabilityStarts": announcement.type === 'offer' ? announcement.date : undefined,
     
-    // Offre commerciale si applicable
-    ...(announcement.type === 'offer' && {
+    // Offre commerciale si applicable - Seulement pour les offres avec prix
+    ...(announcement.type === 'offer' && !isFreeService() && {
       "offers": {
         "@type": "Offer",
-        "price": isFreeService() ? 0 : null,
-        "priceCurrency": isFreeService() ? "EUR" : undefined,
         "priceSpecification": {
           "@type": "PriceSpecification",
-          "price": isFreeService() ? 0 : null,
-          "priceCurrency": "EUR",
           "description": getPricingLabel()
         },
         "availability": `https://schema.org/${availability}`,
@@ -161,7 +151,7 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
         "itemOffered": {
           "@type": "Service",
           "name": `Transport ${announcement.departure} → ${announcement.arrival}`,
-          "description": `${announcement.volume} disponible - ${getPricingLabel()}`
+          "description": `${announcement.volume} disponible`
         }
       }
     }),
@@ -172,19 +162,7 @@ const AnnouncementJsonLD: React.FC<AnnouncementSchemaProps> = ({ announcement })
         "@type": "Service",
         "name": `Transport ${announcement.departure} → ${announcement.arrival}`,
         "description": `Recherche ${announcement.volume} pour ${announcement.items.join(', ')}`,
-        "serviceType": "Service de transport",
-        "additionalProperty": [
-          {
-            "@type": "PropertyValue",
-            "name": "Accepte participation aux frais",
-            "value": announcement.acceptsCostSharing ? "Oui" : "Non"
-          },
-          {
-            "@type": "PropertyValue",
-            "name": "Période souhaitée", 
-            "value": announcement.periodFormatted || announcement.date
-          }
-        ]
+        "serviceType": "Service de transport"
       }
     }),
 
