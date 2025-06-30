@@ -9,12 +9,9 @@ const nextConfig: NextConfig = {
     // Keep TypeScript checking enabled
     ignoreBuildErrors: false,
   },
-  // Configuration pour supporter les deux domaines
-  // assetPrefix retiré pour permettre le chargement des assets sur les deux domaines
-  // BasePath pour les URLs quand l'app est servie via /partage
-  basePath: process.env.NODE_ENV === 'production' && process.env.USE_BASE_PATH === 'true'
-    ? '/partage'
-    : undefined,
+  // CORRECTION : Suppression du basePath qui causait le conflit
+  // Le proxy Cloudflare gère maintenant le routing vers /partage
+  // Pas besoin de basePath car l'app est servie depuis partage.dodomove.fr
 };
 
 export default nextConfig;
