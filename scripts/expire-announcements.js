@@ -1,9 +1,13 @@
 /**
  * Script d'expiration automatique des annonces DodoPartage
  * 
- * Logique d'expiration :
- * - Annonces "propose" (offres) : Expirent le jour de la date de départ (Jour J)
- * - Annonces "cherche" (demandes) : Expirent après 60 jours de création
+ * Logique d'expiration (calculée dans le backend lors de la création) :
+ * - Annonces "offer" (offres) : Expirent le lendemain de shipping_date
+ * - Annonces "search" (demandes) : Expirent le lendemain du 1er jour du mois suivant shipping_period_end
+ * 
+ * Exemples :
+ * - Offre avec départ 15/01/2025 → Expiration 16/01/2025
+ * - Demande période Jan-Mars 2025 → Expiration 2/04/2025 (lendemain du 1er avril)
  * 
  * Usage :
  * - node scripts/expire-announcements.js
