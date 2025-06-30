@@ -41,6 +41,8 @@ Bienvenue dans la documentation complète de **DodoPartage** - Plateforme de gro
 |---------|------------|--------|
 | [`funnel-propose-specs.md`](funnel-propose-specs.md) | Spécifications funnel "Propose" | ✅ À jour |
 | [`alert-system.md`](alert-system.md) | Système d'alertes email | ✅ À jour |
+| [`expiration-system.md`](expiration-system.md) | **Système d'expiration automatique** | ✅ À jour |
+| [`status-management.md`](status-management.md) | Gestion des statuts d'annonces | ✅ À jour |
 | [`moderation.md`](moderation.md) | Système de modération | ⚠️ À réviser |
 
 ### 🧪 **Tests et qualité**
@@ -78,7 +80,8 @@ Bienvenue dans la documentation complète de **DodoPartage** - Plateforme de gro
 ### Pour les fonctionnalités :
 1. **[`funnel-propose-specs.md`](funnel-propose-specs.md)** - Funnel principal
 2. **[`alert-system.md`](alert-system.md)** - Système d'alertes
-3. **[`ETAT-PROJET-REEL.md`](ETAT-PROJET-REEL.md)** - État des fonctionnalités
+3. **[`expiration-system.md`](expiration-system.md)** - **Expiration automatique**
+4. **[`ETAT-PROJET-REEL.md`](ETAT-PROJET-REEL.md)** - État des fonctionnalités
 
 ---
 
@@ -119,10 +122,12 @@ Ces fichiers sont **à jour et bien structurés** :
 - ✅ `DEPLOYMENT-STATUS.md` - État multi-domaine
 - ✅ `funnel-propose-specs.md` - Spécifications complètes
 - ✅ `alert-system.md` - Système d'alertes fonctionnel
+- ✅ `expiration-system.md` - **Système d'expiration automatique complet**
+- ✅ `status-management.md` - Gestion des statuts et transitions
 
 Ces fichiers peuvent servir de **modèle** pour la mise à jour des autres.
 
 ---
 
 **📚 Documentation maintenue par l'équipe DodoPartage**
-**🔄 Dernière mise à jour : Infrastructure proxy Cloudflare** 
+**🔄 Dernière mise à jour : Système d'expiration automatique des annonces** 

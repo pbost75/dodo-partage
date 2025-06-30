@@ -74,6 +74,7 @@ function HomePageContent() {
     const type = searchParams.get('type') as 'offer' | 'request' || 'offer';
     const priceType = searchParams.get('priceType') || 'all';
     const minVolume = searchParams.get('minVolume') || 'all';
+    const modalParam = searchParams.get('modal');
 
     // Mettre à jour tous les états
     setSearchDeparture(departure);
@@ -85,10 +86,22 @@ function HomePageContent() {
     setAnnouncementType(type);
     setFilters({ priceType, minVolume });
 
+    // Ouvrir automatiquement la popup de choix si le paramètre modal=open est présent
+    if (modalParam === 'open') {
+      setIsChoiceModalOpen(true);
+      console.log('🎯 Popup de choix ouverte automatiquement via URL');
+      
+      // Nettoyer l'URL en supprimant le paramètre modal pour éviter la réouverture
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('modal');
+      const newUrl = newParams.toString() ? `/?${newParams.toString()}` : '/';
+      router.replace(newUrl);
+    }
+
     console.log('🔄 États restaurés depuis URL:', {
-      departure, destination, dates, type, priceType, minVolume
+      departure, destination, dates, type, priceType, minVolume, modal: modalParam
     });
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   // Hook pour récupérer les annonces depuis le backend
   const {
