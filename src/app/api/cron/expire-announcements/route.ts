@@ -99,7 +99,7 @@ async function runExpirationProcess() {
            console.log(`   Raison: ${expirationCheck.reason}`);
            
            // Marquer comme expiré
-           await expireAnnouncement(announcementId!, expirationCheck.reason);
+           await expireAnnouncement(announcementId!, expirationCheck.reason || 'expiration_automatique');
            expiredCount++;
            
            console.log(`✅ Annonce ${announcementId} marquée comme expirée`);
@@ -178,7 +178,7 @@ function shouldExpire(announcement: any) {
     }
   }
 
-  return { shouldExpire: false };
+  return { shouldExpire: false, reason: 'non_expire' };
 }
 
 /**
@@ -200,8 +200,8 @@ async function expireAnnouncement(announcementId: string, reason: string) {
         body: JSON.stringify({
           fields: {
             status: 'expired',
-            expired_at: new Date().toISOString(),
-            expiration_reason: reason
+            expired_at: new Date().toISOString()
+            // Note: expiration_reason supprimé car le champ n'existe pas dans Airtable
           }
         })
       }
@@ -329,7 +329,7 @@ export async function POST(request: NextRequest) {
            wouldExpireList.push({
              id: announcement.id || 'unknown',
              type: announcement.fields.request_type,
-             reason: expirationCheck.reason
+             reason: expirationCheck.reason || 'expiration_automatique'
            });
          }
       }
