@@ -946,8 +946,15 @@ function HomePageContent() {
       <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs sm:text-sm">
-            © 2024 DodoPartage - Une initiative{' '}
-            <span className="text-[#F47D6C] font-semibold">Dodomove</span>
+            © {new Date().getFullYear()} DodoPartage - Une initiative{' '}
+            <a 
+              href="https://www.dodomove.fr" 
+              target="_blank" 
+              rel="noopener noreferrer nofollow"
+              className="text-[#F47D6C] font-semibold hover:underline transition-all duration-200"
+            >
+              Dodomove
+            </a>
           </p>
         </div>
       </footer>
