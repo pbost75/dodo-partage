@@ -5,6 +5,8 @@ import { Roboto_Slab, Lato } from 'next/font/google';
 import { AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import FunnelLayout from '@/components/layout/FunnelLayout';
+import FunnelAutoFix from '@/components/funnel/FunnelAutoFix';
+import { useProposeFormData } from '@/store/proposeStore';
 
 // Définition des polices identiques au funnel Dodomove
 const robotoSlab = Roboto_Slab({
@@ -55,6 +57,7 @@ export const dynamic = 'force-dynamic';
 function FunnelContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { currentStep, totalSteps } = getStepInfo(pathname);
+  const formData = useProposeFormData();
   
   // Analytics setup pour le funnel propose (optionnel)
   useEffect(() => {
@@ -66,13 +69,19 @@ function FunnelContent({ children }: { children: React.ReactNode }) {
   
   return (
     <div className={`${robotoSlab.variable} ${lato.variable}`}>
-      <FunnelLayout currentStep={currentStep} totalSteps={totalSteps}>
-        <AnimatePresence mode="wait" initial={false}>
-          <div key={pathname} className="w-full">
-            {children}
-          </div>
-        </AnimatePresence>
-      </FunnelLayout>
+      <FunnelAutoFix 
+        currentStep={parseInt(currentStep)} 
+        formData={formData} 
+        funnelType="propose"
+      >
+        <FunnelLayout currentStep={currentStep} totalSteps={totalSteps}>
+          <AnimatePresence mode="wait" initial={false}>
+            <div key={pathname} className="w-full">
+              {children}
+            </div>
+          </AnimatePresence>
+        </FunnelLayout>
+      </FunnelAutoFix>
     </div>
   );
 }
