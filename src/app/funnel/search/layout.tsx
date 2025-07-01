@@ -5,7 +5,6 @@ import { Roboto_Slab, Lato } from 'next/font/google';
 import { AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import FunnelLayout from '@/components/layout/FunnelLayout';
-import FunnelAutoFix from '@/components/funnel/FunnelAutoFix';
 import { useSearchFormData } from '@/store/searchStore';
 
 // Définition des polices identiques au funnel propose
@@ -68,19 +67,13 @@ function FunnelContent({ children }: { children: React.ReactNode }) {
   
   return (
     <div className={`${robotoSlab.variable} ${lato.variable}`}>
-      <FunnelAutoFix 
-        currentStep={parseInt(currentStep)} 
-        formData={formData} 
-        funnelType="search"
-      >
-        <FunnelLayout currentStep={currentStep} totalSteps={totalSteps}>
-          <AnimatePresence mode="wait" initial={false}>
-            <div key={pathname} className="w-full">
-              {children}
-            </div>
-          </AnimatePresence>
-        </FunnelLayout>
-      </FunnelAutoFix>
+      <FunnelLayout currentStep={currentStep} totalSteps={totalSteps}>
+        <AnimatePresence mode="wait" initial={false}>
+          <div key={pathname} className="w-full">
+            {children}
+          </div>
+        </AnimatePresence>
+      </FunnelLayout>
     </div>
   );
 }

@@ -279,6 +279,13 @@ function HomePageContent() {
 
   const handleAnnouncementTypeChange = (newType: 'offer' | 'request') => {
     console.log('🔄 Changement type annonce:', newType);
+    
+    // Protection contre les événements multiples
+    if (newType === announcementType) {
+      console.log('🔄 Type déjà sélectionné, pas de changement');
+      return;
+    }
+    
     setAnnouncementType(newType);
     
     // Mettre à jour l'URL avec le nouveau type
@@ -301,7 +308,13 @@ function HomePageContent() {
     setDisplayedCount(prev => Math.min(prev + 4, filteredAnnouncements.length));
   };
 
-  const handleSearch = () => {
+  const handleSearch = (e?: React.FormEvent | React.MouseEvent) => {
+    // Empêcher le comportement par défaut (refresh de page)
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     console.log('🔍 Recherche avec:', { 
       departure: searchDeparture, 
       destination: searchDestination 
@@ -586,6 +599,7 @@ function HomePageContent() {
                   size="md"
                   className="w-full lg:w-auto bg-[#F47D6C] hover:bg-[#e66b5a] border-0 px-6 sm:px-8 text-sm sm:text-base h-12 sm:h-auto shadow-lg"
                   onClick={handleSearch}
+                  type="button"
                 >
                   Rechercher
                 </Button>

@@ -35,7 +35,13 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ value, onChange, className 
         return (
           <button
             key={option.value}
-            onClick={() => onChange(option.value)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🔘 ToggleSwitch click:', option.value);
+              onChange(option.value);
+            }}
+            type="button"
             className={`
               relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
               ${isActive 

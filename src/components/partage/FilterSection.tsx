@@ -111,6 +111,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
   };
 
   const handlePriceTypeChange = (value: string) => {
+    console.log('💰 Changement prix:', value);
+    if (value === filters.priceType) {
+      console.log('💰 Prix déjà sélectionné');
+      return;
+    }
+    
     const newFilters = {
       ...filters,
       priceType: value
@@ -120,6 +126,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
   };
 
   const handleVolumeChange = (value: string) => {
+    console.log('📦 Changement volume:', value);
+    if (value === filters.minVolume) {
+      console.log('📦 Volume déjà sélectionné');
+      return;
+    }
+    
     const newFilters = {
       ...filters,
       minVolume: value
@@ -192,7 +204,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                       name="priceType"
                       value={option.value}
                       checked={filters.priceType === option.value}
-                      onChange={(e) => handlePriceTypeChange(e.target.value)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handlePriceTypeChange(e.target.value);
+                      }}
                       className="sr-only"
                     />
                     <div className={`
@@ -248,7 +263,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                       name="minVolume"
                       value={option.value}
                       checked={filters.minVolume === option.value}
-                      onChange={(e) => handleVolumeChange(e.target.value)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleVolumeChange(e.target.value);
+                      }}
                       className="sr-only"
                     />
                     <div className={`
