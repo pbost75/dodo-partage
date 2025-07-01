@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useProposeStore } from '@/store/proposeStore';
 import { useSearchStore } from '@/store/searchStore';
+import { buildUrl } from '@/utils/navigation';
 
 export default function DebugStorePage() {
   const proposeStore = useProposeStore();
@@ -137,19 +138,19 @@ export default function DebugStorePage() {
           <h2 className="text-xl font-semibold mb-4">🛠️ Actions</h2>
           <div className="flex gap-4 flex-wrap">
             <button 
-              onClick={() => window.location.href = '/funnel/propose/locations'}
+              onClick={() => window.location.href = buildUrl('/funnel/propose/locations')}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
               Aller au Funnel Propose
             </button>
             <button 
-              onClick={() => window.location.href = '/funnel/search/locations'}
+              onClick={() => window.location.href = buildUrl('/funnel/search/locations')}
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             >
               Aller au Funnel Search
             </button>
             <button 
-              onClick={() => window.location.href = '/'}
+              onClick={() => window.location.href = buildUrl('/')}
               className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
             >
               Retour Accueil
