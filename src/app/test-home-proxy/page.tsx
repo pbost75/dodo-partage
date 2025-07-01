@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSmartRouter } from '@/utils/navigation';
 import Button from '@/components/ui/Button';
 import { AlertCircle, CheckCircle, RefreshCw, Home, Search, Filter, ToggleLeft } from 'lucide-react';
 
-export default function TestHomeProxy() {
+function TestHomeProxyContent() {
   const router = useSmartRouter();
   const searchParams = useSearchParams();
   const [logs, setLogs] = useState<string[]>([]);
@@ -457,5 +457,13 @@ export default function TestHomeProxy() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TestHomeProxy() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Chargement des tests...</div>}>
+      <TestHomeProxyContent />
+    </Suspense>
   );
 } 
