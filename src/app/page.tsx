@@ -820,12 +820,12 @@ function HomePageContent() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="w-full lg:w-2/5 lg:sticky lg:top-8"
+              className="w-full lg:w-2/5 lg:sticky lg:top-8 text-center lg:text-left"
             >
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
                 Comment fonctionne DodoPartage ?
               </h2>
-              <p className="text-lg text-gray-600 font-lato leading-relaxed">
+              <p className="text-lg text-gray-600 font-lato leading-relaxed max-w-lg mx-auto lg:mx-0">
                 DodoPartage facilite la mise en relation entre ceux qui cherchent de la place dans un conteneur et ceux qui en proposent. Tout se fait sans compte, en toute simplicité.
               </p>
             </motion.div>
@@ -840,7 +840,7 @@ function HomePageContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-12">
                 
                 {/* Étape 1 - Recherchez une annonce */}
-                <div className="flex flex-col items-start space-y-4">
+                <div className="flex flex-col items-center sm:items-start space-y-4 text-center sm:text-left">
                   <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
                     <Search className="w-8 h-8 text-white" />
                   </div>
@@ -855,7 +855,7 @@ function HomePageContent() {
                 </div>
 
                 {/* Étape 2 - Pas trouvé ? Postez votre annonce */}
-                <div className="flex flex-col items-start space-y-4">
+                <div className="flex flex-col items-center sm:items-start space-y-4 text-center sm:text-left">
                   <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
                     <FileText className="w-8 h-8 text-white" />
                   </div>
@@ -870,7 +870,7 @@ function HomePageContent() {
                 </div>
 
                 {/* Étape 3 - Activez les alertes email */}
-                <div className="flex flex-col items-start space-y-4">
+                <div className="flex flex-col items-center sm:items-start space-y-4 text-center sm:text-left">
                   <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
                     <BellRing className="w-8 h-8 text-white" />
                   </div>
@@ -885,7 +885,7 @@ function HomePageContent() {
                 </div>
 
                 {/* Étape 4 - Organisez-vous librement */}
-                <div className="flex flex-col items-start space-y-4">
+                <div className="flex flex-col items-center sm:items-start space-y-4 text-center sm:text-left">
                   <div className="w-16 h-16 bg-[#243163] rounded-2xl flex items-center justify-center">
                     <HandHeart className="w-8 h-8 text-white" />
                   </div>
