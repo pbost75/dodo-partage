@@ -57,17 +57,23 @@ export function detectFunnelStoreProblem(currentStep: number, formData: any, pat
     hostname: typeof window !== 'undefined' ? window.location.hostname : 'SSR'
   });
 
-  // NOUVELLE LOGIQUE : Si on est sur le proxy et que l'URL indique une étape > 1
-  // mais que le store a un currentStep = 1, c'est le problème !
-  if (isProxiedDomain() && urlStep > 1 && currentStep <= 1) {
-    console.log('🚨 [FunnelFix] PROBLÈME DÉTECTÉ : URL étape', urlStep, 'mais store étape', currentStep);
-    return true;
-  }
-
-  // Si on est sur l'étape 1 (URL et store), pas de problème
+  // Si on est sur l'étape 1 (URL), pas de problème
   if (urlStep <= 1) {
     console.log('✅ [FunnelFix] Étape 1 selon URL, pas de problème');
     return false;
+  }
+
+  // CORRECTION PRINCIPALE : Si on est sur le proxy ET à une étape > 1 ET que formData est vide
+  if (isProxiedDomain() && urlStep > 1 && (!formData || Object.keys(formData).length === 0)) {
+    console.log('🚨 [FunnelFix] PROBLÈME DÉTECTÉ : Proxy + étape', urlStep, '+ formData vide');
+    return true;
+  }
+
+  // ANCIENNE LOGIQUE : Si on est sur le proxy et que l'URL indique une étape > 1
+  // mais que le store a un currentStep = 1, c'est aussi le problème !
+  if (isProxiedDomain() && urlStep > 1 && currentStep <= 1) {
+    console.log('🚨 [FunnelFix] PROBLÈME DÉTECTÉ : URL étape', urlStep, 'mais store étape', currentStep);
+    return true;
   }
   
   // Si on a des données et que store/URL sont cohérents, pas de problème  
