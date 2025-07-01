@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { apiFetch } from '@/utils/apiUtils';
-import { isProxiedContext } from '@/utils/navigation';
+import { isProxiedContext, useSmartRouter } from '@/utils/navigation';
 import Button from '@/components/ui/Button';
 import { ArrowLeft, Play, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,7 @@ interface TestResult {
 
 export default function TestApiPage() {
   const router = useRouter();
+  const smartRouter = useSmartRouter();
   const [tests, setTests] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
 
@@ -126,7 +127,7 @@ export default function TestApiPage() {
       <div className="bg-gradient-to-r from-[#243163] to-[#1e2951] text-white">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => smartRouter.push('/')}
             className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
           >
             <ArrowLeft className="w-5 h-5" />

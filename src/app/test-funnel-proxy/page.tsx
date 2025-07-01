@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchStore } from '@/store/searchStore';
-import { isProxiedContext } from '@/utils/navigation';
+import { isProxiedContext, useSmartRouter } from '@/utils/navigation';
 import Button from '@/components/ui/Button';
 import { ArrowLeft, Play, Bug, Eye, RefreshCw } from 'lucide-react';
 
 export default function TestFunnelProxyPage() {
   const router = useRouter();
+  const smartRouter = useSmartRouter();
   const searchStore = useSearchStore();
   
   const [testResults, setTestResults] = useState<any[]>([]);
@@ -88,7 +89,8 @@ export default function TestFunnelProxyPage() {
         arrival: searchStore.formData.arrival.isComplete
       };
 
-      router.push('/funnel/search/shipping-period');
+      // 🔧 FIX: Utiliser smartRouter pour gérer automatiquement le préfixe /partage
+      smartRouter.push('/funnel/search/shipping-period');
       await wait(2000); // Attendre la navigation
 
       // Test 5: Vérifier l'état après navigation
@@ -134,14 +136,14 @@ export default function TestFunnelProxyPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-red-600 to-red-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Retour aux annonces</span>
-          </button>
+                 <div className="max-w-7xl mx-auto px-4 py-4">
+           <button
+             onClick={() => smartRouter.push('/')}
+             className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-3"
+           >
+             <ArrowLeft className="w-5 h-5" />
+             <span>Retour aux annonces</span>
+           </button>
           <div className="flex items-center gap-3">
             <Bug className="w-6 h-6" />
             <h1 className="text-xl font-semibold">Test Problème Funnel Proxy</h1>
@@ -304,15 +306,15 @@ export default function TestFunnelProxyPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             🛠️ Actions rapides
           </h2>
-          <div className="flex gap-4 flex-wrap">
-            <Button
-              onClick={() => router.push('/funnel/search/locations')}
-              variant="outline"
-              icon={<Eye className="w-4 h-4" />}
-              iconPosition="left"
-            >
-              Aller au Funnel Search
-            </Button>
+                     <div className="flex gap-4 flex-wrap">
+             <Button
+               onClick={() => smartRouter.push('/funnel/search/locations')}
+               variant="outline"
+               icon={<Eye className="w-4 h-4" />}
+               iconPosition="left"
+             >
+               Aller au Funnel Search
+             </Button>
             <Button
               onClick={() => window.open('https://partage.dodomove.fr' + window.location.pathname, '_blank')}
               variant="outline"
