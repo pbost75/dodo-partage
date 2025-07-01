@@ -13,7 +13,32 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
-    const baseUrl = new URL(request.url).origin;
+    
+    // Détecter si on est appelé via le proxy Cloudflare
+    const referer = request.headers.get('referer') || '';
+    const userAgent = request.headers.get('user-agent') || '';
+    const xForwardedFor = request.headers.get('x-forwarded-for') || '';
+    const isProxied = referer.includes('www.dodomove.fr') || 
+                      request.headers.get('host') === 'www.dodomove.fr' ||
+                      request.headers.get('x-forwarded-host') === 'www.dodomove.fr';
+    
+    console.log('🔍 Contexte de l\'appel:', {
+      origin: new URL(request.url).origin,
+      referer,
+      host: request.headers.get('host'),
+      xForwardedHost: request.headers.get('x-forwarded-host'),
+      isProxied
+    });
+    
+    // Définir la base URL selon le contexte
+    let baseUrl: string;
+    if (isProxied) {
+      baseUrl = 'https://www.dodomove.fr/partage';
+      console.log('📍 Mode proxy détecté - URLs vers www.dodomove.fr/partage');
+    } else {
+      baseUrl = new URL(request.url).origin;
+      console.log('📍 Mode direct détecté - URLs vers', baseUrl);
+    }
 
     if (!token) {
       console.log('❌ Token manquant dans la requête');
