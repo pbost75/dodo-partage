@@ -6,6 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import FunnelLayout from '@/components/layout/FunnelLayout';
 import { useSearchFormData } from '@/store/searchStore';
+import { useProxyStateProtection } from '@/hooks/useProxyStateProtection';
 
 // Définition des polices identiques au funnel propose
 const robotoSlab = Roboto_Slab({
@@ -57,6 +58,9 @@ function FunnelContent({ children }: { children: React.ReactNode }) {
   const { currentStep, totalSteps } = getStepInfo(pathname);
   const formData = useSearchFormData();
   
+  // 🛡️ Protection contre les problèmes de proxy Cloudflare
+  const proxyProtection = useProxyStateProtection();
+  
   // Analytics setup pour le funnel search (optionnel)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -67,6 +71,22 @@ function FunnelContent({ children }: { children: React.ReactNode }) {
   
   return (
     <div className={`${robotoSlab.variable} ${lato.variable}`}>
+      {/* Debug proxy protection en développement */}
+      {process.env.NODE_ENV === 'development' && proxyProtection.isProxiedContext && (
+        <div className="bg-blue-100 border-b border-blue-200 px-4 py-2 text-sm text-blue-800">
+          🛡️ Protection proxy active | Sauvegarde: {proxyProtection.hasValidBackup ? '✅' : '❌'} | 
+          Navigations: {proxyProtection.navigationCount}
+          {proxyProtection.protectionActive && (
+            <button 
+              onClick={proxyProtection.manualRestore}
+              className="ml-2 px-2 py-1 bg-blue-200 rounded text-xs hover:bg-blue-300"
+            >
+              Restaurer
+            </button>
+          )}
+        </div>
+      )}
+      
       <FunnelLayout currentStep={currentStep} totalSteps={totalSteps}>
         <AnimatePresence mode="wait" initial={false}>
           <div key={pathname} className="w-full">
