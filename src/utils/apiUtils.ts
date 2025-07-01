@@ -1,6 +1,6 @@
 /**
  * Utilitaires pour les appels API
- * Contournement temporaire du problème de Worker Cloudflare
+ * Gestion intelligente des URLs cross-domain avec Worker Cloudflare
  */
 
 /**
@@ -13,8 +13,8 @@ export function getApiUrl(path: string): string {
   const isProxied = typeof window !== 'undefined' && window.location.hostname === 'www.dodomove.fr';
   
   if (isProxied) {
-    // Si on est sur www.dodomove.fr/partage, faire les appels API directement vers partage.dodomove.fr
-    return `https://partage.dodomove.fr${path}`;
+    // Si on est sur www.dodomove.fr/partage, utiliser /partage/api/ pour que le Worker puisse intercepter
+    return `/partage${path}`;
   }
   
   // Sinon, utiliser le domaine relatif (pour partage.dodomove.fr et localhost)
