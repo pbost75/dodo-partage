@@ -53,6 +53,33 @@ function HomePageContent() {
   // CORRECTION : Utiliser un ref pour éviter les re-exécutions inutiles du modal
   const hasProcessedModalParam = useRef(false);
 
+  // Protection contre les événements de navigation automatique sur le proxy
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isProxied = window.location.hostname === 'www.dodomove.fr';
+      
+      if (isProxied) {
+        console.log('🛡️ Protection proxy activée - Empêchement des navigations automatiques');
+        
+        // Empêcher les soumissions de formulaire automatiques
+        const preventFormSubmit = (e: Event) => {
+          console.log('🚫 Form submit bloqué sur proxy');
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          return false;
+        };
+        
+        // Écouter tous les événements de formulaire sur le document
+        document.addEventListener('submit', preventFormSubmit, true);
+        
+        // Cleanup
+        return () => {
+          document.removeEventListener('submit', preventFormSubmit, true);
+        };
+      }
+    }
+  }, []);
+
   // Fonction helper pour mettre à jour l'URL avec l'état actuel
   const updateURLWithCurrentState = (currentFilters?: FilterState, currentType?: 'offer' | 'request') => {
     const filtersToUse = currentFilters || filters;
