@@ -7,8 +7,21 @@
  * @returns true si on est sur www.dodomove.fr (proxy), false si partage.dodomove.fr (direct)
  */
 export function isProxiedDomain(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.location.hostname === 'www.dodomove.fr';
+  if (typeof window === 'undefined') {
+    console.log('🔍 [StorageUtils] isProxiedDomain: SSR context, retourne false');
+    return false;
+  }
+  
+  const hostname = window.location.hostname;
+  const isProxied = hostname === 'www.dodomove.fr';
+  
+  console.log('🔍 [StorageUtils] isProxiedDomain:', {
+    hostname,
+    isProxied,
+    href: window.location.href
+  });
+  
+  return isProxied;
 }
 
 /**
