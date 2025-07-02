@@ -72,40 +72,35 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
         label: 'Tous volumes', 
         icon: Package,
         bgColor: 'bg-gray-100',
-        iconColor: 'text-gray-600',
-        description: 'Afficher toutes les annonces'
+        iconColor: 'text-gray-600'
       },
       { 
         value: '1', 
         label: 'Min 1 m³', 
         icon: Smartphone,
         bgColor: 'bg-purple-100',
-        iconColor: 'text-purple-600',
-        description: 'Au moins 1m³ disponible'
+        iconColor: 'text-purple-600'
       },
       { 
         value: '3', 
         label: 'Min 3 m³', 
         icon: Archive,
         bgColor: 'bg-orange-100',
-        iconColor: 'text-orange-600',
-        description: 'Au moins 3m³ disponible'
+        iconColor: 'text-orange-600'
       },
       { 
         value: '5', 
         label: 'Min 5 m³', 
         icon: BookOpen,
         bgColor: 'bg-emerald-100',
-        iconColor: 'text-emerald-600',
-        description: 'Au moins 5m³ disponible'
+        iconColor: 'text-emerald-600'
       },
       { 
         value: '10', 
         label: 'Min 10 m³', 
         icon: Truck,
         bgColor: 'bg-red-100',
-        iconColor: 'text-red-600',
-        description: 'Au moins 10m³ disponible'
+        iconColor: 'text-red-600'
       }
     ]
   };
@@ -288,7 +283,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                   
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 text-sm">{option.label}</div>
-                    <div className="text-xs text-gray-500">{option.description}</div>
                   </div>
                 </label>
               );
