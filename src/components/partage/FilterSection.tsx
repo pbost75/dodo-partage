@@ -149,9 +149,9 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
   const activeFilterCount = (filters.minVolume !== 'all' ? 1 : 0) + (filters.priceType !== 'all' ? 1 : 0);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+    <div className={`bg-white ${isMobile ? '' : 'rounded-2xl border border-gray-200 shadow-sm'} ${isMobile ? 'p-0' : 'p-6'}`}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}>
         <div className="w-10 h-10 bg-[#F47D6C]/10 rounded-xl flex items-center justify-center">
           <span className="text-[#F47D6C]">🔍</span>
         </div>
@@ -171,13 +171,13 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           onClick={clearAllFilters}
-          className="w-full mb-6 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 text-center text-sm text-gray-600 hover:text-gray-800 transition-all duration-200"
+          className={`w-full ${isMobile ? 'mb-4 p-2' : 'mb-6 p-3'} bg-gray-50 hover:bg-gray-100 ${isMobile ? 'rounded' : 'rounded-lg'} ${isMobile ? '' : 'border border-gray-200'} text-center text-sm text-gray-600 hover:text-gray-800 transition-all duration-200`}
         >
           ✕ Effacer les filtres ({activeFilterCount})
         </motion.button>
       )}
 
-      <div className="space-y-8">
+      <div className={`${isMobile ? 'space-y-4' : 'space-y-8'}`}>
         {/* Type de prix - Radio buttons */}
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
@@ -191,10 +191,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                 <label
                   key={option.value}
                   className={`
-                    flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer group
+                    flex items-center gap-3 ${isMobile ? 'p-2' : 'p-3'} ${isMobile ? 'rounded' : 'rounded-lg'} ${isMobile ? '' : 'border'} transition-all duration-200 cursor-pointer group
                     ${filters.priceType === option.value 
-                      ? 'border-[#F47D6C]/30 bg-[#F47D6C]/5' 
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? `${isMobile ? 'bg-[#F47D6C]/10' : 'border-[#F47D6C]/30 bg-[#F47D6C]/5'}` 
+                      : `${isMobile ? 'hover:bg-gray-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`
                     }
                   `}
                 >
@@ -250,10 +250,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
                 <label
                   key={option.value}
                   className={`
-                    flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer group
+                    flex items-center gap-3 ${isMobile ? 'p-2' : 'p-3'} ${isMobile ? 'rounded' : 'rounded-lg'} ${isMobile ? '' : 'border'} transition-all duration-200 cursor-pointer group
                     ${filters.minVolume === option.value 
-                      ? 'border-[#F47D6C]/30 bg-[#F47D6C]/5' 
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? `${isMobile ? 'bg-[#F47D6C]/10' : 'border-[#F47D6C]/30 bg-[#F47D6C]/5'}` 
+                      : `${isMobile ? 'hover:bg-gray-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`
                     }
                   `}
                 >
@@ -299,7 +299,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
 
       {/* Bouton recherche - différent selon mobile/desktop */}
       {isMobile ? (
-        <div className="mt-8">
+        <div className="mt-6">
           <button 
             onClick={onMobileClose}
             className="w-full p-4 bg-gradient-to-r from-[#F47D6C] to-[#e66b5a] text-white font-semibold rounded-xl hover:from-[#e66b5a] hover:to-[#d65a47] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-3"
