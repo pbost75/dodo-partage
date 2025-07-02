@@ -932,17 +932,17 @@ function HomePageContent() {
       >
         <button
           onClick={handleCreateAlert}
-          className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-4 py-3 sm:px-5 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 sm:gap-3"
+          className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-4 py-3 sm:px-5 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 sm:gap-3 relative"
           title="Créer une alerte"
         >
+          {/* Animation pulse pour attirer l'attention - en arrière-plan */}
+          <div className="absolute inset-0 rounded-xl bg-[#F47D6C] animate-pulse opacity-20 pointer-events-none -z-10"></div>
+          
           <BellPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           <span className="text-sm sm:text-base font-medium text-white">
             <span className="hidden sm:inline">Créer une alerte</span>
             <span className="sm:hidden">Alerte</span>
           </span>
-          
-          {/* Animation pulse pour attirer l'attention */}
-          <div className="absolute inset-0 rounded-xl bg-[#F47D6C] animate-pulse opacity-20 pointer-events-none"></div>
         </button>
       </motion.div>
 
