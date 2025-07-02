@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, Zap, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star, Search, FileText, BellRing, HandHeart } from 'lucide-react';
+import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, Zap, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star, Search, FileText, BellRing, HandHeart, Award, Crown } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
 import AnnouncementCard from '@/components/partage/AnnouncementCard';
 import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
@@ -50,7 +50,14 @@ function HomePageContent() {
   const [appliedDestination, setAppliedDestination] = useState<string>('');
   const [appliedDates, setAppliedDates] = useState<string[]>([]);
 
-  // CORRECTION : Utiliser un ref pour éviter les re-exécutions inutiles du modal
+  // États pour le CTA alerte fixe
+  const [showFixedAlert, setShowFixedAlert] = useState(false);
+  const [fixedAlertBottom, setFixedAlertBottom] = useState(24); // Position par défaut
+
+  // Refs pour le scroll tracking
+  const alertButtonRef = useRef<HTMLButtonElement>(null);
+  const announcementsSectionRef = useRef<HTMLDivElement>(null);
+  const loadMoreButtonRef = useRef<HTMLDivElement>(null);
   const hasProcessedModalParam = useRef(false);
 
   // Fonction helper pour mettre à jour l'URL avec l'état actuel
@@ -110,6 +117,73 @@ function HomePageContent() {
       departure, destination, dates, type, priceType, minVolume
     });
   }, [searchParams]);
+
+  // Gestion du CTA alerte fixe avec scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      const alertButton = alertButtonRef.current;
+      const announcementsSection = announcementsSectionRef.current;
+      const loadMoreButton = loadMoreButtonRef.current;
+      
+      if (!alertButton || !announcementsSection) return;
+
+      // Vérifier si on est sur mobile
+      const isMobile = window.innerWidth < 1024; // lg breakpoint
+      
+      if (isMobile) {
+        // Mobile : toujours afficher le CTA fixe
+        setShowFixedAlert(true);
+      } else {
+        // Desktop : afficher uniquement si le CTA du haut n'est pas visible
+        const alertButtonRect = alertButton.getBoundingClientRect();
+        const isAlertButtonVisible = alertButtonRect.top >= 0 && alertButtonRect.bottom <= window.innerHeight;
+        setShowFixedAlert(!isAlertButtonVisible);
+      }
+
+      // Calculer la position bottom
+      const windowHeight = window.innerHeight;
+      let bottomPosition = 24; // Position par défaut
+
+      if (isMobile && loadMoreButton) {
+        // Sur mobile : se positionner au-dessus du bouton "Voir plus" s'il est visible
+        const loadMoreButtonRect = loadMoreButton.getBoundingClientRect();
+        
+        if (loadMoreButtonRect.top < windowHeight && loadMoreButtonRect.top > 0) {
+          // Le bouton "Voir plus" est visible, positionner le CTA au-dessus
+          bottomPosition = windowHeight - loadMoreButtonRect.top + 16; // 16px d'espacement
+        }
+      } else {
+        // Desktop ou pas de bouton "Voir plus" : s'arrêter à la fin de la section annonces
+        const announcementsSectionRect = announcementsSection.getBoundingClientRect();
+        const sectionBottom = announcementsSectionRect.bottom;
+        
+        if (sectionBottom < windowHeight) {
+          // La section est au-dessus du viewport, calculer la distance
+          const distanceFromBottom = windowHeight - sectionBottom;
+          bottomPosition = Math.max(24, distanceFromBottom + 24); // Minimum 24px
+        }
+      }
+
+      setFixedAlertBottom(bottomPosition);
+    };
+
+    // Mobile : afficher par défaut
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setShowFixedAlert(true);
+    }
+
+    // Écouter le scroll et le resize
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+    
+    // Appel initial
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
 
   // Hook pour récupérer les annonces depuis le backend
   const {
@@ -507,7 +581,7 @@ function HomePageContent() {
       {/* FAQ JSON-LD pour le référencement AEO */}
       <FAQJsonLD />
       
-      {/* Header bleu simplifié */}
+      {/* Header bleu avec surlignage jaune */}
       <div className="bg-gradient-to-br from-[#243163] to-[#1e2951] relative">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {/* Header avec logo/navigation */}
@@ -529,13 +603,37 @@ function HomePageContent() {
             </div>
           </div>
 
-          {/* Titre principal */}
+          {/* Section titres */}
           <div className="text-center pb-20 sm:pb-24">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-              Partagez vos conteneurs de déménagement
-            </h1>
+            {/* Titre H1 SEO optimisé - responsive mobile/desktop */}
+            <div className="mb-6 sm:mb-8 px-4 sm:px-0">
+              <h1 className="text-white/90 text-xs sm:text-sm font-medium">
+                {/* Version mobile - icône au-dessus */}
+                <div className="block sm:hidden text-center">
+                  <div className="mb-2">
+                    <Crown className="w-5 h-5 text-[#EFB500] mx-auto" />
+                  </div>
+                  <div className="font-bold tracking-wide leading-relaxed">
+                    GROUPAGE CONTENEUR COLLABORATIF<br />DOM-TOM
+                  </div>
+                </div>
+                
+                {/* Version desktop - icône à côté */}
+                <div className="hidden sm:flex items-center justify-center gap-3">
+                  <Crown className="w-5 h-5 text-[#EFB500] flex-shrink-0" />
+                  <span className="font-bold tracking-wide">
+                    GROUPAGE CONTENEUR COLLABORATIF DOM-TOM
+                  </span>
+                </div>
+              </h1>
+            </div>
+            
+            {/* Titre principal avec surlignage jaune */}
+            <div className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+              Partagez vos <span className="bg-[#EFB500] text-[#243163] px-2 py-1">conteneurs de déménagement</span>
+            </div>
             <p className="text-lg sm:text-xl text-white/90 font-light max-w-3xl mx-auto">
-              Trouvez facilement de l'espace dans un conteneur ou proposez le vôtre entre la métropole et les DOM-TOM
+              Trouvez facilement une place dans un conteneur en groupage vers la Réunion, la Guadeloupe, la Martinique, la Guyane, Mayotte et d'autres DOM-TOM, ou proposez le vôtre !
             </p>
           </div>
         </div>
@@ -676,7 +774,7 @@ function HomePageContent() {
           </div>
 
           {/* Contenu principal - droite */}
-          <div className="flex-1">
+          <div className="flex-1" ref={announcementsSectionRef}>
             {/* Header des annonces */}
             <div className="mb-6 sm:mb-8">
               {/* Titre et boutons - responsive layout */}
@@ -699,10 +797,11 @@ function HomePageContent() {
                   transition={{ duration: 0.6 }}
                   className="flex gap-3 w-full sm:w-auto sm:flex-shrink-0"
                 >
-                  {/* Bouton alerte simplifié - icône seule */}
+                  {/* Bouton alerte simplifié - icône seule - Desktop uniquement */}
                   <button
+                    ref={alertButtonRef}
                     onClick={handleCreateAlert}
-                    className="w-16 py-4 flex items-center justify-center bg-white border-2 border-[#F47D6C]/30 text-[#F47D6C] hover:bg-[#F47D6C] hover:text-white hover:border-[#F47D6C] transition-all duration-200 shadow-sm hover:shadow-md rounded-xl group relative flex-shrink-0"
+                    className="hidden lg:flex w-16 py-4 items-center justify-center bg-white border-2 border-[#F47D6C]/30 text-[#F47D6C] hover:bg-[#F47D6C] hover:text-white hover:border-[#F47D6C] transition-all duration-200 shadow-sm hover:shadow-md rounded-xl group relative flex-shrink-0"
                     title="Créer une alerte"
                   >
                     {/* Icône cloche avec plus intégrée */}
@@ -714,12 +813,12 @@ function HomePageContent() {
                     </div>
                   </button>
                   
-                  {/* Bouton déposer annonce responsive */}
+                  {/* Bouton déposer annonce responsive - pleine largeur sur mobile */}
                   <Button
                     variant="primary"
                     size="lg"
                     onClick={handleCreateAnnouncement}
-                    className="flex-1 sm:flex-none sm:w-auto bg-[#F47D6C] hover:bg-[#e66b5a] shadow-md hover:shadow-lg transition-all duration-200"
+                    className="flex-1 lg:flex-none lg:w-auto bg-[#F47D6C] hover:bg-[#e66b5a] shadow-md hover:shadow-lg transition-all duration-200"
                   >
                     ➕ Déposer une annonce
                   </Button>
@@ -774,10 +873,11 @@ function HomePageContent() {
             {/* Load More Button */}
             {hasMoreAnnouncements && (
               <motion.div
+                ref={loadMoreButtonRef}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.8 }}
-                className="text-center mt-8 sm:mt-12 px-3 sm:px-0"
+                className="text-center mt-16 sm:mt-20 px-3 sm:px-0"
               >
                 <Button 
                   variant="outline" 
@@ -810,6 +910,33 @@ function HomePageContent() {
         onClose={() => setIsChoiceModalOpen(false)}
         onChoice={handleChoice}
       />
+
+      {/* CTA Alerte fixe - apparaît selon les conditions */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ 
+          opacity: showFixedAlert ? 1 : 0,
+          scale: showFixedAlert ? 1 : 0.8
+        }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className={`fixed right-4 sm:right-6 z-40 ${showFixedAlert ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        style={{ bottom: `${fixedAlertBottom}px` }}
+      >
+        <button
+          onClick={handleCreateAlert}
+          className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-4 py-3 sm:px-5 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 sm:gap-3"
+          title="Créer une alerte"
+        >
+          <BellPlus className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="text-sm sm:text-base font-medium">
+            <span className="hidden sm:inline">Créer une alerte</span>
+            <span className="sm:hidden">Alerte</span>
+          </span>
+          
+          {/* Animation pulse pour attirer l'attention */}
+          <div className="absolute inset-0 rounded-xl bg-[#F47D6C] animate-pulse opacity-20 pointer-events-none"></div>
+        </button>
+      </motion.div>
 
       {/* Section Comment ça marche */}
       <section className="w-full bg-white py-16 sm:py-20 lg:py-24">

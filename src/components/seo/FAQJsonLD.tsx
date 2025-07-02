@@ -48,8 +48,8 @@ const faqData = [
     answer: "Évitez les objets de grande valeur, périssables ou dangereux (produits inflammables, batteries lithium…). En cas de doute, demandez à votre interlocuteur."
   },
   {
-    question: "Faut-il un contrat ou des documents pour utiliser DodoPartage ?",
-    answer: "Non. La plateforme ne gère ni contrat, ni formalités. Si vous passez par un professionnel, il pourra vous fournir ses propres documents si besoin."
+    question: "Vers quelles destinations DOM-TOM puis-je envoyer mes affaires en groupage ?",
+    answer: "DodoPartage vous permet de trouver ou proposer une place dans un conteneur de groupage vers la Réunion, la Guadeloupe, la Martinique, la Guyane, Mayotte, la Nouvelle-Calédonie, et d'autres destinations DOM-TOM. Vous pouvez également organiser un retour vers la métropole depuis ces territoires. Pour chaque destination, vous pouvez filtrer les annonces selon votre ville de départ et la période souhaitée."
   },
   {
     question: "L'utilisation de DodoPartage est-elle vraiment gratuite ?",
