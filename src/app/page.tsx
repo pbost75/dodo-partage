@@ -625,7 +625,7 @@ function HomePageContent() {
                     <Crown className="w-5 h-5 text-[#EFB500] mx-auto" />
                   </div>
                   <div className="font-bold tracking-wide leading-relaxed">
-                    GROUPAGE CONTENEUR COLLABORATIF<br />DOM-TOM
+                    GROUPAGE CONTENEUR<br />DOM-TOM
                   </div>
                 </div>
                 
@@ -633,7 +633,7 @@ function HomePageContent() {
                 <div className="hidden sm:flex items-center justify-center gap-3">
                   <Crown className="w-5 h-5 text-[#EFB500] flex-shrink-0" />
                   <span className="font-bold tracking-wide">
-                    GROUPAGE CONTENEUR COLLABORATIF DOM-TOM
+                    GROUPAGE CONTENEUR DOM-TOM
                   </span>
                 </div>
               </h1>
