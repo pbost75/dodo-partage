@@ -121,76 +121,86 @@ function HomePageContent() {
 
   // Gestion du CTA alerte fixe avec scroll detection
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    
     const handleScroll = () => {
-      const alertButton = alertButtonRef.current;
-      const announcementsSection = announcementsSectionRef.current;
-      const announcementsList = announcementsListRef.current;
-      const loadMoreButton = loadMoreButtonRef.current;
-      
-      if (!alertButton || !announcementsSection) return;
+      // Throttling pour éviter les problèmes de performance avec les scrolls rapides
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const alertButton = alertButtonRef.current;
+        const announcementsSection = announcementsSectionRef.current;
+        const announcementsList = announcementsListRef.current;
+        const loadMoreButton = loadMoreButtonRef.current;
+        
+        if (!alertButton || !announcementsSection || !announcementsList) return;
 
-      // Vérifier si on est sur mobile
-      const isMobile = window.innerWidth < 1024; // lg breakpoint
-      
-      // Vérifier si on est dans la section listing des annonces
-      let isInListingSection = false;
-      if (announcementsList) {
+        // Vérifier si on est sur mobile
+        const isMobile = window.innerWidth < 1024; // lg breakpoint
+        
+        // Vérifier si on est dans la section listing des annonces (logique améliorée)
         const listRect = announcementsList.getBoundingClientRect();
+        const sectionRect = announcementsSection.getBoundingClientRect();
         const windowHeight = window.innerHeight;
-        // On est dans la section si le top de la liste est visible ou qu'on l'a dépassée
-        isInListingSection = listRect.top <= windowHeight * 0.5; // Trigger à 50% de l'écran
-      }
-      
-      if (isMobile) {
-        // Mobile : afficher le CTA fixe seulement si on est dans la section listing
-        setShowFixedAlert(isInListingSection);
-      } else {
-        // Desktop : afficher uniquement si le CTA du haut n'est pas visible ET qu'on est dans la section listing
-        const alertButtonRect = alertButton.getBoundingClientRect();
-        const isAlertButtonVisible = alertButtonRect.top >= 0 && alertButtonRect.bottom <= window.innerHeight;
-        setShowFixedAlert(!isAlertButtonVisible && isInListingSection);
-      }
-
-      // Calculer la position bottom seulement si on affiche le CTA
-      if (isInListingSection) {
-        const windowHeight = window.innerHeight;
-        let bottomPosition = 24; // Position par défaut
-
-        if (isMobile && loadMoreButton) {
-          // Sur mobile : se positionner au-dessus du bouton "Voir plus" s'il est visible
-          const loadMoreButtonRect = loadMoreButton.getBoundingClientRect();
-          
-          if (loadMoreButtonRect.top < windowHeight && loadMoreButtonRect.top > 0) {
-            // Le bouton "Voir plus" est visible, positionner le CTA au-dessus
-            bottomPosition = windowHeight - loadMoreButtonRect.top + 16; // 16px d'espacement
-          }
+        
+        // On est dans la section si :
+        // 1. On a atteint la liste (top de la liste <= 70% de l'écran)
+        // 2. ET on n'a pas dépassé la fin de la section (bottom de la section > 10% de l'écran)
+        const hasReachedList = listRect.top <= windowHeight * 0.7;
+        const hasNotPassedSection = sectionRect.bottom > windowHeight * 0.1;
+        const isInListingSection = hasReachedList && hasNotPassedSection;
+        
+        if (isMobile) {
+          // Mobile : afficher le CTA fixe seulement si on est dans la section listing
+          setShowFixedAlert(isInListingSection);
         } else {
-          // Desktop ou pas de bouton "Voir plus" : s'arrêter à la fin de la section annonces
-          const announcementsSectionRect = announcementsSection.getBoundingClientRect();
-          const sectionBottom = announcementsSectionRect.bottom;
-          
-          if (sectionBottom < windowHeight) {
-            // La section est au-dessus du viewport, calculer la distance
-            const distanceFromBottom = windowHeight - sectionBottom;
-            bottomPosition = Math.max(24, distanceFromBottom + 24); // Minimum 24px
-          }
+          // Desktop : afficher uniquement si le CTA du haut n'est pas visible ET qu'on est dans la section listing
+          const alertButtonRect = alertButton.getBoundingClientRect();
+          const isAlertButtonVisible = alertButtonRect.top >= 0 && alertButtonRect.bottom <= window.innerHeight;
+          setShowFixedAlert(!isAlertButtonVisible && isInListingSection);
         }
 
-        setFixedAlertBottom(bottomPosition);
-      }
+        // Calculer la position bottom seulement si on affiche le CTA
+        if (isInListingSection) {
+          const windowHeight = window.innerHeight;
+          let bottomPosition = 24; // Position par défaut
+
+          if (isMobile && loadMoreButton) {
+            // Sur mobile : se positionner au-dessus du bouton "Voir plus" s'il est visible
+            const loadMoreButtonRect = loadMoreButton.getBoundingClientRect();
+            
+            if (loadMoreButtonRect.top < windowHeight && loadMoreButtonRect.top > 0) {
+              // Le bouton "Voir plus" est visible, positionner le CTA au-dessus
+              bottomPosition = windowHeight - loadMoreButtonRect.top + 16; // 16px d'espacement
+            }
+          } else {
+            // Desktop ou pas de bouton "Voir plus" : s'arrêter à la fin de la section annonces
+            const announcementsSectionRect = announcementsSection.getBoundingClientRect();
+            const sectionBottom = announcementsSectionRect.bottom;
+            
+            if (sectionBottom < windowHeight) {
+              // La section est au-dessus du viewport, calculer la distance
+              const distanceFromBottom = windowHeight - sectionBottom;
+              bottomPosition = Math.max(24, distanceFromBottom + 24); // Minimum 24px
+            }
+          }
+
+          setFixedAlertBottom(bottomPosition);
+        }
+      }, 8); // 8ms de throttling (~120fps pour plus de réactivité)
     };
 
     // Ne pas afficher par défaut, attendre le scroll
     setShowFixedAlert(false);
 
     // Écouter le scroll et le resize
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll);
     
     // Appel initial
     handleScroll();
 
     return () => {
+      clearTimeout(scrollTimeout);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
@@ -619,14 +629,12 @@ function HomePageContent() {
             {/* Titre H1 SEO optimisé - responsive mobile/desktop */}
             <div className="mb-6 sm:mb-8 px-4 sm:px-0">
               <h1 className="text-white/90 text-xs sm:text-sm font-medium">
-                {/* Version mobile - icône au-dessus */}
-                <div className="block sm:hidden text-center">
-                  <div className="mb-2">
-                    <Crown className="w-5 h-5 text-[#EFB500] mx-auto" />
-                  </div>
-                  <div className="font-bold tracking-wide leading-relaxed">
-                    GROUPAGE CONTENEUR<br />DOM-TOM
-                  </div>
+                {/* Version mobile - icône alignée avec le texte sur une ligne */}
+                <div className="flex sm:hidden items-center justify-center gap-2">
+                  <Crown className="w-4 h-4 text-[#EFB500] flex-shrink-0" />
+                  <span className="font-bold tracking-wide text-center">
+                    GROUPAGE CONTENEUR DOM-TOM
+                  </span>
                 </div>
                 
                 {/* Version desktop - icône à côté */}
@@ -929,7 +937,7 @@ function HomePageContent() {
           opacity: showFixedAlert ? 1 : 0,
           scale: showFixedAlert ? 1 : 0.8
         }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
         className={`fixed right-4 sm:right-6 z-40 ${showFixedAlert ? 'pointer-events-auto' : 'pointer-events-none'}`}
         style={{ bottom: `${fixedAlertBottom}px` }}
       >
@@ -938,8 +946,8 @@ function HomePageContent() {
           className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-4 py-3 sm:px-5 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 sm:gap-3"
           title="Créer une alerte"
         >
-          <BellPlus className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="text-sm sm:text-base font-medium">
+          <BellPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <span className="text-sm sm:text-base font-medium text-white">
             <span className="hidden sm:inline">Créer une alerte</span>
             <span className="sm:hidden">Alerte</span>
           </span>
