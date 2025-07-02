@@ -159,10 +159,10 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
             </div>
           </div>
 
-          {/* Description compacte */}
+          {/* Description compacte - une ligne maximum sur mobile */}
           <div className="mb-3">
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {displayedDescription}
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-nowrap truncate">
+              {description}
             </p>
           </div>
 

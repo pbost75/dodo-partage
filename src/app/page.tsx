@@ -38,7 +38,7 @@ function HomePageContent() {
 
   // État pour le toggle "Propose" vs "Cherche"
   const [announcementType, setAnnouncementType] = useState<'offer' | 'request'>('offer');
-  const [displayedCount, setDisplayedCount] = useState(4); // Afficher 4 annonces par défaut
+  const [displayedCount, setDisplayedCount] = useState(7); // Afficher 7 annonces par défaut
 
   // États pour la barre de recherche
   const [searchDeparture, setSearchDeparture] = useState<string>('');
@@ -57,6 +57,7 @@ function HomePageContent() {
   // Refs pour le scroll tracking
   const alertButtonRef = useRef<HTMLButtonElement>(null);
   const announcementsSectionRef = useRef<HTMLDivElement>(null);
+  const announcementsListRef = useRef<HTMLDivElement>(null);
   const loadMoreButtonRef = useRef<HTMLDivElement>(null);
   const hasProcessedModalParam = useRef(false);
 
@@ -123,6 +124,7 @@ function HomePageContent() {
     const handleScroll = () => {
       const alertButton = alertButtonRef.current;
       const announcementsSection = announcementsSectionRef.current;
+      const announcementsList = announcementsListRef.current;
       const loadMoreButton = loadMoreButtonRef.current;
       
       if (!alertButton || !announcementsSection) return;
@@ -130,47 +132,56 @@ function HomePageContent() {
       // Vérifier si on est sur mobile
       const isMobile = window.innerWidth < 1024; // lg breakpoint
       
+      // Vérifier si on est dans la section listing des annonces
+      let isInListingSection = false;
+      if (announcementsList) {
+        const listRect = announcementsList.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        // On est dans la section si le top de la liste est visible ou qu'on l'a dépassée
+        isInListingSection = listRect.top <= windowHeight * 0.5; // Trigger à 50% de l'écran
+      }
+      
       if (isMobile) {
-        // Mobile : toujours afficher le CTA fixe
-        setShowFixedAlert(true);
+        // Mobile : afficher le CTA fixe seulement si on est dans la section listing
+        setShowFixedAlert(isInListingSection);
       } else {
-        // Desktop : afficher uniquement si le CTA du haut n'est pas visible
+        // Desktop : afficher uniquement si le CTA du haut n'est pas visible ET qu'on est dans la section listing
         const alertButtonRect = alertButton.getBoundingClientRect();
         const isAlertButtonVisible = alertButtonRect.top >= 0 && alertButtonRect.bottom <= window.innerHeight;
-        setShowFixedAlert(!isAlertButtonVisible);
+        setShowFixedAlert(!isAlertButtonVisible && isInListingSection);
       }
 
-      // Calculer la position bottom
-      const windowHeight = window.innerHeight;
-      let bottomPosition = 24; // Position par défaut
+      // Calculer la position bottom seulement si on affiche le CTA
+      if (isInListingSection) {
+        const windowHeight = window.innerHeight;
+        let bottomPosition = 24; // Position par défaut
 
-      if (isMobile && loadMoreButton) {
-        // Sur mobile : se positionner au-dessus du bouton "Voir plus" s'il est visible
-        const loadMoreButtonRect = loadMoreButton.getBoundingClientRect();
-        
-        if (loadMoreButtonRect.top < windowHeight && loadMoreButtonRect.top > 0) {
-          // Le bouton "Voir plus" est visible, positionner le CTA au-dessus
-          bottomPosition = windowHeight - loadMoreButtonRect.top + 16; // 16px d'espacement
+        if (isMobile && loadMoreButton) {
+          // Sur mobile : se positionner au-dessus du bouton "Voir plus" s'il est visible
+          const loadMoreButtonRect = loadMoreButton.getBoundingClientRect();
+          
+          if (loadMoreButtonRect.top < windowHeight && loadMoreButtonRect.top > 0) {
+            // Le bouton "Voir plus" est visible, positionner le CTA au-dessus
+            bottomPosition = windowHeight - loadMoreButtonRect.top + 16; // 16px d'espacement
+          }
+        } else {
+          // Desktop ou pas de bouton "Voir plus" : s'arrêter à la fin de la section annonces
+          const announcementsSectionRect = announcementsSection.getBoundingClientRect();
+          const sectionBottom = announcementsSectionRect.bottom;
+          
+          if (sectionBottom < windowHeight) {
+            // La section est au-dessus du viewport, calculer la distance
+            const distanceFromBottom = windowHeight - sectionBottom;
+            bottomPosition = Math.max(24, distanceFromBottom + 24); // Minimum 24px
+          }
         }
-      } else {
-        // Desktop ou pas de bouton "Voir plus" : s'arrêter à la fin de la section annonces
-        const announcementsSectionRect = announcementsSection.getBoundingClientRect();
-        const sectionBottom = announcementsSectionRect.bottom;
-        
-        if (sectionBottom < windowHeight) {
-          // La section est au-dessus du viewport, calculer la distance
-          const distanceFromBottom = windowHeight - sectionBottom;
-          bottomPosition = Math.max(24, distanceFromBottom + 24); // Minimum 24px
-        }
+
+        setFixedAlertBottom(bottomPosition);
       }
-
-      setFixedAlertBottom(bottomPosition);
     };
 
-    // Mobile : afficher par défaut
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setShowFixedAlert(true);
-    }
+    // Ne pas afficher par défaut, attendre le scroll
+    setShowFixedAlert(false);
 
     // Écouter le scroll et le resize
     window.addEventListener('scroll', handleScroll);
@@ -429,7 +440,7 @@ function HomePageContent() {
     setAppliedDates(searchDates);
     
     // Réinitialiser le nombre d'annonces affichées
-    setDisplayedCount(4);
+    setDisplayedCount(7);
   };
 
   const handleCreateAlert = () => {
@@ -633,7 +644,7 @@ function HomePageContent() {
               Partagez vos <span className="bg-[#EFB500] text-[#243163] px-2 py-1">conteneurs de déménagement</span>
             </div>
             <p className="text-lg sm:text-xl text-white/90 font-light max-w-3xl mx-auto">
-              Trouvez facilement une place dans un conteneur en groupage vers la Réunion, la Guadeloupe, la Martinique, la Guyane, Mayotte et d'autres DOM-TOM, ou proposez le vôtre !
+              Trouvez ou proposez facilement une place dans un conteneur vers la Réunion et d'autres DOM-TOM.
             </p>
           </div>
         </div>
@@ -853,7 +864,7 @@ function HomePageContent() {
             ) : isEmpty ? (
               <EmptyState />
             ) : (
-              <div className="space-y-4 sm:space-y-6">
+              <div ref={announcementsListRef} className="space-y-4 sm:space-y-6">
                 {displayedAnnouncements.map((announcement, index) => (
                   <motion.div
                     key={announcement.id}
