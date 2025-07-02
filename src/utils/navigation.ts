@@ -5,6 +5,7 @@
  */
 
 import { useRouter } from 'next/navigation';
+import { useCallback, useMemo } from 'react';
 
 /**
  * Détermine si on est dans le contexte proxifié (www.dodomove.fr ou dodomove.fr)
@@ -77,33 +78,46 @@ export function createHref(path: string): string {
 
 /**
  * Hook personnalisé qui remplace useRouter pour la navigation intelligente
- * @returns Un objet avec une méthode push qui gère automatiquement les préfixes
+ * Version stable qui évite les re-renders et boucles infinies
+ * @returns Un objet stable avec des méthodes qui gèrent automatiquement les préfixes
  */
 export function useSmartRouter() {
   const router = useRouter();
   
-  return {
-    push: (path: string, options?: { scroll?: boolean }) => {
-      const smartPath = buildUrl(path);
-      
-      // TOUJOURS utiliser le router Next.js pour préserver le state
-      // (Zustand, form state, etc.)
-      router.push(smartPath, options);
-    },
-    replace: (path: string) => {
-      const smartPath = buildUrl(path);
-      
-      // TOUJOURS utiliser le router Next.js pour préserver le state
-      router.replace(smartPath);
-    },
-    back: () => {
-      router.back();
-    },
-    forward: () => {
-      router.forward();
-    },
-    refresh: () => {
-      router.refresh();
-    }
-  };
+  // Utiliser useCallback pour mémoriser les fonctions et éviter les re-renders
+  const push = useCallback((path: string, options?: { scroll?: boolean }) => {
+    const smartPath = buildUrl(path);
+    
+    // TOUJOURS utiliser le router Next.js pour préserver le state
+    // (Zustand, form state, etc.)
+    router.push(smartPath, options);
+  }, [router]);
+
+  const replace = useCallback((path: string) => {
+    const smartPath = buildUrl(path);
+    
+    // TOUJOURS utiliser le router Next.js pour préserver le state
+    router.replace(smartPath);
+  }, [router]);
+
+  const back = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const forward = useCallback(() => {
+    router.forward();
+  }, [router]);
+
+  const refresh = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
+  // Utiliser useMemo pour renvoyer un objet stable qui ne change que si router change
+  return useMemo(() => ({
+    push,
+    replace,
+    back,
+    forward,
+    refresh
+  }), [push, replace, back, forward, refresh]);
 } 

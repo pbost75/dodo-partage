@@ -462,20 +462,9 @@ function HomePageContent() {
   };
 
   const handleChoice = (choice: 'cherche' | 'propose') => {
-    if (choice === 'propose') {
-      // La modal se fermera via son propre état de navigation
-      // Délai pour coordonner avec l'animation du loader dans ChoiceModal
-      setTimeout(() => {
-        setIsChoiceModalOpen(false);
-        router.push('/funnel/propose/locations');
-      }, 400); // Légèrement plus long que le délai dans ChoiceModal
-    } else {
-      // Redirection vers le funnel search
-      setTimeout(() => {
-        setIsChoiceModalOpen(false);
-        router.push('/funnel/search/locations');
-      }, 400); // Même délai que pour propose
-    }
+    // Fermeture immédiate de la modal et redirection vers la page de transition
+    setIsChoiceModalOpen(false);
+    router.push(`/funnel-choice/${choice}`);
   };
 
   // Composant de chargement

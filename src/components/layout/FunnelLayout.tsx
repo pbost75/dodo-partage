@@ -7,7 +7,8 @@ import { useProposeStore } from '@/store/proposeStore';
 import { useSearchStore } from '@/store/searchStore';
 import NavigationFooter from './NavigationFooter';
 import SearchNavigationFooter from './SearchNavigationFooter';
-import { navigateTo } from '@/utils/navigation';
+import { useSmartRouter } from '@/utils/navigation';
+import { X } from 'lucide-react';
 
 interface FunnelLayoutProps {
   children: ReactNode;
@@ -21,6 +22,7 @@ const FunnelLayout: React.FC<FunnelLayoutProps> = ({
   totalSteps 
 }) => {
   const pathname = usePathname();
+  const smartRouter = useSmartRouter();
   
   // Détecter le type de funnel selon le pathname
   const isSearchFunnel = pathname.includes('/funnel/search/');
@@ -45,28 +47,43 @@ const FunnelLayout: React.FC<FunnelLayoutProps> = ({
         // Supprimer les données du funnel search dans localStorage
         localStorage.removeItem('search-funnel-storage');
         // Rediriger vers la première étape du funnel search
-        navigateTo('/funnel/search/locations');
+        smartRouter.push('/funnel/search/locations');
       } else if (isProposeFunnel) {
         // Réinitialiser le store propose
         resetPropose();
         // Supprimer les données du funnel propose dans localStorage
         localStorage.removeItem('dodo-partage-propose-store');
         // Rediriger vers la première étape du funnel propose
-        navigateTo('/funnel/propose/locations');
+        smartRouter.push('/funnel/propose/locations');
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Header simple et stable - IDENTIQUE à Dodomove */}
+      {/* Header simple et stable avec navigation - IDENTIQUE à Dodomove */}
       <header className="bg-white relative z-40">
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-2 pt-6 pb-4">
-            <div className="h-14 flex items-center">
-                              <h1 className="text-2xl font-bold text-blue-600 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-                  DodoPartage
-                </h1>
+            <div className="h-14 flex items-center relative">
+              {/* Logo cliquable pour retourner à l'accueil */}
+              <button
+                onClick={() => smartRouter.push('/')}
+                className="text-2xl font-bold text-blue-600 font-title hover:text-blue-700 transition-colors"
+                style={{ fontFamily: 'var(--font-roboto-slab), serif' }}
+                title="Retour à l'accueil DodoPartage"
+              >
+                DodoPartage
+              </button>
+              
+              {/* Croix de fermeture discrète */}
+              <button
+                onClick={() => smartRouter.push('/')}
+                className="absolute -right-2 -top-1 md:fixed md:top-6 md:right-6 text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100"
+                title="Quitter le funnel"
+              >
+                <X size={16} />
+              </button>
             </div>
             
             <div className="flex-1">
