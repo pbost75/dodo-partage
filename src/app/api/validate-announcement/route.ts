@@ -42,7 +42,10 @@ export async function GET(request: NextRequest) {
 
     if (!token) {
       console.log('❌ Token manquant dans la requête');
-      return NextResponse.redirect(`${baseUrl}/validation-error?reason=missing-token`);
+      const errorUrl = isProxied ? 
+        'https://www.dodomove.fr/partage/validation-error?reason=missing-token' : 
+        `${baseUrl}/validation-error?reason=missing-token`;
+      return NextResponse.redirect(errorUrl);
     }
 
     console.log('🔍 Validation du token:', token);
@@ -80,18 +83,22 @@ export async function GET(request: NextRequest) {
       });
       
       // Redirection vers page d'erreur avec le détail approprié
+      const getErrorUrl = (reason: string) => isProxied ? 
+        `https://www.dodomove.fr/partage/validation-error?reason=${reason}` : 
+        `${baseUrl}/validation-error?reason=${reason}`;
+        
       if (response.status === 404) {
         console.log('🔄 Redirection: token non trouvé');
-        return NextResponse.redirect(`${baseUrl}/validation-error?reason=token-not-found`);
+        return NextResponse.redirect(getErrorUrl('token-not-found'));
       } else if (response.status === 410) {
         console.log('🔄 Redirection: token expiré');
-        return NextResponse.redirect(`${baseUrl}/validation-error?reason=token-expired`);
+        return NextResponse.redirect(getErrorUrl('token-expired'));
       } else if (response.status === 400) {
         console.log('🔄 Redirection: token invalide');
-        return NextResponse.redirect(`${baseUrl}/validation-error?reason=token-invalid`);
+        return NextResponse.redirect(getErrorUrl('token-invalid'));
       } else {
         console.log('🔄 Redirection: erreur de validation générique');
-        return NextResponse.redirect(`${baseUrl}/validation-error?reason=validation-failed`);
+        return NextResponse.redirect(getErrorUrl('validation-failed'));
       }
     }
 
@@ -107,11 +114,22 @@ export async function GET(request: NextRequest) {
     } catch (parseError) {
       console.error('❌ Erreur parsing réponse succès:', parseError);
       console.error('📄 Texte de réponse brut qui a causé l\'erreur:', await response.text());
-      return NextResponse.redirect(`${baseUrl}/validation-error?reason=server-error`);
+      const errorUrl = isProxied ? 
+        'https://www.dodomove.fr/partage/validation-error?reason=server-error' : 
+        `${baseUrl}/validation-error?reason=server-error`;
+      return NextResponse.redirect(errorUrl);
     }
 
     // Redirection vers page de succès avec les informations
-    const successUrl = new URL('/validation-success', baseUrl);
+    let successUrl: URL;
+    if (isProxied) {
+      // En mode proxy, rediriger vers /partage/validation-success
+      successUrl = new URL('/partage/validation-success', 'https://www.dodomove.fr');
+    } else {
+      // En mode direct, rediriger vers /validation-success sur le domaine actuel
+      successUrl = new URL('/validation-success', baseUrl);
+    }
+    
     if (result.data?.reference) {
       successUrl.searchParams.set('ref', result.data.reference);
     }
@@ -132,8 +150,15 @@ export async function GET(request: NextRequest) {
     }
     
     // Redirection vers page d'erreur générique
+    const referer = request.headers.get('referer') || '';
+    const isProxiedError = referer.includes('www.dodomove.fr') || 
+                          request.headers.get('host') === 'www.dodomove.fr' ||
+                          request.headers.get('x-forwarded-host') === 'www.dodomove.fr';
     const baseUrl = new URL(request.url).origin;
-    return NextResponse.redirect(`${baseUrl}/validation-error?reason=server-error`);
+    const errorUrl = isProxiedError ? 
+      'https://www.dodomove.fr/partage/validation-error?reason=server-error' : 
+      `${baseUrl}/validation-error?reason=server-error`;
+    return NextResponse.redirect(errorUrl);
   }
 }
 
