@@ -85,6 +85,7 @@ export interface ContactRequest {
   announcementId: string;
   contactName: string;
   contactEmail: string;
+  contactPhone?: string;
   message: string;
 }
 
@@ -96,6 +97,7 @@ export interface ContactLog {
   announcementId: string;
   contactName: string;
   contactEmail: string;
+  contactPhone?: string;
   message: string;
   contactedAt: Date;
   ipAddress: string;

@@ -4,7 +4,6 @@ import "./globals.css";
 import { ToastProvider } from '@/contexts/ToastContext';
 import GoogleTagManager from '@/components/analytics/GoogleTagManager';
 import GTMNoScript from '@/components/analytics/GTMNoScript';
-import CrossDomainTracker from '@/components/analytics/CrossDomainTracker';
 
 const robotoSlab = Roboto_Slab({
   subsets: ['latin'],
@@ -71,7 +70,6 @@ export default function RootLayout({
       </head>
       <body className="font-lato" suppressHydrationWarning={true}>
         {ENABLE_ANALYTICS && <GTMNoScript gtmId={GTM_ID} />}
-        {ENABLE_ANALYTICS && <CrossDomainTracker measurementId={GTM_ID} />}
         <ToastProvider>
           {children}
         </ToastProvider>

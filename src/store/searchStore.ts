@@ -32,7 +32,7 @@ export interface BudgetData {
 export interface ContactData {
   firstName: string;
   email: string;
-  phone?: string;
+  phone: string; // Toujours une string (vide par défaut)
 }
 
 export interface SearchFormData {

@@ -158,17 +158,17 @@ export default function VolumeNeededStep() {
           </div>
 
           {/* Calculateur de volume intégré */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mt-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+              <div className="flex items-start md:items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <Calculator className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 font-['Roboto_Slab']">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 font-['Roboto_Slab'] text-base md:text-lg">
                     Pas sûr de votre estimation ?
                   </h3>
-                  <p className="text-sm text-gray-600 font-['Lato']">
+                  <p className="text-sm text-gray-600 font-['Lato'] leading-relaxed">
                     Utilisez notre calculateur pour estimer précisément votre volume
                   </p>
                 </div>
@@ -177,7 +177,7 @@ export default function VolumeNeededStep() {
               <button
                 type="button"
                 onClick={() => setIsCalculatorOpen(true)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 font-['Lato'] text-sm font-medium ${
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 font-['Lato'] text-sm font-medium w-full md:w-auto flex-shrink-0 ${
                   usedCalculator && calculatorItems.length > 0
                     ? 'bg-green-600 hover:bg-green-700 text-white'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -210,32 +210,12 @@ export default function VolumeNeededStep() {
                   {calculatorItems.length} objet{calculatorItems.length > 1 ? 's' : ''} sélectionné{calculatorItems.length > 1 ? 's' : ''}
                 </p>
                 <div className="mt-2 text-xs text-gray-500 font-['Lato']">
-                  💡 Vous pouvez ajuster le volume manuellement ou modifier votre sélection
+                                    💡 Vous pouvez ajuster le volume manuellement ou modifier votre sélection
                 </div>
-              </div>
-            )}
-
-            {/* Avantages d'utiliser le calculateur */}
-            {!usedCalculator && (
-              <div className="space-y-2 text-sm">
-                <p className="text-blue-700 leading-relaxed flex items-center gap-2">
-                  <span className="w-1 h-1 bg-blue-600 rounded-full"></span>
-                  Sélectionnez vos objets dans notre base de données
-                </p>
-                <p className="text-blue-700 leading-relaxed flex items-center gap-2">
-                  <span className="w-1 h-1 bg-blue-600 rounded-full"></span>
-                  Calcul automatique et précis du volume total
-                </p>
-                <p className="text-blue-700 leading-relaxed flex items-center gap-2">
-                  <span className="w-1 h-1 bg-blue-600 rounded-full"></span>
-                  Évite les erreurs d'estimation
-                </p>
               </div>
             )}
           </div>
         </form>
-
-
       </motion.div>
 
       {/* Modal du calculateur de volume */}

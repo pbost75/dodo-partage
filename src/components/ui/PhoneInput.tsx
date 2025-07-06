@@ -152,7 +152,7 @@ interface PhoneInputProps {
 
 const PhoneInput: React.FC<PhoneInputProps> = ({
   label,
-  value,
+  value = '', // Valeur par défaut pour éviter undefined
   onChange,
   error,
   required = false
@@ -173,14 +173,14 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   // Parse la valeur initiale
   useEffect(() => {
-    if (!isInitialized && value && value.startsWith('+')) {
+    if (!isInitialized && value && typeof value === 'string' && value.startsWith('+')) {
       const country = countries.find(c => value.startsWith(c.dialCode));
       if (country) {
         setSelectedCountry(country);
         const cleanNumber = value.substring(country.dialCode.length);
         const displayNumber = cleanNumber.startsWith('0') ? cleanNumber : '0' + cleanNumber;
-        setPhoneNumber(displayNumber);
-        setFormattedDisplay(country.formatter(displayNumber));
+        setPhoneNumber(displayNumber || '');
+        setFormattedDisplay(country.formatter(displayNumber || ''));
       }
       setIsInitialized(true);
     } else if (!isInitialized) {
@@ -190,7 +190,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   // Formatage en temps réel
   const formatPhoneNumber = useCallback((value: string, country: Country) => {
-    const cleanValue = value.replace(/\D/g, '');
+    const cleanValue = (value || '').replace(/\D/g, '');
     const truncatedValue = cleanValue.slice(0, country.maxLength);
     
     if (truncatedValue.length > 0) {
@@ -202,14 +202,14 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   // Mettre à jour la valeur complète
   const updateFullNumber = useCallback(() => {
-    if (isInitialized) {
-      let internationalNumber = phoneNumber;
-      if (phoneNumber.startsWith('0') && phoneNumber.length > 1) {
-        internationalNumber = phoneNumber.substring(1);
+    if (isInitialized && onChange) {
+      let internationalNumber = phoneNumber || '';
+      if (internationalNumber.startsWith('0') && internationalNumber.length > 1) {
+        internationalNumber = internationalNumber.substring(1);
       }
       
       const fullNumber = internationalNumber ? `${selectedCountry.dialCode}${internationalNumber}` : '';
-      if (fullNumber !== value) {
+      if (fullNumber !== (value || '')) {
         onChange(fullNumber);
       }
     }
@@ -220,13 +220,13 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   }, [updateFullNumber]);
 
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
+    const inputValue = e.target.value || '';
     
     const formatted = formatPhoneNumber(inputValue, selectedCountry);
-    setFormattedDisplay(formatted);
+    setFormattedDisplay(formatted || '');
     
     const cleanValue = inputValue.replace(/\D/g, '').slice(0, selectedCountry.maxLength);
-    setPhoneNumber(cleanValue);
+    setPhoneNumber(cleanValue || '');
   };
 
   const handleFocus = () => {
@@ -283,18 +283,16 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   const hasValue = phoneNumber.length > 0;
   const hasError = !!error;
-  
-  // Label toujours en haut pour éviter le recouvrement avec l'indicatif
-  const isLabelUp = true;
 
   // Éviter l'erreur d'hydratation en attendant que le composant soit monté
   if (!isMounted) {
     return (
       <div className="relative w-full">
+        {/* Label fixe au-dessus */}
+        <label className="block text-base text-gray-700 mb-2 font-['Lato']">
+          {label}
+        </label>
         <div className="relative border border-gray-300 rounded-xl transition-all duration-200 w-full">
-          <label className="absolute left-4 bg-white px-2 text-base transition-all duration-200 pointer-events-none z-10 -top-2 -translate-y-1 scale-90 text-gray-500">
-            {label}
-          </label>
           <div className="flex w-full h-16 md:h-20">
             <div className="relative">
               <div className="flex items-center gap-2 px-3 border-r border-gray-300 bg-gray-50 rounded-l-xl h-full min-w-[120px]">
@@ -315,26 +313,21 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   return (
     <div className="relative w-full" data-phone-input>
+      {/* Label fixe au-dessus - plus élégant pour ce composant complexe */}
+      <label className="block text-base text-gray-700 mb-2 font-['Lato']">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+
       <div className={`relative border ${hasError ? 'border-red-500 ring-2 ring-red-200' : isFocused ? 'border-blue-500 ring-2 ring-blue-200' : hasValue ? 'border-blue-500' : 'border-gray-300'} rounded-xl transition-all duration-200 w-full`}>
-        
-        {/* Label flottant */}
-        <label 
-          className={`absolute left-4 bg-white px-2 text-base transition-all duration-200 pointer-events-none z-10 ${
-            isLabelUp 
-              ? '-top-2 -translate-y-1 scale-90' 
-              : 'top-1/2 -translate-y-1/2 scale-100'
-          } ${hasError ? 'text-red-600' : isFocused ? 'text-blue-700' : hasValue ? 'text-blue-700' : 'text-gray-500'}`}
-        >
-          {label}
-        </label>
 
         <div className="flex w-full h-16 md:h-20">
-          {/* Sélecteur de pays */}
+          {/* Sélecteur de pays - design amélioré */}
           <div className="relative">
             <button
               type="button"
               onClick={handleDropdownToggle}
-              className="flex items-center gap-2 px-3 border-r border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer rounded-l-xl h-full min-w-[120px]"
+              className={`flex items-center gap-2 px-3 border-r ${hasError ? 'border-red-300' : isFocused ? 'border-blue-300' : 'border-gray-300'} bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer rounded-l-xl h-full min-w-[120px]`}
             >
               <span className="text-lg">{selectedCountry.flag}</span>
               <span className="text-gray-700 font-medium text-sm whitespace-nowrap">{selectedCountry.dialCode}</span>
@@ -343,7 +336,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
               </svg>
             </button>
 
-            {/* Dropdown des pays */}
+            {/* Dropdown des pays - style amélioré */}
             {isDropdownOpen && (
               <div className={`absolute left-0 z-50 bg-white border border-gray-300 rounded-xl shadow-lg max-h-80 overflow-y-auto min-w-[300px] max-w-sm ${
                 dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
@@ -353,10 +346,12 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors duration-200 text-left"
+                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors duration-200 text-left ${
+                      selectedCountry.code === country.code ? 'bg-blue-50 text-blue-700' : ''
+                    }`}
                   >
                     <span className="text-lg">{country.flag}</span>
-                    <span className="text-gray-700 font-medium text-sm min-w-[60px]">{country.dialCode}</span>
+                    <span className="font-medium text-sm min-w-[60px]">{country.dialCode}</span>
                     <span className="text-gray-600 text-sm">{country.name}</span>
                   </button>
                 ))}
@@ -364,24 +359,24 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
             )}
           </div>
 
-          {/* Champ de saisie du numéro */}
+          {/* Champ de saisie du numéro - style cohérent */}
           <input
             type="tel"
             inputMode="numeric"
-            value={formattedDisplay}
+            value={formattedDisplay || ''}
             onChange={handlePhoneNumberChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
             placeholder={selectedCountry.placeholder}
             required={required}
-            className="flex-1 px-4 rounded-r-xl bg-white focus:outline-none text-gray-900 text-base md:text-lg leading-tight min-w-0 w-full h-full"
+            className="flex-1 px-4 rounded-r-xl bg-white focus:outline-none text-gray-900 font-['Lato'] text-base md:text-lg leading-tight min-w-0 w-full h-full"
           />
         </div>
       </div>
 
-      {/* Message d'erreur */}
+      {/* Message d'erreur - style cohérent */}
       {hasError && (
-        <p className="mt-2 text-sm text-red-600">
+        <p className="mt-2 text-sm text-red-600 font-['Lato']">
           {error}
         </p>
       )}

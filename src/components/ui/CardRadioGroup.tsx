@@ -49,7 +49,7 @@ const CardRadioGroup: React.FC<CardRadioGroupProps> = ({
             key={option.value} 
             className={`
               relative cursor-pointer rounded-xl border transition-all hover:shadow-md
-              ${compact ? 'p-4' : 'p-6'}
+              ${compact ? 'p-3 md:p-4' : 'p-4 md:p-6'}
               ${value === option.value
                 ? 'border-blue-600 bg-blue-50'
                 : 'border-gray-200 hover:border-gray-300'
@@ -68,10 +68,10 @@ const CardRadioGroup: React.FC<CardRadioGroupProps> = ({
             />
             
             {/* Radio button indicator */}
-            <div className={`absolute ${compact ? 'right-3 top-3' : 'right-4 top-4'}`}>
+            <div className={`absolute ${compact ? 'right-3 top-3 md:right-4 md:top-4' : 'right-3 top-3 md:right-4 md:top-4'}`}>
               <div 
                 className={`
-                  ${compact ? 'h-5 w-5' : 'h-6 w-6'} rounded-full border flex items-center justify-center
+                  ${compact ? 'h-5 w-5 md:h-6 md:w-6' : 'h-5 w-5 md:h-6 md:w-6'} rounded-full border flex items-center justify-center
                   ${value === option.value
                     ? 'border-blue-600 bg-white'
                     : 'border-gray-300'
@@ -79,33 +79,41 @@ const CardRadioGroup: React.FC<CardRadioGroupProps> = ({
                 `}
               >
                 {value === option.value && (
-                  <div className={`${compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} rounded-full bg-blue-600`}></div>
+                  <div className={`${compact ? 'h-2.5 w-2.5 md:h-3 md:w-3' : 'h-2.5 w-2.5 md:h-3 md:w-3'} rounded-full bg-blue-600`}></div>
                 )}
               </div>
             </div>
             
-            {/* Icon */}
-            {(option.emoji || option.icon) && (
-              <div className={`${compact ? 'mb-2' : 'mb-4'} flex ${compact ? 'h-8 w-8' : 'h-12 w-12'} items-center justify-center rounded-full 
-                ${option.iconBgColor || 'bg-blue-50'}`}>
-                {option.emoji ? (
-                  <span className={`${option.iconTextColor || 'text-blue-500'} ${compact ? 'text-lg' : 'text-2xl'}`}>
-                    {option.emoji}
-                  </span>
-                ) : (
-                  <span className={`${option.iconTextColor || 'text-blue-500'}`}>
-                    {option.icon}
-                  </span>
-                )}
-              </div>
-            )}
+            {/* Layout mobile : icône et titre sur la même ligne, description masquée */}
+            <div className="flex items-center gap-3 md:block">
+              {/* Icon */}
+              {(option.emoji || option.icon) && (
+                <div className={`flex-shrink-0 flex items-center justify-center rounded-full 
+                  ${compact ? 'h-8 w-8 md:h-10 md:w-10' : 'h-10 w-10 md:h-12 md:w-12'} 
+                  ${compact ? '' : 'md:mb-4'} 
+                  ${option.iconBgColor || 'bg-blue-50'} shadow-sm`}>
+                  {option.emoji ? (
+                    <span className={`${option.iconTextColor || 'text-blue-500'} 
+                      ${compact ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'}`}>
+                      {option.emoji}
+                    </span>
+                  ) : (
+                    <span className={`${option.iconTextColor || 'text-blue-500'}`}>
+                      {option.icon}
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {/* Content */}
+              <h3 className={`${compact ? 'text-base md:text-lg' : 'text-lg md:text-xl'} font-semibold font-['Roboto_Slab'] text-gray-800`}>
+                {option.label}
+              </h3>
+            </div>
             
-            {/* Content */}
-            <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold font-['Roboto_Slab'] text-gray-800`}>
-              {option.label}
-            </h3>
+            {/* Description - masquée sur mobile, visible sur desktop */}
             {option.description && (
-              <p className={`${compact ? 'mt-1' : 'mt-2'} text-sm text-gray-600 font-['Lato']`}>
+              <p className={`${compact ? 'mt-1 md:mt-2' : 'mt-2 md:mt-3'} text-sm md:text-base text-gray-600 font-['Lato'] hidden md:block`}>
                 {option.description}
               </p>
             )}

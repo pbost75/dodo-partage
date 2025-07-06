@@ -5,6 +5,7 @@ interface ContactRequest {
   announcementId: string;
   contactName: string;
   contactEmail: string;
+  contactPhone?: string;
   message: string;
   announcementDetails: {
     id: string;
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
       announcementId: data.announcementId,
       contactName: data.contactName,
       contactEmail: data.contactEmail,
+      contactPhone: data.contactPhone ? '***' : 'Non fourni',
       messageLength: data.message.length,
       announcementType: data.announcementDetails.type
     });
@@ -70,6 +72,7 @@ export async function POST(request: NextRequest) {
         announcementId: data.announcementId,
         contactName: data.contactName,
         contactEmail: data.contactEmail,
+        contactPhone: data.contactPhone,
         message: data.message,
         announcementDetails: data.announcementDetails,
         timestamp: new Date().toISOString(),
@@ -95,6 +98,7 @@ export async function POST(request: NextRequest) {
         emailSent: result.data?.emailSent || true,
         contactName: data.contactName,
         contactEmail: data.contactEmail,
+        contactPhone: data.contactPhone,
         announcementId: data.announcementId,
         announcementAuthor: data.announcementDetails.author,
         timestamp: new Date().toISOString()

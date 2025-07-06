@@ -160,19 +160,7 @@ N'hésitez pas à me contacter pour qu'on s'arrange !`
           </div>
         </div>
 
-        {/* Info spécifique à la recherche */}
-        <div className="bg-orange-50 rounded-xl p-4 border border-orange-200 mt-8">
-          <div className="flex gap-3">
-            <span className="text-orange-600 flex-shrink-0 mt-0.5">💡</span>
-            <div className="text-sm text-orange-800 font-['Lato']">
-              <p className="font-medium mb-2">Conseils pour une demande efficace</p>
-              <p className="text-orange-700 leading-relaxed">
-                Plus vous êtes précis et flexible, plus vous aurez de réponses ! 
-                N'hésitez pas à mentionner votre aide pour le chargement/déchargement.
-              </p>
-            </div>
-          </div>
-        </div>
+
       </motion.div>
 
     </div>

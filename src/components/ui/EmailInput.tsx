@@ -150,12 +150,7 @@ const EmailInput: React.FC<EmailInputProps> = ({
         </p>
       )}
 
-      {/* Indicateur de validité */}
-      {hasValue && !hasError && hasBeenBlurred && (
-        <p className="mt-2 text-sm text-green-600 font-['Lato']" role="status">
-          ✓ Email valide
-        </p>
-      )}
+
     </div>
   );
 };

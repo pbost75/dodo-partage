@@ -4,149 +4,131 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSmartRouter } from '@/utils/navigation';
 import { motion } from 'framer-motion';
 import { useSearchStore } from '@/store/searchStore';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import HelpBlock from '@/components/ui/HelpBlock';
 
 export default function ShippingPeriodStep() {
   const router = useSmartRouter();
   const { formData, setShippingPeriod } = useSearchStore();
   
-  const [selectedMonths, setSelectedMonths] = useState<string[]>(
-    formData.shippingPeriod.selectedMonths || []
-  );
-  const [error, setError] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
+  // États pour la sélection de période
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [selectionStep, setSelectionStep] = useState<'start' | 'end'>('start');
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  // Fermer le picker quand on clique à l'extérieur
+  // Initialiser depuis le store si données existantes
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setIsFocused(false);
-        // Déclencher la validation seulement à la fermeture si aucun mois sélectionné
-        if (selectedMonths.length === 0) {
-          setHasInteracted(true);
-        }
+    if (formData.shippingPeriod.selectedMonths && formData.shippingPeriod.selectedMonths.length > 0) {
+      const sortedMonths = [...formData.shippingPeriod.selectedMonths].sort((a, b) => {
+        const [monthA, yearA] = a.split(' ');
+        const [monthB, yearB] = b.split(' ');
+        if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
+        return months.indexOf(monthA) - months.indexOf(monthB);
+      });
+      
+      const firstMonth = sortedMonths[0];
+      const lastMonth = sortedMonths[sortedMonths.length - 1];
+      setStartDate(firstMonth);
+      setEndDate(lastMonth);
+      
+      // Si on a déjà les deux dates, la sélection est terminée
+      if (firstMonth && lastMonth) {
+        setSelectionStep('end');
       }
-    };
+    }
+  }, []);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [selectedMonths]);
-
-  // Fonctions utilitaires pour la gestion des mois
+  // Fonctions utilitaires
   const formatMonthKey = (month: string, year: number) => `${month} ${year}`;
-
+  
   const getMonthIndex = (monthName: string, year: number) => {
     const monthIndex = months.indexOf(monthName);
     return year * 12 + monthIndex;
   };
 
-  const getMonthFromIndex = (index: number) => {
-    const year = Math.floor(index / 12);
-    const monthIndex = index % 12;
-    return { month: months[monthIndex], year };
+  const parseMonthKey = (monthKey: string) => {
+    const [month, year] = monthKey.split(' ');
+    return { month, year: parseInt(year) };
   };
 
-  const createConsecutiveRange = (startIndex: number, endIndex: number) => {
-    const range = [];
-    const start = Math.min(startIndex, endIndex);
-    const end = Math.max(startIndex, endIndex);
+  // Générer la liste de tous les mois entre début et fin
+  const generateMonthsRange = (start: string, end: string) => {
+    if (!start || !end) return [];
     
-    for (let i = start; i <= end; i++) {
-      const { month, year } = getMonthFromIndex(i);
-      range.push(formatMonthKey(month, year));
+    const startParsed = parseMonthKey(start);
+    const endParsed = parseMonthKey(end);
+    
+    const startIndex = getMonthIndex(startParsed.month, startParsed.year);
+    const endIndex = getMonthIndex(endParsed.month, endParsed.year);
+    
+    const range = [];
+    for (let i = Math.min(startIndex, endIndex); i <= Math.max(startIndex, endIndex); i++) {
+      const year = Math.floor(i / 12);
+      const monthIndex = i % 12;
+      range.push(formatMonthKey(months[monthIndex], year));
     }
     return range;
   };
 
-  // Gestion de la sélection des mois
-  const handleMonthToggle = (month: string, year: number) => {
-    const clickedIndex = getMonthIndex(month, year);
+  // Gestion de la sélection d'un mois
+  const handleMonthSelect = (month: string, year: number) => {
+    const selectedMonth = formatMonthKey(month, year);
+    console.log('🔍 Sélection mois:', selectedMonth, 'Étape:', selectionStep);
     
-    if (selectedMonths.length === 0) {
-      // Premier mois sélectionné
-      setSelectedMonths([formatMonthKey(month, year)]);
-    } else {
-      // Calculer les indices actuels
-      const currentIndices = selectedMonths.map(m => {
-        const [monthName, yearStr] = m.split(' ');
-        return getMonthIndex(monthName, parseInt(yearStr));
-      });
+    if (selectionStep === 'start') {
+      console.log('📅 Mise à jour startDate:', selectedMonth);
+      setStartDate(selectedMonth);
       
-      const minIndex = Math.min(...currentIndices);
-      const maxIndex = Math.max(...currentIndices);
+      // Passer à la sélection de fin
+      setSelectionStep('end');
+    } else if (selectionStep === 'end') {
+      console.log('📅 Mise à jour endDate:', selectedMonth);
       
-      // Si on clique sur un mois déjà dans la sélection, on repart de ce mois uniquement
-      if (currentIndices.includes(clickedIndex)) {
-        setSelectedMonths([formatMonthKey(month, year)]);
-      } else {
-        // Étendre la sélection pour créer une période consécutive
-        let newRange;
-        if (clickedIndex < minIndex) {
-          // Étendre vers le début
-          newRange = createConsecutiveRange(clickedIndex, maxIndex);
-        } else if (clickedIndex > maxIndex) {
-          // Étendre vers la fin
-          newRange = createConsecutiveRange(minIndex, clickedIndex);
+      // Si l'utilisateur clique sur le même mois que le début, c'est OK
+      if (selectedMonth === startDate) {
+        console.log('📅 Même mois sélectionné pour début et fin');
+        setEndDate(selectedMonth);
+        return;
+      }
+      
+      // Vérifier la cohérence des dates
+      if (startDate) {
+        const startParsed = parseMonthKey(startDate);
+        const newEndIndex = getMonthIndex(month, year);
+        const currentStartIndex = getMonthIndex(startParsed.month, startParsed.year);
+        
+        if (currentStartIndex > newEndIndex) {
+          // Si fin < début, ajuster le début
+          console.log('📅 Ajustement: fin < début, nouvelle période');
+          setStartDate(selectedMonth);
+          setEndDate(startDate);
         } else {
-          // Le mois est au milieu, on repart de ce mois
-          newRange = [formatMonthKey(month, year)];
+          setEndDate(selectedMonth);
         }
-        setSelectedMonths(newRange);
-      }
-    }
-  };
-
-  const clearAll = () => {
-    setSelectedMonths([]);
-  };
-
-  // Validation des mois sélectionnés
-  const validateSelection = (months: string[]) => {
-    if (months.length === 0) {
-      return 'Veuillez sélectionner au moins une période';
-    }
-    return '';
-  };
-
-  // Gestion du changement de mois
-  const handleMonthsChange = (months: string[]) => {
-    setSelectedMonths(months);
-    
-    // Ne valider que si l'utilisateur a déjà interagi
-    if (hasInteracted) {
-      const validationError = validateSelection(months);
-      if (validationError) {
-        setError(validationError);
       } else {
-        setError('');
+        setEndDate(selectedMonth);
       }
     }
   };
 
-  // Mettre à jour les mois quand la sélection change
+  // Mettre à jour le store quand les dates changent
   useEffect(() => {
-    handleMonthsChange(selectedMonths);
-  }, [selectedMonths, hasInteracted]);
-
-  // Mettre à jour le store quand les mois changent
-  useEffect(() => {
-    setShippingPeriod({
-      period: 'flexible', // Toujours flexible maintenant
-      selectedMonths: selectedMonths,
-      urgency: 'flexible' // Toujours flexible
-    });
-  }, [selectedMonths, setShippingPeriod]);
+    if (startDate && endDate) {
+      const monthsRange = generateMonthsRange(startDate, endDate);
+      console.log('📊 Mise à jour store:', { startDate, endDate, monthsRange });
+      setShippingPeriod({
+        period: 'flexible',
+        selectedMonths: monthsRange,
+        urgency: 'flexible'
+      });
+    }
+  }, [startDate, endDate, setShippingPeriod]);
 
   // Redirection si étapes précédentes incomplètes
   useEffect(() => {
@@ -155,23 +137,31 @@ export default function ShippingPeriodStep() {
     }
   }, [formData.departure.country, formData.arrival.country, router]);
 
-  // Fonction pour afficher la période sélectionnée
-  const getDisplayText = () => {
-    if (selectedMonths.length === 0) return 'Sélectionnez une période';
-    if (selectedMonths.length === 1) return selectedMonths[0];
+  // Vérifier si un mois est dans la période sélectionnée (pour le surlignage)
+  const isMonthInRange = (month: string, year: number) => {
+    if (!startDate || !endDate) return false;
     
-    // Afficher la période de début à fin
-    const sortedMonths = [...selectedMonths].sort((a, b) => {
-      const [monthA, yearA] = a.split(' ');
-      const [monthB, yearB] = b.split(' ');
-      if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
-      return months.indexOf(monthA) - months.indexOf(monthB);
+    const currentIndex = getMonthIndex(month, year);
+    const startParsed = parseMonthKey(startDate);
+    const endParsed = parseMonthKey(endDate);
+    const startIndex = getMonthIndex(startParsed.month, startParsed.year);
+    const endIndex = getMonthIndex(endParsed.month, endParsed.year);
+    
+    return currentIndex >= Math.min(startIndex, endIndex) && currentIndex <= Math.max(startIndex, endIndex);
+  };
+
+  // Fonction pour réinitialiser la sélection
+  const resetSelection = () => {
+    setStartDate('');
+    setEndDate('');
+    setSelectionStep('start');
+    
+    // Vider le store également
+    setShippingPeriod({
+      period: 'flexible',
+      selectedMonths: [],
+      urgency: 'flexible'
     });
-    
-    const firstMonth = sortedMonths[0];
-    const lastMonth = sortedMonths[sortedMonths.length - 1];
-    
-    return `${firstMonth} - ${lastMonth}`;
   };
 
   return (
@@ -181,212 +171,139 @@ export default function ShippingPeriodStep() {
       transition={{ duration: 0.5 }}
       className="max-w-3xl mx-auto"
     >
-      {/* TITRE - Style identique aux autres étapes */}
-      <h1 className="text-3xl font-bold mb-10 text-blue-900 font-['Roboto_Slab']">
-        ⏰ Quand voulez-vous expédier vos affaires ?
-      </h1>
-
-      <div className="space-y-6 mb-96">
-        {/* Champ période avec style CustomDatePicker */}
-        <div className="mb-12 relative" ref={containerRef}>
-          {/* Interface visuelle identique au CustomDatePicker */}
-          <div
-            className={`peer block w-full border rounded-xl px-4 h-16 md:h-20 pt-5 md:pt-7 pb-2 text-base md:text-lg bg-white text-gray-900 cursor-pointer focus:outline-none transition-all duration-200
-              ${error ? 'border-red-500' : isFocused ? 'border-blue-500' : 'border-gray-300'}
-              ${isOpen ? 'shadow-sm' : ''}`}
-            onClick={() => {
-              const newIsOpen = !isOpen;
-              setIsOpen(newIsOpen);
-              setIsFocused(true);
-              
-              // Autoscroll pour s'assurer que le picker est visible
-              if (newIsOpen) {
-                setTimeout(() => {
-                  if (containerRef.current) {
-                    const rect = containerRef.current.getBoundingClientRect();
-                    const pickerHeight = 420; // Hauteur approximative du picker
-                    const spaceBelow = window.innerHeight - rect.bottom;
-                    
-                    // Si pas assez de place en bas, scroll vers le bas
-                    if (spaceBelow < pickerHeight) {
-                      const scrollOffset = pickerHeight - spaceBelow + 20; // +20px de marge
-                      window.scrollBy({
-                        top: scrollOffset,
-                        behavior: 'smooth'
-                      });
-                    }
-                  }
-                }, 100); // Petit délai pour laisser le picker s'ouvrir
-              }
-            }}
-            role="textbox"
-            aria-expanded={isOpen}
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setIsOpen(!isOpen);
-                setIsFocused(true);
-              } else if (e.key === 'Escape') {
-                setIsOpen(false);
-                setIsFocused(false);
-                // Déclencher la validation seulement à la fermeture si aucun mois sélectionné
-                if (selectedMonths.length === 0) {
-                  setHasInteracted(true);
-                }
-              } else if (e.key === 'Tab') {
-                setIsOpen(false);
-                // Déclencher la validation seulement à la fermeture si aucun mois sélectionné
-                if (selectedMonths.length === 0) {
-                  setHasInteracted(true);
-                }
-              }
-            }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="truncate font-['Lato']">
-                {getDisplayText()}
+      {/* TITRE avec aide inline */}
+      <div className="text-left mb-6 md:mb-10">
+        <h1 className="text-2xl md:text-3xl font-bold text-blue-900 font-['Roboto_Slab'] inline">
+          ⏰ Choisissez une période de début et de fin pour votre recherche{' '}
+        </h1>
+        <div className="inline-block ml-1" style={{ transform: 'translateY(-2px)' }}>
+          <HelpBlock 
+            content={
+              <div>
+                <p className="font-medium mb-2">Flexibilité = plus d'opportunités</p>
+                <p>Plus votre période est large, plus vous aurez de chances de trouver quelqu'un avec de l'espace dans son conteneur ! Sélectionnez minimum 3 mois pour maximiser vos chances.</p>
               </div>
-              <span className="text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-              </span>
-            </div>
+            } 
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4 md:space-y-6">
+        {/* Instructions dynamiques - seulement pendant la sélection */}
+        {(!startDate || !endDate) && (
+          <div className="text-center">
+            <p className="text-sm md:text-base text-gray-600 mb-4">
+              {selectionStep === 'start' ? 
+                'Choisissez le mois de début de votre période.' :
+                startDate ? 
+                  `Maintenant choisissez le mois de fin (ou re-cliquez sur ${startDate} pour un seul mois).` :
+                  'Choisissez une période de début et de fin pour votre recherche.'
+              }
+            </p>
           </div>
+        )}
 
-          {/* Label flottant */}
-          <label
-            className={`absolute left-4 bg-white px-2 text-base -top-2 -translate-y-1 scale-90 transition-colors duration-200 pointer-events-none z-10
-              ${error ? 'text-red-500' : isFocused ? 'text-blue-700' : 'text-gray-500'}`}
-          >
-            Période d'expédition souhaitée
-          </label>
+        {/* Affichage conditionnel : picker ou résumé */}
+        {!startDate || !endDate ? (
+          /* Picker de mois principal */
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 max-w-lg mx-auto">
+            {/* Sélecteur d'année */}
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <button
+                onClick={() => setCurrentYear(currentYear - 1)}
+                className="p-2 md:p-3 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+              </button>
+              <span className="text-lg md:text-xl font-semibold text-gray-900">{currentYear}</span>
+              <button
+                onClick={() => setCurrentYear(currentYear + 1)}
+                className="p-2 md:p-3 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+              </button>
+            </div>
 
-          {/* Picker modal quand ouvert */}
-          {isOpen && (
-            <div className="absolute z-50 top-full mt-1 left-0 bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-md">
-                            {/* Instructions */}
-              {selectedMonths.length === 0 && (
-                <div className="text-center py-2 mb-4">
-                  <p className="text-xs text-gray-500">
-                    Cliquez sur un mois, puis étendez votre sélection
-                  </p>
-                </div>
-              )}
+            {/* Grille des mois avec surlignage de période */}
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
+              {months.map(month => {
+                const monthKey = formatMonthKey(month, currentYear);
+                const isStartMonth = startDate === monthKey;
+                const isEndMonth = endDate === monthKey;
+                const isInRange = isMonthInRange(month, currentYear);
+                const isPast = currentYear === new Date().getFullYear() && 
+                             months.indexOf(month) < new Date().getMonth();
 
-              {/* Sélecteur d'année */}
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={() => setCurrentYear(currentYear - 1)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4 text-gray-600" />
-                </button>
-                <span className="font-semibold text-gray-900">{currentYear}</span>
-                <button
-                  onClick={() => setCurrentYear(currentYear + 1)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <ChevronRight className="w-4 h-4 text-gray-600" />
-                </button>
-              </div>
-
-                            {/* Grille des mois */}
-              <div className="grid grid-cols-3 gap-2">
-                {months.map(month => {
-                  const monthKey = formatMonthKey(month, currentYear);
-                  const isSelected = selectedMonths.includes(monthKey);
-                  const isPast = currentYear === new Date().getFullYear() && 
-                               months.indexOf(month) < new Date().getMonth();
-
-                  return (
-                                         <button
-                       key={month}
-                       onClick={() => {
-                         handleMonthToggle(month, currentYear);
-                         setHasInteracted(true);
-                       }}
-                       disabled={isPast}
-                      className={`
-                        p-3 rounded-lg text-sm font-medium transition-all duration-200 relative group
-                        ${isSelected 
-                          ? 'bg-[#F47D6C] text-white shadow-sm transform scale-105' 
+                return (
+                  <button
+                    key={month}
+                    onClick={() => handleMonthSelect(month, currentYear)}
+                    disabled={isPast}
+                    className={`
+                      p-3 md:p-4 rounded-lg text-sm md:text-base font-medium transition-all duration-200 relative group
+                      ${isStartMonth || isEndMonth
+                        ? 'bg-[#F47D6C] text-white shadow-md transform scale-105' 
+                        : isInRange
+                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
                           : isPast 
                             ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
                             : 'bg-gray-50 text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 hover:shadow-sm cursor-pointer'
-                        }
-                        ${!isPast && !isSelected ? 'border border-transparent hover:scale-102' : ''}
-                      `}
-                      title={isPast ? 'Mois passé' : isSelected ? 'Cliquez pour modifier la sélection' : 'Cliquez pour sélectionner cette période'}
-                    >
-                      {month}
-                      {!isPast && !isSelected && (
-                        <div className="absolute inset-0 rounded-lg border-2 border-blue-300 opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Boutons de validation */}
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex gap-2">
-                  {selectedMonths.length > 0 && (
-                    <button
-                      onClick={() => {
-                        clearAll();
-                        setHasInteracted(true);
-                      }}
-                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                    >
-                      Effacer
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      if (selectedMonths.length > 0) {
-                        setHasInteracted(true);
                       }
-                      setIsOpen(false);
-                      setIsFocused(false);
-                    }}
-                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                      ${selectedMonths.length > 0 
-                        ? 'bg-[#F47D6C] text-white hover:bg-[#F47D6C]/90 shadow-sm' 
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                      }`}
+                    `}
+                    title={isPast ? 'Mois passé' : (isStartMonth || isEndMonth) ? 'Mois sélectionné' : isInRange ? 'Dans la période' : 'Cliquez pour sélectionner'}
                   >
-                    {selectedMonths.length > 0 ? 'Valider' : 'Fermer'}
+                    {month}
                   </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Message d'erreur */}
-          {error && (
-            <p className="text-sm text-red-600 font-['Lato'] mt-2">{error}</p>
-          )}
-        </div>
-
-        {/* Encart informatif avec style cohérent - identique au funnel propose */}
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mt-8">
-          <div className="flex gap-3">
-            <span className="text-blue-600 flex-shrink-0 mt-0.5">🌟</span>
-            <div className="text-sm text-blue-800 font-['Lato']">
-              <p className="font-medium mb-2">Flexibilité = plus d'opportunités</p>
-              <p className="text-blue-700 leading-relaxed">
-                Plus votre période est large, plus vous aurez de chances de trouver quelqu'un 
-                avec de l'espace dans son conteneur ! Sélectionnez minimum 3 mois pour maximiser vos chances.
-              </p>
+                );
+              })}
             </div>
           </div>
-        </div>
+        ) : (
+          /* Résumé amélioré avec dates mises en avant */
+          <div className="text-center max-w-lg mx-auto">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-4">
+              {(() => {
+                const monthsCount = generateMonthsRange(startDate, endDate).length;
+                const isOnlyOneMonth = startDate === endDate;
+                
+                return (
+                  <>
+                    <p className="text-sm md:text-base text-gray-600 mb-3">
+                      {isOnlyOneMonth 
+                        ? "Vous cherchez de la place dans un conteneur dont le départ est prévu en :"
+                        : "Vous cherchez de la place dans un conteneur dont le départ est prévu entre :"}
+                    </p>
+                    
+                    <div className="mb-4">
+                      {isOnlyOneMonth ? (
+                        <div className="flex items-center justify-center gap-2 text-xl md:text-2xl font-bold text-[#F47D6C] mb-2">
+                          <span>{startDate}</span>
+                          <span className="text-sm text-gray-500">({monthsCount} mois)</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-3 text-lg md:text-xl font-bold text-[#F47D6C] mb-2">
+                          <span>{startDate}</span>
+                          <span className="text-gray-400">→</span>
+                          <span>{endDate}</span>
+                          <span className="text-sm text-gray-500">({monthsCount} mois)</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+
+              <button
+                onClick={resetSelection}
+                className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors underline decoration-dotted underline-offset-2 hover:decoration-solid"
+              >
+                <span className="text-xs">✏️</span>
+                Modifier cette période
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      
-      {/* Navigation Footer */}
-      
     </motion.div>
   );
 } 
