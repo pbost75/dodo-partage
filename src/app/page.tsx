@@ -104,19 +104,27 @@ function HomePageContent() {
     const priceType = searchParams.get('priceType') || 'all';
     const minVolume = searchParams.get('minVolume') || 'all';
 
-    // Mettre à jour tous les états
+    // Mettre à jour tous les états DE RECHERCHE (ce qui est dans les champs)
     setSearchDeparture(departure);
     setSearchDestination(destination);
     setSearchDates(dates);
-    setAppliedDeparture(departure);
-    setAppliedDestination(destination);
-    setAppliedDates(dates);
     setAnnouncementType(type);
     setFilters({ priceType, minVolume });
 
-    console.log('🔄 États restaurés depuis URL:', {
-      departure, destination, dates, type, priceType, minVolume
-    });
+    // IMPORTANT: Mettre à jour les états APPLIQUÉS seulement s'il y a des paramètres URL
+    // (c'est-à-dire une recherche restaurée, pas une saisie interactive)
+    if (departure || destination || dates.length > 0) {
+      setAppliedDeparture(departure);
+      setAppliedDestination(destination);
+      setAppliedDates(dates);
+      console.log('🔄 États appliqués restaurés depuis URL:', {
+        departure, destination, dates, type, priceType, minVolume
+      });
+    } else {
+      console.log('🔄 États de recherche restaurés (sans application de filtres):', {
+        departure, destination, dates, type, priceType, minVolume
+      });
+    }
   }, [searchParams]);
 
   // Gestion du CTA alerte fixe avec scroll detection
