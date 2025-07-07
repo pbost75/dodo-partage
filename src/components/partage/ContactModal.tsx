@@ -21,6 +21,7 @@ interface ContactModalProps {
     volume: string;
     date: string;
     author: string;
+    authorEmail: string; // ✅ AJOUT: Email du propriétaire de l'annonce
   };
 }
 

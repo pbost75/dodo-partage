@@ -15,6 +15,7 @@ interface ContactRequest {
     volume: string;
     date: string;
     author: string;
+    authorEmail: string;
   };
 }
 
@@ -75,6 +76,11 @@ export async function POST(request: NextRequest) {
         contactPhone: data.contactPhone,
         message: data.message,
         announcementDetails: data.announcementDetails,
+        // ✅ CORRECTION: Données explicites pour l'envoi d'email
+        recipientEmail: data.announcementDetails.authorEmail, // Email du propriétaire de l'annonce
+        recipientName: data.announcementDetails.author,       // Nom du propriétaire de l'annonce
+        senderEmail: data.contactEmail,                       // Email de celui qui répond
+        senderName: data.contactName,                         // Nom de celui qui répond
         timestamp: new Date().toISOString(),
         source: 'dodo-partage-frontend'
       }),

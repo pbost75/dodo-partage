@@ -54,6 +54,7 @@ interface AnnouncementFormatted {
   price?: string;
   items: string[];
   author: string;
+  authorEmail: string;
   publishedAt: string;
   description: string;
   status: string;
@@ -366,6 +367,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           price: announcement.accepts_fees ? 'Accepte participation' : 'Transport gratuit souhaité',
           items,
           author: announcement.contact_first_name,
+          authorEmail: announcement.contact_email,
           publishedAt: getTimeAgo(announcement.created_at),
           description: announcement.announcement_text,
           status: announcement.status,
@@ -400,6 +402,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           price: offerType === 'paid' ? 'Prix à négocier' : undefined,
           items,
           author: announcement.contact_first_name,
+          authorEmail: announcement.contact_email,
           publishedAt: getTimeAgo(announcement.created_at),
           description: announcement.announcement_text,
           status: announcement.status
