@@ -16,6 +16,7 @@ interface CountrySelectProps {
   options: CountryOption[];
   placeholder?: string;
   className?: string;
+  onEnterPress?: () => void;
 }
 
 const CountrySelect: React.FC<CountrySelectProps> = ({
@@ -24,7 +25,8 @@ const CountrySelect: React.FC<CountrySelectProps> = ({
   onChange,
   options,
   placeholder = "Sélectionnez une option",
-  className = ""
+  className = "",
+  onEnterPress
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
@@ -126,7 +128,16 @@ const CountrySelect: React.FC<CountrySelectProps> = ({
         aria-expanded={isOpen}
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!isOpen && onEnterPress) {
+              // Si le menu est fermé et qu'on a une fonction onEnterPress, l'appeler
+              onEnterPress();
+            } else {
+              // Sinon, ouvrir/fermer le menu normalement
+              toggleMenu();
+            }
+          } else if (e.key === ' ') {
             e.preventDefault();
             toggleMenu();
           } else if (e.key === 'Escape') {

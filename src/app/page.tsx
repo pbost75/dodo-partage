@@ -701,6 +701,7 @@ function HomePageContent() {
                     options={countryOptions}
                     placeholder="Sélectionnez un départ"
                     className="relative"
+                    onEnterPress={handleSearch}
                   />
                 </div>
               </div>
@@ -722,6 +723,7 @@ function HomePageContent() {
                     options={countryOptions}
                     placeholder="Sélectionnez une destination"
                     className="relative"
+                    onEnterPress={handleSearch}
                   />
                 </div>
               </div>
