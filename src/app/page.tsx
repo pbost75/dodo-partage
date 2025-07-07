@@ -1210,18 +1210,41 @@ function HomePageContent() {
 
       {/* Footer simple */}
       <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs sm:text-sm">
-            © {new Date().getFullYear()} DodoPartage - Une initiative{' '}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Navigation footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-4">
+            <a 
+              href="https://www.dodomove.fr/contact/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-300 hover:text-[#F47D6C] font-medium text-sm transition-all duration-200 hover:underline"
+            >
+              Nous contacter
+            </a>
             <a 
               href="https://www.dodomove.fr" 
               target="_blank" 
-              rel="noopener noreferrer nofollow"
-              className="text-[#F47D6C] font-semibold hover:underline transition-all duration-200"
+              rel="noopener noreferrer"
+              className="text-gray-300 hover:text-[#F47D6C] font-medium text-sm transition-all duration-200 hover:underline"
             >
-              Dodomove
+              Dodomove.fr
             </a>
-          </p>
+          </div>
+          
+          {/* Copyright */}
+          <div className="text-center border-t border-gray-600 pt-4">
+            <p className="text-xs sm:text-sm">
+              © {new Date().getFullYear()} DodoPartage - Une initiative{' '}
+              <a 
+                href="https://www.dodomove.fr" 
+                target="_blank" 
+                rel="noopener noreferrer nofollow"
+                className="text-[#F47D6C] font-semibold hover:underline transition-all duration-200"
+              >
+                Dodomove
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
 
