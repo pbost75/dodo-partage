@@ -77,6 +77,10 @@ export const metadata: Metadata = {
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-MRHKMB9Z';
 const ENABLE_ANALYTICS = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
 
+// Configuration Canny pour le feedback utilisateur
+const CANNY_APP_ID = process.env.NEXT_PUBLIC_CANNY_APP_ID;
+const ENABLE_FEEDBACK = process.env.NEXT_PUBLIC_ENABLE_FEEDBACK === 'true';
+
 export default function RootLayout({
   children,
 }: {
@@ -86,6 +90,25 @@ export default function RootLayout({
     <html lang="fr" className={`${robotoSlab.variable} ${inter.variable} ${lato.variable} ${sunflower.variable}`}>
       <head>
         {ENABLE_ANALYTICS && <GoogleTagManager gtmId={GTM_ID} />}
+        {/* Canny Feedback Widget - Seulement si App ID configuré */}
+        {ENABLE_FEEDBACK && CANNY_APP_ID && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                !function(w,d,i,s){function l(){if(!d.getElementById(i)){var f=d.getElementsByTagName(s)[0],e=d.createElement(s);e.type="text/javascript",e.async=!0,e.src="https://canny.io/sdk.js",f.parentNode.insertBefore(e,f)}}if("function"!=typeof w.Canny){var c=function(){c.q.push(arguments)};c.q=[],w.Canny=c,"complete"===d.readyState?l():w.attachEvent?w.attachEvent("onload",l):w.addEventListener("load",l,!1)}}(window,document,"canny-jssdk","script");
+                
+                Canny('identify', {
+                  appID: '${CANNY_APP_ID}',
+                  user: {
+                    id: 'anonymous_' + Math.random().toString(36).substr(2, 9),
+                    name: 'Utilisateur anonyme',
+                    email: null
+                  }
+                });
+              `
+            }}
+          />
+        )}
       </head>
       <body className="font-lato" suppressHydrationWarning={true}>
         {ENABLE_ANALYTICS && <GTMNoScript gtmId={GTM_ID} />}

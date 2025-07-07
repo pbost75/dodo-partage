@@ -9,6 +9,7 @@ import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
 import AlertModal from '@/components/partage/AlertModal';
 import ChoiceModal from '@/components/partage/ChoiceModal';
 import Button from '@/components/ui/Button';
+import FeedbackButton from '@/components/ui/FeedbackButton';
 import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
@@ -1285,6 +1286,9 @@ function HomePageContent() {
       <Suspense fallback={null}>
         <DeletedNotificationWrapper />
       </Suspense>
+
+      {/* Bouton de feedback flottant */}
+      <FeedbackButton type="floating" variant="general" />
     </div>
   );
 }
