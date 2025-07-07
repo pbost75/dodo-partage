@@ -1096,12 +1096,12 @@ function HomePageContent() {
                 <div className="flex justify-center lg:justify-start">
                   <div className="space-y-3 sm:space-y-4 text-center">
                     <a
-                      href="https://devis.dodomove.fr/funnel/departure-address"
+                      href="https://www.dodomove.fr/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg transition-colors shadow-lg hover:shadow-xl font-lato"
                     >
-                      Je Compare Les Devis
+                      Je découvre
                     </a>
                     
                     <div className="flex items-center justify-center gap-2 text-[#1a2741]">
