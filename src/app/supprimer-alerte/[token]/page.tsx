@@ -67,11 +67,12 @@ export default function DeleteAlertPage() {
     setErrorMessage('');
 
     try {
-      const response = await apiFetch('/api/unsubscribe-alert', {
+      const response = await apiFetch('/api/partage/delete-alert', {
         method: 'POST',
         body: JSON.stringify({
           token,
-          reason: selectedReason === 'other' ? customReason : selectedReason
+          reason: selectedReason,
+          customReason: selectedReason === 'other' ? customReason : null
         }),
       });
 
