@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
         recipientName: data.announcementDetails.author,       // Nom du propriétaire de l'annonce
         senderEmail: data.contactEmail,                       // Email de celui qui répond
         senderName: data.contactName,                         // Nom de celui qui répond
+        // 🚫 CORRECTION CC: Désactiver la copie automatique à l'expéditeur
+        skipSenderCc: true,                                   // Ne pas mettre l'expéditeur en cc
         timestamp: new Date().toISOString(),
         source: 'dodo-partage-frontend'
       }),

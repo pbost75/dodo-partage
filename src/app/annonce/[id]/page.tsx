@@ -40,6 +40,7 @@ interface AnnouncementDetail {
   price?: string;
   items: string[];
   author: string;
+  authorEmail: string;
   publishedAt: string;
   description: string;
   status: string;
@@ -620,7 +621,8 @@ export default function AnnouncementDetailPage() {
           arrival: announcement.arrival,
           volume: announcement.volume,
           date: announcement.date,
-          author: announcement.author
+          author: announcement.author,
+          authorEmail: announcement.authorEmail || ''
         }}
       />
 
