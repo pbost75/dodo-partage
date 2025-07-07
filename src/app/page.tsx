@@ -278,12 +278,20 @@ function HomePageContent() {
           }
         } else if (announcementType === 'request') {
           // Pour les demandes : vérifier acceptsCostSharing
-          const acceptsFees = announcement.acceptsCostSharing === true;
-          if (filters.priceType === 'free' && acceptsFees) {
-            return false; // Afficher seulement ceux qui ne veulent pas payer
+          // Gestion explicite des valeurs null/undefined
+          const acceptsCostSharing = announcement.acceptsCostSharing;
+          
+          if (filters.priceType === 'free') {
+            // Afficher seulement ceux qui ne veulent pas payer (acceptsCostSharing === false)
+            if (acceptsCostSharing !== false) {
+              return false;
+            }
           }
-          if (filters.priceType === 'paid' && !acceptsFees) {
-            return false; // Afficher seulement ceux qui acceptent de payer
+          if (filters.priceType === 'paid') {
+            // Afficher seulement ceux qui acceptent de payer (acceptsCostSharing === true)
+            if (acceptsCostSharing !== true) {
+              return false;
+            }
           }
         }
       }

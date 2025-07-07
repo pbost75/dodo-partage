@@ -21,6 +21,7 @@ interface AnnouncementProps {
   publishedAt: string;
   description: string;
   price?: string;
+  acceptsCostSharing?: boolean; // Ajout du champ manquant
 }
 
 interface AnnouncementCardV2Props extends AnnouncementProps {
@@ -43,6 +44,7 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
   publishedAt,
   description,
   price,
+  acceptsCostSharing,
   searchParams = '',
 }) => {
   // Limite de caractères pour l'affichage tronqué
@@ -59,6 +61,24 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
       'Pointe-à-Pitre', 'Longoni', 'Dégrad des Cannes'
     ];
     return portCities.some(port => cityName.toLowerCase().includes(port.toLowerCase()));
+  };
+
+  // Fonction pour obtenir le texte de prix correct selon le type d'annonce
+  const getPriceText = (): string => {
+    if (type === 'offer') {
+      // Pour les offres : basé sur le champ price
+      return price ? 'Participation aux frais' : 'Gratuit';
+    } else {
+      // Pour les demandes : basé sur acceptsCostSharing
+      if (acceptsCostSharing === true) {
+        return 'Accepte participation aux frais';
+      } else if (acceptsCostSharing === false) {
+        return 'Transport gratuit souhaité';
+      } else {
+        // Fallback au cas où la valeur serait null/undefined
+        return price ? 'Participation aux frais' : 'Gratuit';
+      }
+    }
   };
 
   // Composant pour afficher une ville avec icône d'ancre si c'est un port
@@ -170,7 +190,7 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
           <div className="flex items-center justify-between">
             {/* Étiquette type d'offre discrète */}
             <span className="inline-flex items-center px-2 py-1 rounded text-xs text-gray-500 bg-gray-50">
-              {price ? 'Participation aux frais' : 'Gratuit'}
+              {getPriceText()}
             </span>
 
             {/* Auteur */}
@@ -252,7 +272,7 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
               {/* Étiquette type d'offre discrète */}
               <div className="flex items-center">
                 <span className="inline-flex items-center px-2.5 py-1 rounded text-xs text-gray-500 bg-gray-50">
-                  {price ? 'Participation aux frais' : 'Gratuit'}
+                  {getPriceText()}
                 </span>
               </div>
 
