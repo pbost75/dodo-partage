@@ -411,6 +411,26 @@ function HomePageContent() {
     setDisplayedCount(prev => Math.min(prev + 4, filteredAnnouncements.length));
   };
 
+  // Fonction pour scroller vers la section des annonces (avec délai pour mobile)
+  const scrollToAnnouncements = () => {
+    // Délai pour laisser le temps à la recherche de se terminer et à l'UI de se mettre à jour
+    setTimeout(() => {
+      if (announcementsSectionRef.current) {
+        const isMobile = window.innerWidth < 1024; // lg breakpoint
+        
+        if (isMobile) {
+          // Sur mobile, scroll avec une animation douce vers la section des annonces
+          announcementsSectionRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+          
+          console.log('📱 Auto-scroll mobile vers la section des annonces');
+        }
+      }
+    }, 300); // 300ms pour laisser le temps à l'API et à l'UI de se mettre à jour
+  };
+
   const handleSearch = (e?: React.FormEvent | React.MouseEvent) => {
     // Empêcher le comportement par défaut (refresh de page)
     if (e) {
@@ -459,6 +479,9 @@ function HomePageContent() {
     
     // Réinitialiser le nombre d'annonces affichées
     setDisplayedCount(7);
+    
+    // Auto-scroll vers la section des annonces sur mobile
+    scrollToAnnouncements();
   };
 
   const handleCreateAlert = () => {
@@ -659,7 +682,7 @@ function HomePageContent() {
       <div className="relative -mt-12 sm:-mt-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 p-3 sm:p-4 lg:p-6">
-            <div className="flex flex-col gap-4 sm:gap-4 lg:flex-row lg:gap-0">
+            <form onSubmit={handleSearch} className="flex flex-col gap-4 sm:gap-4 lg:flex-row lg:gap-0">
               {/* Départ - Mobile: carte délimitée */}
               <div className="flex-1 lg:pr-3">
                 <div className="lg:border-none border border-gray-200 rounded-lg p-3 lg:p-0">
@@ -713,12 +736,12 @@ function HomePageContent() {
                   size="md"
                   className="w-full lg:w-auto bg-[#F47D6C] hover:bg-[#e66b5a] border-0 px-6 sm:px-8 text-sm sm:text-base h-12 sm:h-auto shadow-lg"
                   onClick={handleSearch}
-                  type="button"
+                  type="submit"
                 >
                   Rechercher
                 </Button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>
