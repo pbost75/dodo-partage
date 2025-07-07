@@ -35,7 +35,7 @@ const sunflower = Sunflower({
 
 export const metadata: Metadata = {
   title: "DodoPartage - Groupage collaboratif DOM-TOM",
-  description: "Plateforme de mise en relation pour le partage de conteneurs entre la France métropolitaine et les DOM-TOM. Proposez ou cherchez de la place pour vos expéditions.",
+  description: "Trouvez ou proposez une place dans un conteneur vers La Réunion et les DOM-TOM. Plateforme 100% gratuite, sans création de compte.",
   keywords: "groupage, conteneur, DOM-TOM, Réunion, Martinique, Guadeloupe, expédition, déménagement",
   authors: [{ name: "Dodomove" }],
   icons: {
@@ -48,14 +48,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "DodoPartage - Groupage collaboratif DOM-TOM",
-    description: "Plateforme de mise en relation pour le partage de conteneurs entre la France métropolitaine et les DOM-TOM. Proposez ou cherchez de la place pour vos expéditions.",
+    description: "Trouvez ou proposez une place dans un conteneur vers La Réunion et les DOM-TOM. Plateforme 100% gratuite, sans création de compte.",
     type: "website",
     locale: "fr_FR",
     url: "https://www.dodomove.fr/partage",
     siteName: "DodoPartage",
     images: [
       {
-        url: '/images/dodopartage-og.png',
+        url: 'https://www.dodomove.fr/wp-content/uploads/2025/07/Plateforme-DodoPartage.png',
         width: 1200,
         height: 630,
         alt: 'DodoPartage - Groupage collaboratif DOM-TOM',
@@ -65,8 +65,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: "DodoPartage - Groupage collaboratif DOM-TOM",
-    description: "Plateforme de mise en relation pour le partage de conteneurs entre la France métropolitaine et les DOM-TOM",
-    images: ['/images/dodopartage-og.png'],
+    description: "Trouvez ou proposez une place dans un conteneur vers La Réunion et les DOM-TOM. Plateforme 100% gratuite, sans création de compte.",
+    images: ['https://www.dodomove.fr/wp-content/uploads/2025/07/Plateforme-DodoPartage.png'],
     site: '@dodomove',
     creator: '@dodomove',
   },
