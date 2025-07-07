@@ -690,7 +690,7 @@ function HomePageContent() {
       <div className="relative -mt-12 sm:-mt-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 p-3 sm:p-4 lg:p-6">
-            <form onSubmit={handleSearch} className="flex flex-col gap-4 sm:gap-4 lg:flex-row lg:gap-0">
+            <div className="flex flex-col gap-4 sm:gap-4 lg:flex-row lg:gap-0">
               {/* Départ - Mobile: carte délimitée */}
               <div className="flex-1 lg:pr-3">
                 <div className="lg:border-none border border-gray-200 rounded-lg p-3 lg:p-0">
@@ -749,7 +749,7 @@ function HomePageContent() {
                   Rechercher
                 </Button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
