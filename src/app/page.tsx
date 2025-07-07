@@ -1075,8 +1075,8 @@ function HomePageContent() {
                 <div className="inline-flex items-center gap-2 sm:gap-3 text-[#1a2741] text-xs sm:text-sm font-medium">
                   <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="font-sunflower font-bold">
-                    <span className="block sm:hidden">1ER COMPARATEUR DE DÉMÉNAGEMENT DOM-TOM</span>
-                    <span className="hidden sm:block">1ER COMPARATEUR DE DÉMÉNAGEMENT DOM-TOM</span>
+                    <span className="block sm:hidden">BIENTÔT DISPONIBLE</span>
+                    <span className="hidden sm:block">BIENTÔT DISPONIBLE</span>
                   </span>
                 </div>
 
