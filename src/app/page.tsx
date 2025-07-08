@@ -670,31 +670,43 @@ function HomePageContent() {
           : 'Aucune demande de place'
         }
       </h3>
-      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+      <p className="text-gray-600 mb-8 max-w-md mx-auto">
         {(() => {
           const hasFilters = appliedDeparture || appliedDestination || appliedDates.length > 0;
           if (announcementType === 'offer') {
             return hasFilters
-              ? 'Aucune offre ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
+              ? 'Aucune offre ne correspond à vos critères de recherche.'
               : 'Aucune offre de conteneur n\'est disponible pour le moment.';
           } else {
             return hasFilters
-              ? 'Aucune demande ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
+              ? 'Aucune demande ne correspond à vos critères de recherche.'
               : 'Aucune demande de place n\'est active pour le moment.';
           }
         })()}
       </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      
+      {/* CTA principaux - Priorisés */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
         <Button
           variant="primary"
           onClick={handleCreateAnnouncement}
-          className="bg-[#F47D6C] hover:bg-[#e66b5a]"
+          className="bg-[#F47D6C] hover:bg-[#e66b5a] shadow-lg"
         >
           ➕ Poster une annonce
         </Button>
-        {(appliedDeparture || appliedDestination || appliedDates.length > 0) && (
-          <Button
-            variant="outline"
+        <Button
+          variant="primary"
+          onClick={handleCreateAlert}
+          className="bg-[#243163] hover:bg-[#1e2951] shadow-lg"
+        >
+          🔔 Créer une alerte
+        </Button>
+      </div>
+      
+      {/* CTA secondaire - Moins mis en avant */}
+      {(appliedDeparture || appliedDestination || appliedDates.length > 0) && (
+        <div className="pt-4 border-t border-gray-100">
+          <button
             onClick={() => {
               // Réinitialiser tous les filtres de recherche
               setAppliedDeparture('');
@@ -713,11 +725,12 @@ function HomePageContent() {
               // Nettoyer l'URL
               router.push(`/?type=${announcementType}`, { scroll: false });
             }}
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors underline underline-offset-2"
           >
-            🔄 Réinitialiser les filtres
-          </Button>
-        )}
-      </div>
+            🔄 Ou réinitialiser les filtres pour voir toutes les annonces
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 
