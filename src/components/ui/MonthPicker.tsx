@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, ChevronDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronDown, X, ChevronLeft, ChevronRight, Check, Trash2 } from 'lucide-react';
 
 interface MonthPickerProps {
   selectedMonths: string[];
@@ -111,6 +111,28 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
     return `${firstMonth} - ${lastMonth}`;
   };
 
+  // Auto-scroll sur mobile quand le picker s'ouvre
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      // Vérifier si nous sommes sur mobile
+      const isMobile = window.innerWidth <= 768;
+      
+      if (isMobile) {
+        // Délai pour permettre au dropdown de s'afficher complètement
+        setTimeout(() => {
+          if (dropdownRef.current) {
+            // Scroll personnalisé pour centrer le picker dans la vue mobile
+            dropdownRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest'
+            });
+          }
+        }, 150); // Délai légèrement plus long pour l'animation d'ouverture
+      }
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -166,14 +188,41 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
               </div>
               <div className="bg-[#F47D6C]/10 border border-[#F47D6C]/20 rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <div className="text-[#F47D6C] font-semibold text-sm">
+                  <div className="text-[#F47D6C] font-semibold text-sm flex-1">
                     {selectedMonths.length === 1 
                       ? selectedMonths[0] 
                       : `${selectedMonths[0].split(' ')[0]} - ${selectedMonths[selectedMonths.length - 1].split(' ')[0]} ${selectedMonths[selectedMonths.length - 1].split(' ')[1]}`
                     }
                   </div>
-                  <div className="text-[#F47D6C] text-xs">
-                    {selectedMonths.length} mois
+                  <div className="flex items-center gap-2 ml-3">
+                    {/* Bouton Valider (fermer) */}
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="
+                        w-7 h-7 rounded-full 
+                        bg-[#F47D6C] hover:bg-[#e66b5a] 
+                        text-white 
+                        flex items-center justify-center
+                        transition-colors duration-150
+                      "
+                      title="Valider la sélection"
+                    >
+                      <Check className="w-3 h-3" />
+                    </button>
+                    {/* Bouton Effacer */}
+                    <button
+                      onClick={clearAll}
+                      className="
+                        w-7 h-7 rounded-full 
+                        bg-gray-300 hover:bg-gray-400 
+                        text-gray-600 hover:text-gray-700
+                        flex items-center justify-center
+                        transition-colors duration-150
+                      "
+                      title="Effacer la sélection"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
               </div>
