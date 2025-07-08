@@ -55,6 +55,11 @@ function HomePageContent() {
   // États pour le CTA alerte fixe
   const [showFixedAlert, setShowFixedAlert] = useState(false);
   
+  // 🐛 DEBUG: Observer les changements d'état
+  useEffect(() => {
+    console.log('🚨 showFixedAlert changed to:', showFixedAlert);
+  }, [showFixedAlert]);
+  
 
   
 
@@ -143,25 +148,33 @@ function HomePageContent() {
           const alertButton = alertButtonRef.current;
           const announcementsList = announcementsListRef.current;
           
-          if (!alertButton || !announcementsList) return;
+          if (!alertButton || !announcementsList) {
+            console.log('⚠️ Refs manquantes - alertButton:', !!alertButton, 'announcementsList:', !!announcementsList);
+            ticking = false;
+            return;
+          }
 
           const isMobile = window.innerWidth < 1024;
           const windowHeight = window.innerHeight;
           const listRect = announcementsList.getBoundingClientRect();
           
-          // 🎯 Conditions d'affichage avec limites de section
-          const hasReachedAnnouncements = listRect.top <= windowHeight * 0.6;
-          const hasPassedEndOfSection = listRect.bottom < windowHeight * 0.3; // Disparaît quand on dépasse trop la fin
+          // 🎯 Conditions d'affichage optimisées
+          const hasReachedAnnouncements = listRect.top <= windowHeight * 0.6; // Apparition quand on voit 60% de l'écran
+          const hasPassedEndOfSection = listRect.bottom < windowHeight * 0.4; // Disparition quand il reste moins de 40%
+          
+          // Calculs pour déterminer l'affichage de la bulle
           
           if (isMobile) {
             // Mobile: montrer dans la zone des annonces seulement
             const isBackOnTop = listRect.top > windowHeight * 0.9;
-            setShowFixedAlert(hasReachedAnnouncements && !isBackOnTop && !hasPassedEndOfSection);
+            const shouldShow = hasReachedAnnouncements && !isBackOnTop && !hasPassedEndOfSection;
+            setShowFixedAlert(shouldShow);
           } else {
             // Desktop: montrer si dans la zone des annonces ET bouton header pas visible
             const alertButtonRect = alertButton.getBoundingClientRect();
             const isHeaderButtonVisible = alertButtonRect.top > -50;
-            setShowFixedAlert(hasReachedAnnouncements && !isHeaderButtonVisible && !hasPassedEndOfSection);
+            const shouldShow = hasReachedAnnouncements && !isHeaderButtonVisible && !hasPassedEndOfSection;
+            setShowFixedAlert(shouldShow);
           }
 
 
@@ -925,6 +938,8 @@ function HomePageContent() {
         onClose={() => setIsChoiceModalOpen(false)}
         onChoice={handleChoice}
       />
+
+
 
 
 
