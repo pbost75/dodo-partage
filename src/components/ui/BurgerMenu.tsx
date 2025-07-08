@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { FaCommentDots, FaBug, FaLightbulb, FaBars, FaTimes, FaChevronRight } from 'react-icons/fa';
+import { Menu, X, ChevronRight, HelpCircle, ExternalLink, MessageCircle, Plus, AlertTriangle, Lightbulb, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface BurgerMenuProps {
@@ -83,19 +83,19 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
       title: 'Navigation',
       items: [
         {
-          icon: <span className="text-lg">📋</span>,
+          icon: <HelpCircle className="w-5 h-5 text-blue-600" />,
           label: 'Comment ça fonctionne',
           description: 'Découvrir le processus',
           action: () => handleScrollToSection('how-it-works')
         },
         {
-          icon: <span className="text-lg">🚀</span>,
+          icon: <ExternalLink className="w-5 h-5 text-purple-600" />,
           label: 'Découvrir Dodomove',
           description: 'Site principal',
           action: () => handleExternalLink('https://www.dodomove.fr')
         },
         {
-          icon: <span className="text-lg">❓</span>,
+          icon: <MessageCircle className="w-5 h-5 text-orange-600" />,
           label: 'FAQ',
           description: 'Questions fréquentes',
           action: () => handleScrollToSection('faq')
@@ -106,7 +106,7 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
       title: 'Actions',
       items: [
         {
-          icon: <span className="text-lg">➕</span>,
+          icon: <Plus className="w-5 h-5 text-green-600" />,
           label: 'Publier une annonce',
           description: 'Créer en 2 minutes',
           action: handleCreateAnnouncement,
@@ -118,19 +118,19 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
       title: 'Support',
       items: [
         {
-          icon: <FaBug className="w-4 h-4 text-gray-600" />,
+          icon: <AlertTriangle className="w-5 h-5 text-red-600" />,
           label: 'Signaler un bug',
           description: 'Rapporter un problème',
           action: () => handleExternalLink('https://dodomove.canny.io/signaler-un-bug')
         },
         {
-          icon: <FaLightbulb className="w-4 h-4 text-gray-600" />,
+          icon: <Lightbulb className="w-5 h-5 text-yellow-600" />,
           label: 'Proposer une idée',
           description: 'Suggérer une amélioration',
           action: () => handleExternalLink('https://dodomove.canny.io/proposer-une-idee')
         },
         {
-          icon: <FaCommentDots className="w-4 h-4 text-gray-600" />,
+          icon: <Mail className="w-5 h-5 text-blue-600" />,
           label: 'Nous contacter',
           description: 'Besoin d\'aide',
           action: () => handleExternalLink('https://www.dodomove.fr/contact/')
@@ -154,9 +154,9 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
         aria-expanded={isOpen}
       >
         {isOpen ? (
-          <FaTimes className="w-4 h-4" />
+          <X className="w-4 h-4" />
         ) : (
-          <FaBars className="w-4 h-4" />
+          <Menu className="w-4 h-4" />
         )}
       </button>
 
@@ -189,7 +189,7 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
                 onClick={() => setIsOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <FaTimes className="w-4 h-4 text-gray-400" />
+                <X className="w-4 h-4 text-gray-400" />
               </button>
             </div>
 
@@ -237,7 +237,7 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
                         </div>
 
                         {/* Flèche subtile */}
-                        <FaChevronRight className="w-3 h-3 text-gray-300 group-hover:text-gray-400 transition-colors" />
+                        <ChevronRight className="w-3 h-3 text-gray-300 group-hover:text-gray-400 transition-colors" />
                       </button>
                     ))}
                   </div>

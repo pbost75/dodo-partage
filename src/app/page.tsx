@@ -54,13 +54,17 @@ function HomePageContent() {
 
   // États pour le CTA alerte fixe
   const [showFixedAlert, setShowFixedAlert] = useState(false);
-  const [fixedAlertBottom, setFixedAlertBottom] = useState(24); // Position par défaut
+  
+
+  
+
 
   // Refs pour le scroll tracking
   const alertButtonRef = useRef<HTMLButtonElement>(null);
   const announcementsSectionRef = useRef<HTMLDivElement>(null);
   const announcementsListRef = useRef<HTMLDivElement>(null);
   const loadMoreButtonRef = useRef<HTMLDivElement>(null);
+  const contentContainerRef = useRef<HTMLDivElement>(null);
   const hasProcessedModalParam = useRef(false);
 
   // Fonction helper pour mettre à jour l'URL avec l'état actuel
@@ -129,88 +133,53 @@ function HomePageContent() {
     }
   }, [searchParams]);
 
-  // Gestion du CTA alerte fixe avec scroll detection
+  // Gestion simplifiée et élégante du CTA alerte fixe
   useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
+    let ticking = false;
     
     const handleScroll = () => {
-      // Throttling pour éviter les problèmes de performance avec les scrolls rapides
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        const alertButton = alertButtonRef.current;
-        const announcementsSection = announcementsSectionRef.current;
-        const announcementsList = announcementsListRef.current;
-        const loadMoreButton = loadMoreButtonRef.current;
-        
-        if (!alertButton || !announcementsSection || !announcementsList) return;
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const alertButton = alertButtonRef.current;
+          const announcementsList = announcementsListRef.current;
+          
+          if (!alertButton || !announcementsList) return;
 
-        // Vérifier si on est sur mobile
-        const isMobile = window.innerWidth < 1024; // lg breakpoint
-        
-        // Vérifier si on est dans la section listing des annonces (logique améliorée)
-        const listRect = announcementsList.getBoundingClientRect();
-        const sectionRect = announcementsSection.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        
-        // On est dans la section si :
-        // 1. On a atteint la liste (top de la liste <= 70% de l'écran)
-        // 2. ET on n'a pas dépassé la fin de la section (bottom de la section > 10% de l'écran)
-        const hasReachedList = listRect.top <= windowHeight * 0.7;
-        const hasNotPassedSection = sectionRect.bottom > windowHeight * 0.1;
-        const isInListingSection = hasReachedList && hasNotPassedSection;
-        
-        if (isMobile) {
-          // Mobile : afficher le CTA fixe seulement si on est dans la section listing
-          setShowFixedAlert(isInListingSection);
-        } else {
-          // Desktop : afficher uniquement si le CTA du haut n'est pas visible ET qu'on est dans la section listing
-          const alertButtonRect = alertButton.getBoundingClientRect();
-          const isAlertButtonVisible = alertButtonRect.top >= 0 && alertButtonRect.bottom <= window.innerHeight;
-          setShowFixedAlert(!isAlertButtonVisible && isInListingSection);
-        }
-
-        // Calculer la position bottom seulement si on affiche le CTA
-        if (isInListingSection) {
+          const isMobile = window.innerWidth < 1024;
           const windowHeight = window.innerHeight;
-          let bottomPosition = 24; // Position par défaut
-
-          if (isMobile && loadMoreButton) {
-            // Sur mobile : se positionner au-dessus du bouton "Voir plus" s'il est visible
-            const loadMoreButtonRect = loadMoreButton.getBoundingClientRect();
-            
-            if (loadMoreButtonRect.top < windowHeight && loadMoreButtonRect.top > 0) {
-              // Le bouton "Voir plus" est visible, positionner le CTA au-dessus
-              bottomPosition = windowHeight - loadMoreButtonRect.top + 16; // 16px d'espacement
-            }
+          const listRect = announcementsList.getBoundingClientRect();
+          
+          // 🎯 Conditions d'affichage avec limites de section
+          const hasReachedAnnouncements = listRect.top <= windowHeight * 0.6;
+          const hasPassedEndOfSection = listRect.bottom < windowHeight * 0.3; // Disparaît quand on dépasse trop la fin
+          
+          if (isMobile) {
+            // Mobile: montrer dans la zone des annonces seulement
+            const isBackOnTop = listRect.top > windowHeight * 0.9;
+            setShowFixedAlert(hasReachedAnnouncements && !isBackOnTop && !hasPassedEndOfSection);
           } else {
-            // Desktop ou pas de bouton "Voir plus" : s'arrêter à la fin de la section annonces
-            const announcementsSectionRect = announcementsSection.getBoundingClientRect();
-            const sectionBottom = announcementsSectionRect.bottom;
-            
-            if (sectionBottom < windowHeight) {
-              // La section est au-dessus du viewport, calculer la distance
-              const distanceFromBottom = windowHeight - sectionBottom;
-              bottomPosition = Math.max(24, distanceFromBottom + 24); // Minimum 24px
-            }
+            // Desktop: montrer si dans la zone des annonces ET bouton header pas visible
+            const alertButtonRect = alertButton.getBoundingClientRect();
+            const isHeaderButtonVisible = alertButtonRect.top > -50;
+            setShowFixedAlert(hasReachedAnnouncements && !isHeaderButtonVisible && !hasPassedEndOfSection);
           }
 
-          setFixedAlertBottom(bottomPosition);
-        }
-      }, 8); // 8ms de throttling (~120fps pour plus de réactivité)
+
+
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-
-    // Ne pas afficher par défaut, attendre le scroll
-    setShowFixedAlert(false);
-
-    // Écouter le scroll et le resize
+    
+    // Écouter les événements
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
+    window.addEventListener('resize', handleScroll, { passive: true });
     
     // Appel initial
     handleScroll();
 
     return () => {
-      clearTimeout(scrollTimeout);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
@@ -819,6 +788,7 @@ function HomePageContent() {
 
           {/* Contenu principal - droite */}
           <div className="flex-1" ref={announcementsSectionRef}>
+            <div ref={contentContainerRef}>
             {/* Header des annonces */}
             <div className="mb-6 sm:mb-8">
               {/* Titre et boutons - responsive layout */}
@@ -933,6 +903,7 @@ function HomePageContent() {
                 </Button>
               </motion.div>
             )}
+            </div>
           </div>
         </div>
       </div>
@@ -955,31 +926,48 @@ function HomePageContent() {
         onChoice={handleChoice}
       />
 
-      {/* CTA Alerte fixe - apparaît selon les conditions */}
+
+
+
+      {/* CTA Alerte fixe - EXACTEMENT la même structure que "Voir plus d'annonces" */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ 
           opacity: showFixedAlert ? 1 : 0,
-          scale: showFixedAlert ? 1 : 0.8
+          y: showFixedAlert ? 0 : 20
         }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
-        className={`fixed right-4 sm:right-6 z-40 ${showFixedAlert ? 'pointer-events-auto' : 'pointer-events-none'}`}
-        style={{ bottom: `${fixedAlertBottom}px` }}
+        transition={{ 
+          duration: 0.15, 
+          ease: 'easeOut'
+        }}
+        className={`fixed bottom-6 left-0 right-0 z-40 ${showFixedAlert ? 'pointer-events-auto' : 'pointer-events-none'}`}
       >
-        <button
-          onClick={handleCreateAlert}
-          className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-4 py-3 sm:px-5 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 sm:gap-3 relative"
-          title="Créer une alerte"
-        >
-          {/* Animation pulse pour attirer l'attention - en arrière-plan */}
-          <div className="absolute inset-0 rounded-xl bg-[#F47D6C] animate-pulse opacity-20 pointer-events-none -z-10"></div>
-          
-          <BellPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          <span className="text-sm sm:text-base font-medium text-white">
-            <span className="hidden sm:inline">Créer une alerte</span>
-            <span className="sm:hidden">Alerte</span>
-          </span>
-        </button>
+        {/* Reproduire exactement la structure du container principal */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
+            {/* Sidebar invisible - même largeur que l'original */}
+            <div className="lg:w-80 flex-shrink-0 hidden lg:block"></div>
+            
+            {/* Contenu principal - même structure que l'original */}
+            <div className="flex-1">
+              <div className="text-center px-3 sm:px-0">
+                <button
+                  onClick={handleCreateAlert}
+                  className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2 sm:gap-3 relative min-w-[200px] sm:min-w-[240px]"
+                  title="Créer une alerte"
+                >
+                  {/* Animation pulse pour attirer l'attention - en arrière-plan */}
+                  <div className="absolute inset-0 rounded-xl bg-[#F47D6C] animate-pulse opacity-20 pointer-events-none -z-10"></div>
+                  
+                  <BellPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
+                  <span className="text-sm sm:text-base font-medium text-white whitespace-nowrap">
+                    Créer une alerte
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </motion.div>
 
       {/* Section Comment ça marche */}
