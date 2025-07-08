@@ -32,6 +32,7 @@ export interface AnnouncementFilters {
   arrival?: string;
   volumeMin?: string;
   volumeMax?: string;
+  periods?: string; // Périodes sélectionnées séparées par des virgules
   status?: 'published' | 'all';
 }
 
@@ -113,6 +114,10 @@ export function useAnnouncements(initialFilters: AnnouncementFilters = {}) {
       }
       if (searchFilters.volumeMax) {
         queryParams.append('volumeMax', searchFilters.volumeMax);
+      }
+      if (searchFilters.periods) {
+        queryParams.append('periods', searchFilters.periods);
+        console.log('🗓️ Périodes transmises:', searchFilters.periods);
       }
       if (searchFilters.status) {
         queryParams.append('status', searchFilters.status);

@@ -252,114 +252,174 @@ function HomePageContent() {
 
   // Fonction pour filtrer les annonces localement (optimisation UI)
   const getFilteredAnnouncements = () => {
-    if (!announcements || announcements.length === 0) return [];
-
     return announcements.filter(announcement => {
-      // Filtre par type d'annonce (maintenant géré par le toggle)
-      if (announcement.type !== announcementType) {
-        return false;
+      console.log('🔍 Filtrage annonce:', {
+        id: announcement.id,
+        date: announcement.date,
+        year: announcement.year,
+        appliedDates,
+        type: announcement.type
+      });
+
+      // Filtre par type d'annonce
+      if (announcementType === 'offer' && announcement.type !== 'offer') return false;
+      if (announcementType === 'request' && announcement.type !== 'request') return false;
+
+      // Filtre par prix/gratuité (uniquement pour les offres)
+      if (announcementType === 'offer' && filters.priceType !== 'all') {
+        const hasPrice = announcement.price && announcement.price !== 'Prix non spécifié';
+        if (filters.priceType === 'free' && hasPrice) return false;
+        if (filters.priceType === 'paid' && !hasPrice) return false;
       }
-      
-      // Filtre par type de prix - adapter la logique selon le type d'annonce
-      if (filters.priceType !== 'all') {
-        if (announcementType === 'offer') {
-          // Pour les offres : vérifier le champ price
-          const isAnnouncementFree = !announcement.price || announcement.price === 'Gratuit';
-          if (filters.priceType === 'free' && !isAnnouncementFree) {
-            return false;
-          }
-          if (filters.priceType === 'paid' && isAnnouncementFree) {
-            return false;
-          }
-        } else if (announcementType === 'request') {
-          // Pour les demandes : vérifier acceptsCostSharing
-          // Gestion explicite des valeurs null/undefined
-          const acceptsCostSharing = announcement.acceptsCostSharing;
-          
-          if (filters.priceType === 'free') {
-            // Afficher seulement ceux qui ne veulent pas payer (acceptsCostSharing === false)
-            if (acceptsCostSharing !== false) {
-              return false;
-            }
-          }
-          if (filters.priceType === 'paid') {
-            // Afficher seulement ceux qui acceptent de payer (acceptsCostSharing === true)
-            if (acceptsCostSharing !== true) {
-              return false;
-            }
-          }
+
+      // Filtre par volume minimum (uniquement pour les offres)
+      if (announcementType === 'offer' && filters.minVolume !== 'all') {
+        const volumeMatch = announcement.volume.match(/(\d+(?:\.\d+)?)/);
+        if (volumeMatch) {
+          const announcementVolume = parseFloat(volumeMatch[1]);
+          const minVolumeFilter = parseFloat(filters.minVolume);
+          if (announcementVolume < minVolumeFilter) return false;
         }
       }
 
-      // Filtre par volume minimum
-      if (filters.minVolume !== 'all') {
-        const volumeNum = parseFloat(announcement.volume.replace(' m³', ''));
-        const minVolumeRequired = parseFloat(filters.minVolume);
-        
-        if (volumeNum < minVolumeRequired) {
-          return false;
-        }
-      }
-
-      // Filtre par départ appliqué (avec normalisation)
+      // Filtre par lieu de départ
       if (appliedDeparture) {
+        const normalizedAppliedDeparture = normalizeLocation(appliedDeparture);
         const normalizedAnnouncementDeparture = normalizeLocation(announcement.departure);
         const normalizedAnnouncementDepartureCity = normalizeLocation(announcement.departureCity);
-        const departureMatch = 
-          normalizedAnnouncementDeparture.includes(appliedDeparture) ||
-          normalizedAnnouncementDepartureCity.includes(appliedDeparture);
+        
+        const departureMatch = normalizedAnnouncementDeparture.includes(normalizedAppliedDeparture) ||
+          normalizedAnnouncementDepartureCity.includes(normalizedAppliedDeparture);
         if (!departureMatch) return false;
       }
 
-      // Filtre par destination appliquée (avec normalisation)
+      // Filtre par lieu d'arrivée
       if (appliedDestination) {
+        const normalizedAppliedDestination = normalizeLocation(appliedDestination);
         const normalizedAnnouncementArrival = normalizeLocation(announcement.arrival);
         const normalizedAnnouncementArrivalCity = normalizeLocation(announcement.arrivalCity);
-        const destinationMatch = 
-          normalizedAnnouncementArrival.includes(appliedDestination) ||
-          normalizedAnnouncementArrivalCity.includes(appliedDestination);
+        
+        const destinationMatch = normalizedAnnouncementArrival.includes(normalizedAppliedDestination) ||
+          normalizedAnnouncementArrivalCity.includes(normalizedAppliedDestination);
         if (!destinationMatch) return false;
       }
 
-      // Filtre par dates appliquées (période sélectionnée)
+      // Filtre par dates appliquées (période sélectionnée) - CORRIGÉ
       if (appliedDates.length > 0) {
-        // L'annonce a une date de shipping au format variable selon le type
-        const announcementDate = announcement.date;
+        console.log('🗓️ Filtrage par période:', {
+          appliedDates,
+          announcementDate: announcement.date,
+          announcementYear: announcement.year,
+          announcementType: announcement.type
+        });
         
-        // Gestion différente selon le type d'annonce
-        if (announcementType === 'offer') {
-          // Pour les offres : format "18 décembre 2025"
-          const dateMatch = announcementDate.match(/(\d{1,2})\s+([a-zA-Zàâäéèêëïîôöùûüÿç]+)\s+(\d{4})/);
-          if (dateMatch) {
-            const [, day, monthName, year] = dateMatch;
+        if (announcement.type === 'offer') {
+          // Pour les offres : on a une date précise au format "18 Déc" + année séparée
+          if (announcement.year) {
+            // Créer les mois sélectionnés au format "Mois Année"
+            const selectedMonthsYears = appliedDates.map(dateStr => {
+              const [month, year] = dateStr.split(' ');
+              return { month, year };
+            });
             
-            // Mapping des noms de mois français
-            const monthsMap: Record<string, string> = {
-              'janvier': 'Janvier', 'février': 'Février', 'mars': 'Mars', 'avril': 'Avril',
-              'mai': 'Mai', 'juin': 'Juin', 'juillet': 'Juillet', 'août': 'Août',
-              'septembre': 'Septembre', 'octobre': 'Octobre', 'novembre': 'Novembre', 'décembre': 'Décembre'
+            // Extraire le mois de la date de l'annonce "18 Déc" -> "Décembre"
+            const monthAbbreviations: Record<string, string> = {
+              'Jan': 'Janvier', 'Fév': 'Février', 'Mar': 'Mars', 'Avr': 'Avril',
+              'Mai': 'Mai', 'Jui': 'Juin', 'Juil': 'Juillet', 'Aoû': 'Août',
+              'Sep': 'Septembre', 'Oct': 'Octobre', 'Nov': 'Novembre', 'Déc': 'Décembre'
             };
             
-            const normalizedMonth = monthsMap[monthName.toLowerCase()];
-            if (normalizedMonth) {
-              const announcementMonthYear = `${normalizedMonth} ${year}`;
+            // Parser la date "18 Déc" pour extraire le mois
+            const dateMatch = announcement.date.match(/\d+\s+([A-Za-zàâäéèêëïîôöùûüÿç]+)/);
+            if (dateMatch) {
+              const monthAbbr = dateMatch[1];
+              const fullMonth = monthAbbreviations[monthAbbr];
               
-              // Vérifier si ce mois/année est dans la période sélectionnée
-              const dateMatches = appliedDates.includes(announcementMonthYear);
-              if (!dateMatches) return false;
+              if (fullMonth && announcement.year) {
+                // Vérifier si le mois/année de l'annonce correspond à la sélection
+                const dateMatches = selectedMonthsYears.some(selected => 
+                  selected.month === fullMonth && selected.year === announcement.year
+                );
+                
+                console.log('🗓️ Comparaison offre:', {
+                  announcementMonth: fullMonth,
+                  announcementYear: announcement.year,
+                  selectedMonthsYears,
+                  dateMatches
+                });
+                
+                if (!dateMatches) return false;
+              } else {
+                console.warn('🗓️ Impossible de parser la date offre:', announcement.date);
+                return false;
+              }
+            } else {
+              console.warn('🗓️ Format de date offre non reconnu:', announcement.date);
+              return false;
             }
+          } else {
+            console.warn('🗓️ Pas d\'année pour l\'offre:', announcement);
+            return false;
           }
-        } else if (announcementType === 'request') {
-          // Pour les demandes : peut avoir un format de période flexible
-          // On vérifie si la période de la demande correspond à au moins un des mois sélectionnés
-          const hasDateMatch = appliedDates.some(selectedDate => 
-            announcementDate.toLowerCase().includes(selectedDate.toLowerCase())
+        } else if (announcement.type === 'request') {
+          // Pour les demandes : on a une période formatée comme "Septembre - Octobre 2025"
+          // ou "Période flexible"
+          
+          if (announcement.date === 'Période flexible') {
+            // Si période flexible, on l'affiche toujours
+            console.log('🗓️ Période flexible détectée, annonce incluse');
+            return true;
+          }
+          
+          // Parser la période de la demande pour extraire les mois
+          let requestMonths: string[] = [];
+          
+          // Format "Septembre - Octobre 2025" ou "Septembre 2025"
+          const periodMatch = announcement.date.match(/([A-Za-zàâäéèêëïîôöùûüÿç]+)(?:\s*-\s*([A-Za-zàâäéèêëïîôöùûüÿç]+))?\s+(\d{4})/);
+          if (periodMatch) {
+            const [, startMonth, endMonth, year] = periodMatch;
+            
+            if (endMonth) {
+              // Période avec plusieurs mois "Septembre - Octobre 2025"
+              const monthsOrder = [
+                'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+              ];
+              
+              const startIndex = monthsOrder.indexOf(startMonth);
+              const endIndex = monthsOrder.indexOf(endMonth);
+              
+              if (startIndex !== -1 && endIndex !== -1) {
+                for (let i = startIndex; i <= endIndex; i++) {
+                  requestMonths.push(`${monthsOrder[i]} ${year}`);
+                }
+              }
+            } else {
+              // Mois unique "Septembre 2025"
+              requestMonths.push(`${startMonth} ${year}`);
+            }
+          } else {
+            console.warn('🗓️ Format de période request non reconnu:', announcement.date);
+            // En cas de format non reconnu, on inclut l'annonce pour éviter de la masquer
+            return true;
+          }
+          
+          // Vérifier si au moins un mois de la demande correspond à la sélection
+          const hasDateMatch = requestMonths.some(requestMonth => 
+            appliedDates.includes(requestMonth)
           );
+          
+          console.log('🗓️ Comparaison request:', {
+            requestMonths,
+            appliedDates,
+            hasDateMatch
+          });
+          
           if (!hasDateMatch) return false;
         }
       }
 
-    return true;
+      return true;
     });
   };
 
@@ -467,6 +527,7 @@ function HomePageContent() {
     applyFilters({
       departure: normalizedDeparture,
       arrival: normalizedDestination,
+      periods: searchDates.length > 0 ? searchDates.join(',') : '',
       status: 'published'
     });
     

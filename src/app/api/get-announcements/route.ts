@@ -288,9 +288,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const volumeMin = searchParams.get('volumeMin') || '';
     const volumeMax = searchParams.get('volumeMax') || '';
     const status = searchParams.get('status') || 'published'; // published, all
+    const periods = searchParams.get('periods') || ''; // Nouveau : périodes sélectionnées
 
     console.log('🔍 Paramètres de filtrage:', {
-      type, departure, arrival, volumeMin, volumeMax, status
+      type, departure, arrival, volumeMin, volumeMax, status, periods
     });
 
     // Appel au backend centralisé
@@ -300,7 +301,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ...(departure && { departure }),
       ...(arrival && { arrival }),
       ...(volumeMin && { volumeMin }),
-      ...(volumeMax && { volumeMax })
+      ...(volumeMax && { volumeMax }),
+      ...(periods && { periods }) // Transmettre les périodes au backend
     });
 
     const response = await fetch(`${backendUrl}/api/partage/get-announcements?${queryParams}`, {

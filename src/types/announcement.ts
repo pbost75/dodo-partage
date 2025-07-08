@@ -67,6 +67,8 @@ export interface CreateAnnouncementData {
  */
 export interface AnnouncementFilters {
   type?: AnnouncementType;
+  departure?: string;
+  arrival?: string;
   departureCountry?: string;
   arrivalCountry?: string;
   minVolume?: number;
@@ -74,8 +76,10 @@ export interface AnnouncementFilters {
   volumeUnit?: VolumeUnit;
   dateFrom?: Date;
   dateTo?: Date;
+  periods?: string; // Périodes sélectionnées séparées par des virgules
   objectTypes?: string;
   hasPrice?: boolean;
+  status?: string;
 }
 
 /**
