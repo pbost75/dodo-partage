@@ -291,18 +291,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
         </div>
       </div>
 
-      {/* Bouton recherche - différent selon mobile/desktop */}
-      {isMobile ? (
-        <div className="mt-6">
-          <button 
-            onClick={onMobileClose}
-            className="w-full p-4 bg-gradient-to-r from-[#F47D6C] to-[#e66b5a] text-white font-semibold rounded-xl hover:from-[#e66b5a] hover:to-[#d65a47] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-3"
-          >
-            <span>👁️</span>
-            <span>Voir les annonces</span>
-          </button>
-        </div>
-      ) : null}
+      {/* CTA mobile retiré - maintenant géré en position fixe depuis le parent */}
     </div>
   );
 };

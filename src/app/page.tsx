@@ -742,14 +742,14 @@ function HomePageContent() {
           {/* Sidebar filtres - gauche */}
           <div className={`lg:w-80 flex-shrink-0 ${isMobileFiltersOpen ? 'fixed inset-0 z-50 lg:relative lg:inset-auto' : 'hidden lg:block'}`}>
             <div className="lg:sticky lg:top-6">
-              {/* Overlay mobile avec animation */}
+              {/* Overlay mobile avec animation - opacité réduite */}
               {isMobileFiltersOpen && (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="fixed inset-0 bg-black bg-opacity-50 lg:hidden" 
+                  className="fixed inset-0 bg-black bg-opacity-20 lg:hidden" 
                   onClick={() => setIsMobileFiltersOpen(false)} 
                 />
               )}
@@ -776,10 +776,10 @@ function HomePageContent() {
                     stiffness: 300,
                     duration: 0.4
                   }}
-                  className="lg:hidden fixed top-0 right-0 h-full w-96 max-w-[90vw] bg-white overflow-y-auto shadow-2xl"
+                  className="lg:hidden fixed top-0 right-0 h-full w-96 max-w-[90vw] bg-white shadow-2xl flex flex-col"
                 >
                   {/* Header mobile avec bouton fermer */}
-                  <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+                  <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 bg-white flex-shrink-0">
                     <h3 className="text-xl font-semibold text-gray-900">Filtres</h3>
                     <button
                       onClick={() => setIsMobileFiltersOpen(false)}
@@ -789,13 +789,25 @@ function HomePageContent() {
                     </button>
                   </div>
                   
-                  <div className="p-6">
+                  {/* Contenu des filtres - scrollable */}
+                  <div className="flex-1 overflow-y-auto p-6">
                     <FilterSection 
                       isMobile={true} 
                       onMobileClose={() => setIsMobileFiltersOpen(false)} 
                       onFiltersChange={handleFiltersChange}
                       filters={filters}
                     />
+                  </div>
+
+                  {/* CTA fixe en bas */}
+                  <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-white">
+                    <button 
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="w-full p-4 bg-gradient-to-r from-[#F47D6C] to-[#e66b5a] text-white font-semibold rounded-xl hover:from-[#e66b5a] hover:to-[#d65a47] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-3"
+                    >
+                      <span>👁️</span>
+                      <span>Voir les annonces</span>
+                    </button>
                   </div>
                 </motion.div>
               )}
