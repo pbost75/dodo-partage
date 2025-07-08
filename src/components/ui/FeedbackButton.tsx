@@ -146,16 +146,14 @@ export default function FeedbackButton({
           aria-label="Feedback • Contactez-nous ou signalez un problème"
         >
           <div className="flex flex-col items-center justify-center gap-1">
-            <div className="flex items-center gap-1">
-              {getIcon('contact')}
-              <FaChevronLeft className={`w-2 h-2 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-            </div>
+            <FaChevronLeft className={`w-2 h-2 transition-transform duration-300 mb-1 ${isExpanded ? 'rotate-180' : ''}`} />
             <span 
-              className="text-[9px] font-bold tracking-wide leading-none"
+              className="text-[9px] font-bold tracking-wider leading-none"
               style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
             >
               FEEDBACK
             </span>
+            {getIcon('contact')}
           </div>
         </button>
       </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, X, ChevronRight, HelpCircle, ExternalLink, MessageCircle, Plus, AlertTriangle, Lightbulb, Mail } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useSmartRouter } from '@/utils/navigation';
 
 interface BurgerMenuProps {
   className?: string;
@@ -13,7 +13,6 @@ interface MenuItem {
   label: string;
   description: string;
   action: () => void;
-  highlight?: boolean;
 }
 
 interface MenuSection {
@@ -23,7 +22,7 @@ interface MenuSection {
 
 export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
+  const smartRouter = useSmartRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Fermer le menu quand on clique en dehors
@@ -74,7 +73,7 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
   };
 
   const handleCreateAnnouncement = () => {
-    router.push('/funnel-choice/propose');
+    smartRouter.push('/funnel/propose/locations');
     setIsOpen(false);
   };
 
@@ -83,34 +82,22 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
       title: 'Navigation',
       items: [
         {
-          icon: <HelpCircle className="w-5 h-5 text-blue-600" />,
+          icon: <HelpCircle className="w-5 h-5 text-gray-600" />,
           label: 'Comment ça fonctionne',
           description: 'Découvrir le processus',
           action: () => handleScrollToSection('how-it-works')
         },
         {
-          icon: <ExternalLink className="w-5 h-5 text-purple-600" />,
+          icon: <ExternalLink className="w-5 h-5 text-gray-600" />,
           label: 'Découvrir Dodomove',
-          description: 'Site principal',
+          description: 'Devis déménagement',
           action: () => handleExternalLink('https://www.dodomove.fr')
         },
         {
-          icon: <MessageCircle className="w-5 h-5 text-orange-600" />,
+          icon: <MessageCircle className="w-5 h-5 text-gray-600" />,
           label: 'FAQ',
           description: 'Questions fréquentes',
           action: () => handleScrollToSection('faq')
-        }
-      ]
-    },
-    {
-      title: 'Actions',
-      items: [
-        {
-          icon: <Plus className="w-5 h-5 text-green-600" />,
-          label: 'Publier une annonce',
-          description: 'Créer en 2 minutes',
-          action: handleCreateAnnouncement,
-          highlight: true
         }
       ]
     },
@@ -183,7 +170,6 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
-                <p className="text-sm text-gray-500">Navigation & actions</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -210,13 +196,12 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
                       <button
                         key={itemIndex}
                         onClick={item.action}
-                        className={`
+                        className="
                           w-full px-6 py-3 text-left
                           hover:bg-gray-50 
                           flex items-center gap-3 
                           transition-colors duration-150 group
-                          ${item.highlight ? 'bg-blue-50 border-r-2 border-blue-500' : ''}
-                        `}
+                        "
                       >
                         {/* Icône */}
                         <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
@@ -225,10 +210,7 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
 
                         {/* Contenu */}
                         <div className="flex-1 min-w-0">
-                          <div className={`
-                            font-medium text-gray-900
-                            ${item.highlight ? 'text-blue-900' : ''}
-                          `}>
+                          <div className="font-medium text-gray-900">
                             {item.label}
                           </div>
                           <div className="text-sm text-gray-500">
@@ -243,6 +225,24 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* CTA Principal */}
+            <div className="border-t border-gray-100 p-6">
+              <button
+                onClick={handleCreateAnnouncement}
+                className="
+                  w-full bg-[#F47D6C] hover:bg-[#e66b5a] 
+                  text-white font-medium
+                  px-6 py-4 rounded-xl
+                  shadow-lg hover:shadow-xl
+                  transition-all duration-200
+                  flex items-center justify-center gap-3
+                "
+              >
+                <Plus className="w-5 h-5" />
+                <span>Publier une annonce</span>
+              </button>
             </div>
 
             {/* Footer simple */}
