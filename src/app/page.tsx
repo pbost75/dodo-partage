@@ -1287,8 +1287,8 @@ function HomePageContent() {
         <DeletedNotificationWrapper />
       </Suspense>
 
-      {/* Bouton de feedback flottant */}
-      <FeedbackButton type="floating" variant="general" />
+      {/* Languette de feedback sur le côté droit */}
+      <FeedbackButton type="tab" variant="general" />
     </div>
   );
 }
