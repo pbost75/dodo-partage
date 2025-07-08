@@ -79,7 +79,18 @@ export default function TestEmbeddedBrowsersPage() {
     const apiTests = [
       { name: 'Backend Connection', path: '/api/test-backend' },
       { name: 'Get Announcements', path: '/api/get-announcements' },
-      { name: 'Create Alert', path: '/api/create-alert', method: 'POST', data: { test: true } },
+      { 
+        name: 'Create Alert (test)', 
+        path: '/api/create-alert', 
+        method: 'POST', 
+        data: {
+          type: 'request',
+          departure: 'Paris, France',
+          arrival: 'Fort-de-France, Martinique',
+          volume_min: 2,
+          email: 'test-embedded-browser@dodomove.fr'
+        }
+      },
     ];
 
     const results = [];
