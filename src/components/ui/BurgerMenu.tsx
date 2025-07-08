@@ -114,13 +114,13 @@ export default function BurgerMenu({ className = '', onCreateAnnouncement }: Bur
           icon: <AlertTriangle className="w-5 h-5 text-red-600" />,
           label: 'Signaler un bug',
           description: 'Rapporter un problème',
-          action: () => handleExternalLink('https://dodomove.canny.io/signaler-un-bug')
+          action: () => handleExternalLink('https://dodomove.canny.io/signaler-un-bug/create')
         },
         {
           icon: <Lightbulb className="w-5 h-5 text-yellow-600" />,
           label: 'Proposer une idée',
           description: 'Suggérer une amélioration',
-          action: () => handleExternalLink('https://dodomove.canny.io/proposer-une-idee')
+          action: () => handleExternalLink('https://dodomove.canny.io/proposer-une-idee/create')
         },
         {
           icon: <Mail className="w-5 h-5 text-blue-600" />,

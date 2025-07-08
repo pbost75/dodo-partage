@@ -27,8 +27,8 @@ export default function FeedbackButton({
   const handleFeedback = (feedbackType?: 'bug' | 'feature' | 'contact') => {
     // URLs spécifiques par type de feedback
     const feedbackUrls = {
-      bug: 'https://dodomove.canny.io/signaler-un-bug',
-      feature: 'https://dodomove.canny.io/proposer-une-idee', 
+          bug: 'https://dodomove.canny.io/signaler-un-bug/create',
+    feature: 'https://dodomove.canny.io/proposer-une-idee/create', 
       contact: 'https://www.dodomove.fr/contact/'
     };
     
