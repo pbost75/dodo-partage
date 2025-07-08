@@ -19,7 +19,7 @@ export async function GET() {
     console.log('📤 Test de connexion vers:', backendUrl);
 
     // Test de connexion au backend centralisé
-    const response = await fetch(`${backendUrl}/api/partage/test-alerts`, {
+    const response = await fetch(`${backendUrl}/api/partage/test`, {
       method: 'GET',
       headers: {
         'X-Frontend-Source': 'dodo-partage',
