@@ -215,8 +215,8 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
 
   if (!isOpen) return null;
 
-  // Hauteur adaptative selon l'écran
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  // Hauteur fixe optimisée pour tous les états
+  const modalHeight = 630; // Hauteur fixe réduite mais suffisante pour dropdowns + email + bouton
 
   return (
     <AnimatePresence>
@@ -224,7 +224,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 md:p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
         onClick={resetAndClose}
       >
         <motion.div
@@ -233,15 +233,9 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
           exit={{ scale: 0.9, opacity: 0 }}
           className="bg-white rounded-2xl w-full max-w-md md:max-w-2xl shadow-2xl overflow-hidden"
           style={{
-            // Hauteur adaptative : maxHeight seulement sur mobile, hauteur fixe sur desktop
-            ...(isMobile ? {
-              maxHeight: '85vh', // Plus de marge sur mobile
-              minHeight: '400px'
-            } : {
-              height: '600px',
-              maxHeight: '90vh',
-              minHeight: '500px'
-            })
+            height: `${modalHeight}px`,
+            maxHeight: '90vh',
+            minHeight: '500px' // Hauteur minimale garantie
           }}
           onClick={e => e.stopPropagation()}
         >
@@ -249,7 +243,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
             {step === 'form' ? (
               <>
                 {/* Header optimisé mobile */}
-                <div className="border-b border-gray-100 p-3 md:p-6 flex justify-between items-start flex-shrink-0">
+                <div className="border-b border-gray-100 p-4 md:p-6 flex justify-between items-start flex-shrink-0">
                   <div className="flex-1 pr-2">
                     <h2 className="text-lg md:text-xl font-bold text-blue-900 font-['Roboto_Slab']">
                       Créer une alerte
@@ -267,9 +261,9 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                  <form onSubmit={handleSubmit} className="p-3 md:p-6 space-y-3 md:space-y-6 h-full">
+                  <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4 md:space-y-6 h-full">
                     {/* Formulaire progressif hybride */}
-                                          <div className="bg-gray-50 rounded-xl p-3 md:p-6">
+                    <div className="bg-gray-50 rounded-xl p-4 md:p-6">
                       <div className="space-y-4">
                         {/* Construction progressive de la phrase */}
                         <div className="text-lg leading-relaxed text-gray-800 space-y-1">
@@ -461,7 +455,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
               </>
             ) : (
               /* Success State optimisé mobile */
-              <div className="text-center p-4 md:p-8 flex-1 flex flex-col justify-center">
+              <div className="text-center p-6 md:p-8 flex-1 flex flex-col justify-center">
                 <div className="w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                   <Check className="w-8 h-8 md:w-10 md:h-10 text-green-600" />
                 </div>
@@ -472,7 +466,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
                   Vous recevrez un email dès qu'une nouvelle annonce correspondra à vos critères.
                 </p>
                 
-                <div className="bg-gray-50 rounded-xl p-3 mb-3 md:p-4 md:mb-6 text-left">
+                <div className="bg-gray-50 rounded-xl p-4 mb-4 md:mb-6 text-left">
                   <p className="font-medium text-gray-800 mb-2 text-sm md:text-base">
                     Alerte configurée pour les personnes qui {formData.type === 'offer' ? 'proposent' : 'cherchent'} de la place
                     {formData.departure && ` depuis ${locations.find(l => l.value === formData.departure)?.label}`}
