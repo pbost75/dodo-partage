@@ -89,6 +89,17 @@ function HomePageContent() {
     if (filtersToUse.minVolume !== 'all') params.set('minVolume', filtersToUse.minVolume);
     
     const url = params.toString() ? `/?${params.toString()}` : '/';
+    
+    // 🔥 CORRECTION PROXY : Sauvegarder les paramètres dans sessionStorage pour les préserver
+    if (typeof window !== 'undefined') {
+      if (params.toString()) {
+        sessionStorage.setItem('dodopartage_search_params', params.toString());
+        console.log('🔄 Paramètres sauvés dans sessionStorage:', params.toString());
+      } else {
+        sessionStorage.removeItem('dodopartage_search_params');
+      }
+    }
+    
     router.push(url, { scroll: false });
   };
 

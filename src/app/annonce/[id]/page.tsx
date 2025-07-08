@@ -166,11 +166,25 @@ export default function AnnouncementDetailPage() {
   // Fonction intelligente pour le retour
   const handleBackNavigation = () => {
     const params = searchParams.toString();
-    if (params) {
+    
+    // 🔥 CORRECTION PROXY : Utiliser sessionStorage comme fallback
+    let finalParams = params;
+    if (!params && typeof window !== 'undefined') {
+      const savedParams = sessionStorage.getItem('dodopartage_search_params');
+      if (savedParams) {
+        finalParams = savedParams;
+        console.log('🔄 Paramètres récupérés depuis sessionStorage:', savedParams);
+      }
+    }
+    
+    if (finalParams) {
       // Si on a des paramètres de recherche, retourner à la page d'accueil avec ces paramètres
-      router.push(`/?${params}`);
+      // CORRECTION : useSmartRouter gère automatiquement le contexte proxy
+      router.push(`/?${finalParams}`);
+      console.log('🚀 Navigation retour avec paramètres:', finalParams);
     } else {
       // Sinon, utiliser le retour historique classique
+      console.log('🚀 Navigation retour historique classique');
       router.back();
     }
   };

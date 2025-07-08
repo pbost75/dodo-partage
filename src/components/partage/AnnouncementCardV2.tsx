@@ -116,10 +116,18 @@ const AnnouncementCardV2: React.FC<AnnouncementCardV2Props> = ({
     ? `${basePath}?${searchParams}`
     : basePath;
 
+  // 🔥 CORRECTION PROXY : Sauvegarder les paramètres au clic pour garantir leur préservation
+  const handleAnnouncementClick = () => {
+    if (searchParams && typeof window !== 'undefined') {
+      sessionStorage.setItem('dodopartage_search_params', searchParams);
+      console.log('🔄 Paramètres sauvés au clic sur l\'annonce:', searchParams);
+    }
+  };
+
   const IconComponent = getIcon();
 
   return (
-    <Link href={createHref(detailUrl)} className="block">
+    <Link href={createHref(detailUrl)} className="block" onClick={handleAnnouncementClick}>
       <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 p-4 sm:p-6 cursor-pointer">
         {/* Version Mobile Optimisée */}
         <div className="sm:hidden">
