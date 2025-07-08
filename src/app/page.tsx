@@ -366,6 +366,9 @@ function HomePageContent() {
   const filteredAnnouncements = getFilteredAnnouncements();
   const displayedAnnouncements = filteredAnnouncements.slice(0, displayedCount);
   const hasMoreAnnouncements = filteredAnnouncements.length > displayedCount;
+  
+  // Détermine si on doit afficher l'état vide (prend en compte les filtres locaux)
+  const shouldShowEmptyState = !loading && !error && filteredAnnouncements.length === 0;
 
   const handleFiltersChange = (newFilters: FilterState) => {
     console.log('🔧 Changement de filtres:', newFilters);
@@ -572,10 +575,7 @@ function HomePageContent() {
           onClick={handleCreateAnnouncement}
           className="bg-[#F47D6C] hover:bg-[#e66b5a]"
         >
-          {announcementType === 'offer' 
-            ? '➕ Proposer un conteneur' 
-            : '➕ Créer une demande'
-          }
+          ➕ Poster une annonce
         </Button>
         {(appliedDeparture || appliedDestination || appliedDates.length > 0) && (
           <Button
@@ -895,7 +895,7 @@ function HomePageContent() {
               <LoadingState />
             ) : error ? (
               <ErrorState />
-            ) : isEmpty ? (
+            ) : shouldShowEmptyState ? (
               <EmptyState />
             ) : (
               <div ref={announcementsListRef} className="space-y-4 sm:space-y-6">
