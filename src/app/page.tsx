@@ -628,7 +628,7 @@ function HomePageContent() {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-4">
-              <BurgerMenu />
+              <BurgerMenu onCreateAnnouncement={handleCreateAnnouncement} />
             </div>
           </div>
 

@@ -6,6 +6,7 @@ import { useSmartRouter } from '@/utils/navigation';
 
 interface BurgerMenuProps {
   className?: string;
+  onCreateAnnouncement?: () => void;
 }
 
 interface MenuItem {
@@ -20,7 +21,7 @@ interface MenuSection {
   items: MenuItem[];
 }
 
-export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
+export default function BurgerMenu({ className = '', onCreateAnnouncement }: BurgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const smartRouter = useSmartRouter();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -73,7 +74,12 @@ export default function BurgerMenu({ className = '' }: BurgerMenuProps) {
   };
 
   const handleCreateAnnouncement = () => {
-    smartRouter.push('/funnel/propose/locations');
+    if (onCreateAnnouncement) {
+      onCreateAnnouncement();
+    } else {
+      // Fallback : redirection directe si pas de callback fourni
+      smartRouter.push('/funnel/propose/locations');
+    }
     setIsOpen(false);
   };
 
