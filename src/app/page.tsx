@@ -55,6 +55,9 @@ function HomePageContent() {
   // États pour le CTA alerte fixe
   const [showFixedAlert, setShowFixedAlert] = useState(false);
   
+  // Calculer le nombre de filtres actifs pour l'indicateur visuel
+  const activeFilterCount = (filters.minVolume !== 'all' ? 1 : 0) + (filters.priceType !== 'all' ? 1 : 0);
+  
   // 🐛 DEBUG: Observer les changements d'état
   useEffect(() => {
     console.log('🚨 showFixedAlert changed to:', showFixedAlert);
@@ -864,10 +867,25 @@ function HomePageContent() {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsMobileFiltersOpen(true)}
-                  className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-[#F47D6C]/30 hover:text-[#F47D6C] transition-all duration-200 shadow-sm"
+                  className={`lg:hidden inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200 shadow-sm rounded-xl relative ${
+                    activeFilterCount > 0
+                      ? 'text-[#F47D6C] bg-[#F47D6C]/5 border-2 border-[#F47D6C]/30 hover:bg-[#F47D6C]/10 hover:border-[#F47D6C]/50'
+                      : 'text-gray-600 bg-white border-2 border-gray-200 hover:bg-gray-50 hover:border-[#F47D6C]/30 hover:text-[#F47D6C]'
+                  }`}
                 >
                   <Filter className="w-4 h-4" />
                   <span>Filtres</span>
+                  {/* Badge indicateur de filtres actifs */}
+                  {activeFilterCount > 0 && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-[#F47D6C] text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md"
+                    >
+                      {activeFilterCount}
+                    </motion.div>
+                  )}
                 </motion.button>
               </div>
             </div>
