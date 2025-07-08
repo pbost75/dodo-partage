@@ -79,6 +79,7 @@ export default function TestEmbeddedBrowsersPage() {
     const apiTests = [
       { name: 'Backend Connection', path: '/api/test-backend' },
       { name: 'Get Announcements', path: '/api/get-announcements' },
+      { name: 'Test Email Alerts', path: '/api/test-email-alerts' },
       { 
         name: 'Create Alert (test)', 
         path: '/api/create-alert', 
@@ -91,6 +92,7 @@ export default function TestEmbeddedBrowsersPage() {
           email: 'test-embedded-browser@dodomove.fr'
         }
       },
+      { name: 'Create Alert Info (GET)', path: '/api/create-alert', method: 'GET' },
     ];
 
     const results = [];
@@ -113,6 +115,22 @@ export default function TestEmbeddedBrowsersPage() {
         
         const duration = Date.now() - startTime;
         
+        // Essayer de récupérer le contenu de la réponse pour le debug
+        let responseData = null;
+        try {
+          const responseText = await response.text();
+          if (responseText) {
+            try {
+              responseData = JSON.parse(responseText);
+            } catch (parseError) {
+              // Si on ne peut pas parser en JSON, garder le texte brut
+              responseData = responseText;
+            }
+          }
+        } catch (textError) {
+          responseData = 'Erreur lors de la lecture de la réponse';
+        }
+        
         const result = {
           name: test.name,
           success: response.ok,
@@ -120,6 +138,7 @@ export default function TestEmbeddedBrowsersPage() {
           statusText: response.statusText,
           duration: `${duration}ms`,
           headers: Object.fromEntries(response.headers.entries()),
+          responseData,
         };
         
         results.push(result);
@@ -286,6 +305,14 @@ export default function TestEmbeddedBrowsersPage() {
                       {result.status && <p>Status: {result.status} {result.statusText}</p>}
                       {result.duration && <p>Durée: {result.duration}</p>}
                       {result.error && <p className="text-red-600">Erreur: {result.error}</p>}
+                      {result.responseData && (
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-blue-600">Voir détails de la réponse</summary>
+                          <pre className="mt-1 p-2 bg-gray-100 rounded text-xs overflow-x-auto">
+                            {JSON.stringify(result.responseData, null, 2)}
+                          </pre>
+                        </details>
+                      )}
                     </div>
                   </div>
                 ))}
