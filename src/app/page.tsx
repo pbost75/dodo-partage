@@ -103,6 +103,27 @@ function HomePageContent() {
     router.push(url, { scroll: false });
   };
 
+  // 🔥 CORRECTION PROXY : Hook d'initialisation au montage pour récupérer sessionStorage
+  useEffect(() => {
+    // Ne s'exécuter qu'une seule fois au montage
+    if (typeof window !== 'undefined') {
+      const savedParams = sessionStorage.getItem('dodopartage_search_params');
+      if (savedParams) {
+        console.log('🚀 Initialisation : Paramètres disponibles dans sessionStorage:', savedParams);
+        
+        // Vérifier si l'URL actuelle est vide et que sessionStorage a des paramètres
+        const currentParams = window.location.search;
+        if (!currentParams || currentParams === '') {
+          console.log('🔄 URL vide au montage, application des paramètres sessionStorage');
+          const newUrl = `/?${savedParams}`;
+          router.replace(newUrl);
+        }
+      } else {
+        console.log('🔍 Initialisation : Aucun paramètre dans sessionStorage');
+      }
+    }
+  }, []); // Hook qui ne s'exécute qu'au montage
+
   // CORRECTION : Séparer la gestion du modal dans un useEffect séparé
   useEffect(() => {
     const modalParam = searchParams.get('modal');
@@ -122,12 +143,34 @@ function HomePageContent() {
 
   // CORRECTION : useEffect séparé pour la restauration d'état (sans modification d'URL)
   useEffect(() => {
-    const departure = searchParams.get('departure') || '';
-    const destination = searchParams.get('destination') || '';
-    const dates = searchParams.get('dates') ? searchParams.get('dates')!.split(',') : [];
-    const type = searchParams.get('type') as 'offer' | 'request' || 'offer';
-    const priceType = searchParams.get('priceType') || 'all';
-    const minVolume = searchParams.get('minVolume') || 'all';
+    let departure = searchParams.get('departure') || '';
+    let destination = searchParams.get('destination') || '';
+    let dates = searchParams.get('dates') ? searchParams.get('dates')!.split(',') : [];
+    let type = searchParams.get('type') as 'offer' | 'request' || 'offer';
+    let priceType = searchParams.get('priceType') || 'all';
+    let minVolume = searchParams.get('minVolume') || 'all';
+
+    // 🔥 CORRECTION PROXY : Si aucun paramètre URL, essayer sessionStorage comme fallback
+    if (!departure && !destination && dates.length === 0 && typeof window !== 'undefined') {
+      const savedParams = sessionStorage.getItem('dodopartage_search_params');
+      if (savedParams) {
+        console.log('🔄 Récupération depuis sessionStorage car URL vide:', savedParams);
+        const params = new URLSearchParams(savedParams);
+        departure = params.get('departure') || '';
+        destination = params.get('destination') || '';
+        dates = params.get('dates') ? params.get('dates')!.split(',') : [];
+        type = params.get('type') as 'offer' | 'request' || 'offer';
+        priceType = params.get('priceType') || 'all';
+        minVolume = params.get('minVolume') || 'all';
+        
+        // Optionnel : Mettre à jour l'URL avec les paramètres récupérés
+        if (departure || destination || dates.length > 0) {
+          const newUrl = `/?${savedParams}`;
+          console.log('🔄 Mise à jour URL avec paramètres sessionStorage:', newUrl);
+          router.replace(newUrl);
+        }
+      }
+    }
 
     // Mettre à jour tous les états DE RECHERCHE (ce qui est dans les champs)
     setSearchDeparture(departure);
@@ -142,7 +185,7 @@ function HomePageContent() {
       setAppliedDeparture(departure);
       setAppliedDestination(destination);
       setAppliedDates(dates);
-      console.log('🔄 États appliqués restaurés depuis URL:', {
+      console.log('🔄 États appliqués restaurés depuis URL/sessionStorage:', {
         departure, destination, dates, type, priceType, minVolume
       });
     } else {
@@ -150,7 +193,7 @@ function HomePageContent() {
         departure, destination, dates, type, priceType, minVolume
       });
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   // Gestion simplifiée et élégante du CTA alerte fixe
   useEffect(() => {
