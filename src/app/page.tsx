@@ -1288,7 +1288,7 @@ function HomePageContent() {
       </Suspense>
 
       {/* Languette de feedback sur le côté droit */}
-      <FeedbackButton type="tab" variant="general" />
+      <FeedbackButton type="tab" variant="contact" />
     </div>
   );
 }
