@@ -10,6 +10,7 @@ import AlertModal from '@/components/partage/AlertModal';
 import ChoiceModal from '@/components/partage/ChoiceModal';
 import Button from '@/components/ui/Button';
 import FeedbackButton from '@/components/ui/FeedbackButton';
+import BurgerMenu from '@/components/ui/BurgerMenu';
 import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
@@ -642,14 +643,7 @@ function HomePageContent() {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="hidden sm:inline-flex text-xs sm:text-sm px-2 sm:px-4 border-white/20 text-white hover:bg-white/10 hover:border-white/40"
-                onClick={handleCreateAnnouncement}
-              >
-                ➕ Publier une annonce
-              </Button>
+              <BurgerMenu />
             </div>
           </div>
 
@@ -989,7 +983,7 @@ function HomePageContent() {
       </motion.div>
 
       {/* Section Comment ça marche */}
-      <section className="w-full bg-white py-16 sm:py-20 lg:py-24">
+      <section id="how-it-works" className="w-full bg-white py-16 sm:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
             {/* Colonne gauche - Titre et description */}
@@ -1240,7 +1234,9 @@ function HomePageContent() {
       </section>
 
       {/* Section FAQ */}
-      <FAQSection />
+      <section id="faq">
+        <FAQSection />
+      </section>
 
       {/* Footer simple */}
       <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">

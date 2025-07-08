@@ -90,7 +90,7 @@ export default function FeedbackButton({
   if (type === 'tab') {
     return (
       <div
-        className="fixed top-1/2 -translate-y-1/2 right-0 z-40"
+        className="fixed top-1/2 -translate-y-1/2 right-0 z-40 hidden lg:block"
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
