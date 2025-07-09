@@ -56,7 +56,10 @@ export const useGTM = () => {
       ...pageData
     };
 
-    window.gtag('config', 'GTM-MRHKMB9Z', defaultPageData);
+    // ❌ SUPPRIMÉ : window.gtag('config', 'GTM-MRHKMB9Z', defaultPageData);
+    // GTM gère automatiquement les page views via le tag GA4 "All Pages"
+    // On envoie juste un événement personnalisé si besoin
+    window.gtag('event', 'page_view', defaultPageData);
   }, [isGTMAvailable]);
 
   // Tracking création d'annonce

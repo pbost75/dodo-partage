@@ -28,6 +28,83 @@ export default function TestGTMPage() {
     addResult('✅ Page view trackée');
   };
 
+  const runGTMDiagnostic = () => {
+    addResult('🔍 === DIAGNOSTIC GTM AVANCÉ ===');
+    
+    // 1. Vérifier dataLayer
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      addResult(`📊 DataLayer disponible avec ${window.dataLayer.length} éléments`);
+      
+      // Afficher les derniers événements dataLayer
+      const recentEvents = window.dataLayer.slice(-5).map(event => {
+        if (typeof event === 'object' && event.event) {
+          return `Event: ${event.event}`;
+        }
+        return JSON.stringify(event).substring(0, 50);
+      });
+      recentEvents.forEach(event => addResult(`  📝 ${event}`));
+    } else {
+      addResult('❌ DataLayer non disponible');
+    }
+
+    // 2. Vérifier gtag
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      addResult('✅ gtag fonction disponible');
+    } else {
+      addResult('❌ gtag fonction non disponible');
+    }
+
+    // 3. Vérifier le chargement GTM
+    const gtmScript = document.querySelector('script[src*="googletagmanager.com/gtm.js"]');
+    if (gtmScript) {
+      addResult('✅ Script GTM trouvé dans le DOM');
+    } else {
+      addResult('❌ Script GTM non trouvé dans le DOM');
+    }
+
+    // 4. Vérifier les cookies GA
+    const gaCookies = document.cookie.split(';').filter(cookie => 
+      cookie.trim().startsWith('_ga')
+    );
+    if (gaCookies.length > 0) {
+      addResult(`🍪 ${gaCookies.length} cookies GA trouvés :`);
+      gaCookies.forEach(cookie => addResult(`  🍪 ${cookie.trim()}`));
+    } else {
+      addResult('❌ Aucun cookie GA trouvé');
+    }
+
+    // 5. Test manuel du tag GA4
+    if (window.gtag) {
+      try {
+        window.gtag('config', 'G-VWE8386BQC', {
+          page_title: 'Test Manuel GA4',
+          page_location: window.location.href,
+          debug_mode: true
+        });
+        addResult('✅ Test manuel GA4 envoyé (config direct)');
+      } catch (error) {
+        addResult(`❌ Erreur test manuel GA4: ${error}`);
+      }
+    }
+
+    // 6. Vérifier les variables d'environnement
+    addResult(`🔧 GTM_ID: ${process.env.NEXT_PUBLIC_GTM_ID || 'GTM-MRHKMB9Z'}`);
+    addResult(`🔧 ENABLE_ANALYTICS: ${process.env.NEXT_PUBLIC_ENABLE_ANALYTICS || 'undefined'}`);
+  };
+
+  const testGA4DirectEvent = () => {
+    if (window.gtag) {
+      window.gtag('event', 'test_direct_ga4', {
+        event_category: 'test',
+        event_label: 'direct_call',
+        value: 1
+      });
+      addResult('✅ Événement GA4 direct envoyé');
+    } else {
+      addResult('❌ gtag non disponible pour test direct');
+    }
+  };
+
   const testAnnouncementCreated = () => {
     trackAnnouncementCreated({
       announcement_type: 'offer',
@@ -108,47 +185,61 @@ export default function TestGTMPage() {
           </div>
 
           {/* Boutons de test */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <button
               onClick={testPageView}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
             >
-              Test Page View
+              📄 Test Page View
+            </button>
+            
+            <button
+              onClick={runGTMDiagnostic}
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+            >
+              🔍 Diagnostic GTM
+            </button>
+
+            <button
+              onClick={testGA4DirectEvent}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            >
+              🎯 Test GA4 Direct
             </button>
 
             <button
               onClick={testAnnouncementCreated}
-              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
             >
-              Test Création Annonce
+              📝 Test Création Annonce
             </button>
 
             <button
               onClick={testAnnouncementContact}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
             >
-              Test Contact Annonce
+              📧 Test Contact
             </button>
 
             <button
               onClick={testFilterUsed}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
             >
-              Test Filtre
+              🔍 Test Filtre
             </button>
 
             <button
               onClick={testSearch}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors"
             >
-              Test Recherche
+              🔎 Test Recherche
             </button>
 
             <button
               onClick={testCustomEvent}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
             >
-              Test Événement Custom
+              ⚡ Test Custom Event
             </button>
           </div>
 

@@ -21,7 +21,8 @@ const GoogleTagManager: React.FC<GoogleTagManagerProps> = ({ gtmId }) => {
       window.dataLayer.push(arguments);
     };
     window.gtag('js', new Date());
-    window.gtag('config', gtmId);
+    // ❌ SUPPRIMÉ : window.gtag('config', gtmId); 
+    // GTM gère les tags GA4 via son interface
   }, [gtmId]);
 
   return (
