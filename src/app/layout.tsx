@@ -75,7 +75,8 @@ export const metadata: Metadata = {
 
 // Configuration GTM
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-MRHKMB9Z';
-const ENABLE_ANALYTICS = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
+// ✅ CORRECTION : Activer par défaut si non défini explicitement à 'false'
+const ENABLE_ANALYTICS = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS !== 'false';
 
 // Configuration Canny pour le feedback utilisateur
 const CANNY_APP_ID = process.env.NEXT_PUBLIC_CANNY_APP_ID;
