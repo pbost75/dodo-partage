@@ -130,8 +130,9 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
   const volumes = [
     { value: '1', label: 'peu importe', description: 'Tous volumes acceptés' },
     { value: '2', label: '2m³ minimum', description: 'Quelques cartons' },
-    { value: '5', label: '5m³ minimum', description: 'Mobilier moyen' },
-    { value: '10', label: '10m³ minimum', description: 'Gros déménagement' }
+    { value: '5', label: '5m³ minimum', description: 'Moto ou scooter' },
+    { value: '10', label: '10m³ minimum', description: 'Appartement 2 pièces' },
+    { value: '20', label: '20m³ minimum', description: 'Voiture standard' }
   ];
 
   // Fonctions pour gérer la sélection progressive

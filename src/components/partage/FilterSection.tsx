@@ -11,7 +11,8 @@ import {
   Armchair, 
   Truck,
   Euro,
-  Gift
+  Gift,
+  Car
 } from 'lucide-react';
 
 interface FilterState {
@@ -101,6 +102,13 @@ const FilterSection: React.FC<FilterSectionProps> = ({ isMobile = false, onMobil
         icon: Truck,
         bgColor: 'bg-red-100',
         iconColor: 'text-red-600'
+      },
+      { 
+        value: '20', 
+        label: 'Min 20 m³', 
+        icon: Car,
+        bgColor: 'bg-blue-100',
+        iconColor: 'text-blue-600'
       }
     ]
   };

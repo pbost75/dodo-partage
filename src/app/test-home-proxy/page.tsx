@@ -431,6 +431,8 @@ function TestHomeProxyContent() {
                   <option value="1">Min 1 m³</option>
                   <option value="3">Min 3 m³</option>
                   <option value="5">Min 5 m³</option>
+                  <option value="10">Min 10 m³</option>
+                  <option value="20">Min 20 m³</option>
                 </select>
               </div>
             </div>
