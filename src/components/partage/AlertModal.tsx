@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell, Check, Edit2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import FloatingInput from '@/components/ui/FloatingInput';
 import CustomSelect from '@/components/ui/CustomSelect';
 import { apiFetch } from '@/utils/apiUtils';
+import { useGTM } from '@/hooks/useGTM';
 
 interface AlertModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ interface AlertFormData {
 }
 
 const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters = {} }) => {
+  const { trackAlertCreated } = useGTM();
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [formData, setFormData] = useState<AlertFormData>({
     email: '',
@@ -188,6 +190,11 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
 
       const result = await response.json();
       console.log('✅ Alerte créée avec succès:', result);
+      
+      // ✅ Tracker l'événement création d'alerte avec les bonnes données
+      trackAlertCreated({
+        announcement_type: formData.type as 'offer' | 'request'
+      });
       
       setStep('success');
     } catch (error) {
