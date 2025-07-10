@@ -270,9 +270,9 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
             /* Mobile: plein écran sans bordures */
             h-screen
             /* Desktop: popup traditionnelle avec bordures */
-            md:rounded-2xl md:max-w-md md:max-w-2xl
+            md:rounded-2xl md:max-w-3xl md:w-[800px]
             ${step === 'success' 
-              ? 'md:h-[450px] md:max-h-[90vh] md:min-h-[400px]' 
+              ? 'md:h-auto md:max-h-[90vh] md:min-h-fit' 
               : 'md:h-[630px] md:max-h-[90vh] md:min-h-[500px]'
             }
           `}
