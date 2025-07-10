@@ -270,7 +270,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
             /* Mobile: plein écran sans bordures */
             h-screen
             /* Desktop: popup traditionnelle avec bordures */
-            md:rounded-2xl md:max-w-3xl md:w-[800px]
+            md:rounded-2xl md:max-w-3xl md:w-[600px]
             ${step === 'success' 
               ? 'md:h-auto md:max-h-[90vh] md:min-h-fit' 
               : 'md:h-[630px] md:max-h-[90vh] md:min-h-[500px]'

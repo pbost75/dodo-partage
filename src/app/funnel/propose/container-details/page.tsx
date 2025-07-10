@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSmartRouter } from '@/utils/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, ArrowRight, Info, AlertTriangle } from 'lucide-react';
@@ -29,6 +29,9 @@ const minimumVolumeOptions = [
 export default function ContainerDetailsStep() {
   const router = useSmartRouter();
   const { formData, setContainerDetails } = useProposeStore();
+  
+  // Ref pour l'autoscroll vers la section volume
+  const volumeSectionRef = useRef<HTMLDivElement>(null);
   
   // États locaux
   const [containerType, setContainerType] = useState<'20' | '40' | ''>(formData.container.type);
@@ -65,12 +68,26 @@ export default function ContainerDetailsStep() {
     }
   }, [formData.container.type, formData.container.availableVolume]);
 
-  // Effet pour gérer l'apparition séquentielle
+  // Effet pour gérer l'apparition séquentielle avec autoscroll
   useEffect(() => {
     // Montrer le volume disponible quand le type est sélectionné
     if (containerType && !showVolumeInput) {
       setTimeout(() => {
         setShowVolumeInput(true);
+        
+        // Autoscroll vers la section volume sur mobile après son apparition
+        setTimeout(() => {
+          if (volumeSectionRef.current) {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+              volumeSectionRef.current.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+              });
+              console.log('📱 Auto-scroll vers la section volume disponible');
+            }
+          }
+        }, 300); // Délai supplémentaire pour que l'animation se termine
       }, 300);
     }
   }, [containerType, showVolumeInput]);
@@ -207,6 +224,7 @@ export default function ContainerDetailsStep() {
       <AnimatePresence>
         {showVolumeInput && (
           <motion.div
+            ref={volumeSectionRef}
             id="volume-input"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
