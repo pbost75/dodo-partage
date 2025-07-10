@@ -1,0 +1,252 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useSmartRouter } from '@/utils/navigation';
+import { motion } from 'framer-motion';
+import { useProposeStore } from '@/store/proposeStore';
+import HelpBlock from '@/components/ui/HelpBlock';
+
+export default function AnnouncementTextStep() {
+  const router = useSmartRouter();
+  const { formData, setAnnouncementText } = useProposeStore();
+  
+  const [text, setText] = useState(formData.announcementText || '');
+  const [showSuggestion, setShowSuggestion] = useState(false);
+
+  // Fonction pour générer automatiquement le texte d'annonce (gardée pour utilisation optionnelle)
+  const generateAnnouncementText = () => {
+    const { departure, arrival, container, offerType, shippingDate } = formData;
+    
+    // Construire des noms explicites avec pays et ville - FRANÇAIS CORRIGÉ
+    const departureStr = departure?.country && departure?.city 
+      ? `${departure.country === 'France' ? 'France' : departure.country} (${departure.city})`
+      : departure?.displayName || departure?.city || 'lieu de départ';
+      
+    const arrivalStr = arrival?.country && arrival?.city 
+      ? `${arrival.country === 'Réunion' ? 'la Réunion' : 
+          arrival.country === 'Martinique' ? 'la Martinique' : 
+          arrival.country === 'Guadeloupe' ? 'la Guadeloupe' : 
+          arrival.country === 'Guyane' ? 'la Guyane' : 
+          arrival.country === 'Mayotte' ? 'Mayotte' : 
+          arrival.country === 'Nouvelle-Calédonie' ? 'la Nouvelle-Calédonie' : 
+          arrival.country} (${arrival.city})`
+      : arrival?.displayName || arrival?.city || 'lieu d\'arrivée';
+    const containerType = container?.type || '20';
+    const availableVolume = container?.availableVolume || 14;
+    const currentOfferType = offerType || 'free';
+
+    // Date formatée
+    const dateStr = shippingDate ? new Date(shippingDate).toLocaleDateString('fr-FR', { 
+      day: 'numeric', 
+      month: 'long' 
+    }) : 'prochainement';
+
+    // Templates de texte selon le type d'offre
+    const templates = {
+      free: [
+        `🚢 Bonjour ! Transport ${departureStr} → ${arrivalStr} ${dateStr} en conteneur ${containerType} pieds.
+
+Il me reste ${availableVolume} m³. Je propose gratuitement cet espace pour transporter vos affaires personnelles.
+
+N'hésitez pas à me contacter pour qu'on organise ça ensemble !`,
+
+        `📦 Bonjour ! Déménagement ${departureStr} → ${arrivalStr} ${dateStr} avec conteneur ${containerType} pieds.
+
+${availableVolume} m³ libre que je partage gratuitement par entraide. J'accepte : vos affaires personnelles.
+
+Contactez-moi pour organiser le transport !`
+      ],
+      paid: [
+        `🚢 Bonjour ! Transport prévu ${departureStr} → ${arrivalStr} ${dateStr} en conteneur ${containerType} pieds.
+
+J'ai ${availableVolume} m³ de disponible et je cherche quelqu'un pour partager les frais. J'accepte : vos affaires personnelles.
+
+Contactez-moi pour discuter des modalités !`,
+
+        `📦 Bonjour ! Déménagement ${departureStr} → ${arrivalStr} ${dateStr} avec conteneur ${containerType} pieds.
+
+${availableVolume} m³ libre contre participation aux frais. J'accepte : vos affaires personnelles.
+
+Contactez-moi pour qu'on s'arrange !`
+      ]
+    };
+
+    // Choisir un template aléatoire
+    const availableTemplates = templates[currentOfferType as 'free' | 'paid'] || templates.free;
+    const randomTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
+    
+    return randomTemplate;
+  };
+
+  // DÉSACTIVÉ TEMPORAIREMENT : Plus de génération automatique
+  // useEffect(() => {
+  //   console.log('FormData in useEffect:', formData);
+  //   if (!text || text.length < 10) {
+  //     const generatedText = generateAnnouncementText();
+  //     console.log('Generated text:', generatedText);
+  //     setText(generatedText);
+  //     setAnnouncementText(generatedText);
+  //   }
+  // }, [formData]);
+
+  // Redirection si les étapes précédentes ne sont pas complètes
+  useEffect(() => {
+    if (!formData.offerType) {
+      router.push('/funnel/propose/offer-type');
+    }
+  }, [formData.offerType, router]);
+
+  // Gestion du changement de texte
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+    setAnnouncementText(newText);
+  };
+
+  // Générer une suggestion si demandé
+  const handleShowSuggestion = () => {
+    if (!showSuggestion) {
+      const suggestion = generateAnnouncementText();
+      setShowSuggestion(true);
+      // Optionnel : pré-remplir avec la suggestion
+      // setText(suggestion);
+      // setAnnouncementText(suggestion);
+    }
+  };
+
+  const charCount = text.length;
+  const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+
+  // Placeholder personnalisé basé sur les données du formulaire
+  const getPersonalizedPlaceholder = () => {
+    const { departure, arrival, container, offerType, shippingDate } = formData;
+    
+    const departureStr = departure?.country === 'France' ? 'de France' : departure?.country || 'votre pays de départ';
+    const arrivalStr = arrival?.country === 'Réunion' ? 'la Réunion' : 
+                     arrival?.country === 'Martinique' ? 'la Martinique' : 
+                     arrival?.country === 'Guadeloupe' ? 'la Guadeloupe' : 
+                     arrival?.country === 'Guyane' ? 'la Guyane' : 
+                     arrival?.country === 'Mayotte' ? 'Mayotte' : 
+                     arrival?.country === 'Nouvelle-Calédonie' ? 'la Nouvelle-Calédonie' : 
+                     arrival?.country || 'votre destination';
+    const volume = container?.availableVolume || 'X';
+    const offerTypeStr = offerType === 'free' ? 'gratuitement' : 'contre participation aux frais';
+    
+    return `Exemple : "Bonjour ! Je déménage ${departureStr} vers ${arrivalStr} et j'ai ${volume} m³ de libre dans mon conteneur. Je propose cet espace ${offerTypeStr}. 
+
+✍️ Personnalisez votre message :
+• Présentez-vous brièvement
+• Expliquez votre situation (déménagement, retour, etc.)
+• Précisez ce que vous acceptez/refusez de transporter
+• Ajoutez vos conditions particulières
+• Donnez votre disponibilité pour organiser
+
+Les annonces personnelles attirent plus de contacts !"`;
+  };
+
+  return (
+    <div className="space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="space-y-6"
+      >
+        <div className="flex items-center gap-3 mb-10">
+          <h1 className="text-3xl font-bold text-blue-900 font-['Roboto_Slab']">
+            Rédigez votre annonce
+          </h1>
+          <HelpBlock 
+            content={
+              <div>
+                <p className="text-gray-800 text-sm mb-3 font-medium">
+                  ✍️ Conseils pour une annonce qui marche
+                </p>
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-600">• <strong>Soyez personnel</strong> : présentez-vous, expliquez votre situation</p>
+                  <p className="text-xs text-gray-600">• <strong>Soyez précis</strong> : dates flexibles ? objets refusés ?</p>
+                  <p className="text-xs text-gray-600">• <strong>Soyez rassurant</strong> : montrez que vous êtes sérieux</p>
+                  <p className="text-xs text-gray-600">• <strong>Inspiration</strong> : regardez les annonces Facebook</p>
+                </div>
+              </div>
+            }
+          />
+        </div>
+
+        {/* Message d'encouragement */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">💬</span>
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-2">
+                Une annonce personnelle génère 3x plus de contacts !
+              </h3>
+              <p className="text-blue-700 text-sm">
+                Prenez 2 minutes pour écrire <strong>votre</strong> message. 
+                Les gens préfèrent contacter une vraie personne qu'un robot 😊
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Zone de texte - maintenant vide par défaut */}
+        <div className="space-y-3">
+          <textarea
+            value={text}
+            onChange={(e) => handleTextChange(e.target.value)}
+            placeholder={getPersonalizedPlaceholder()}
+            className="w-full h-64 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 resize-none placeholder-gray-400"
+            maxLength={500}
+          />
+          
+          {/* Bouton de suggestion optionnel */}
+          {!showSuggestion && text.length < 20 && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={handleShowSuggestion}
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+              >
+                🤖 En panne d'inspiration ? Voir un exemple de base
+              </button>
+            </div>
+          )}
+
+          {/* Suggestion visible si demandée */}
+          {showSuggestion && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+              <h4 className="font-medium text-yellow-800 mb-2">💡 Exemple de base :</h4>
+              <p className="text-sm text-yellow-700 whitespace-pre-line bg-white p-3 rounded border">
+                {generateAnnouncementText()}
+              </p>
+              <p className="text-xs text-yellow-600 mt-2">
+                ☝️ Personnalisez cet exemple pour vous démarquer !
+              </p>
+            </div>
+          )}
+          
+          {/* Compteurs */}
+          <div className="flex justify-between text-sm">
+            <span className={`${charCount >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+              {charCount}/500 caractères {charCount < 50 && '(minimum 50 pour une annonce efficace)'}
+            </span>
+            <span className="text-gray-500">
+              {wordCount} mot{wordCount !== 1 ? 's' : ''}
+            </span>
+          </div>
+          
+          {/* Encouragement selon la longueur */}
+          {charCount > 0 && charCount < 100 && (
+            <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
+              🚀 Excellent début ! Ajoutez encore quelques détails pour rassurer vos futurs contacts.
+            </p>
+          )}
+          {charCount >= 100 && (
+            <p className="text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+              ✨ Parfait ! Votre annonce personnalisée va attirer plus de contacts de qualité.
+            </p>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+} 

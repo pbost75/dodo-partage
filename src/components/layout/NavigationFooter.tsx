@@ -58,11 +58,32 @@ export default function NavigationFooter() {
   const currentStep = match ? match[1] : '';
   const currentIndex = steps.indexOf(currentStep);
   
-  // État pour gérer le feedback de chargement lors des transitions
+  // États pour gérer le feedback de chargement lors des transitions (système intelligent comme Dodomove)
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPath, setCurrentPath] = useState(pathname);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [navigationStartTime, setNavigationStartTime] = useState<number | null>(null);
+  const [lastNavigationAttempt, setLastNavigationAttempt] = useState<number | null>(null);
   
   // État pour forcer la re-render quand les erreurs changent
   const [validationTrigger, setValidationTrigger] = useState(0);
+  
+  // 🎯 SYSTÈME INTELLIGENT : Écouter les changements de pathname pour arrêter le loading automatiquement
+  useEffect(() => {
+    if (pathname !== currentPath) {
+      console.log(`✅ Navigation réussie: ${currentPath} → ${pathname}`);
+      setIsLoading(false);
+      setCurrentPath(pathname);
+      setNavigationStartTime(null);
+      setLastNavigationAttempt(null);
+      
+      // Nettoyer le timeout si la navigation a réussi
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        setLoadingTimeout(null);
+      }
+    }
+  }, [pathname, currentPath, loadingTimeout]);
   
   // Observer les changements dans le DOM pour les erreurs de validation
   useEffect(() => {
@@ -149,7 +170,7 @@ export default function NavigationFooter() {
       case 'offer-type':
         return formData.offerType !== '';
       case 'announcement-text':
-        return formData.announcementText.trim() !== '';
+        return formData.announcementText.trim().length >= 50;
       case 'contact':
         return formData.contact.firstName !== '' && 
                formData.contact.email !== '' && 
@@ -159,31 +180,87 @@ export default function NavigationFooter() {
     }
   };
 
-  // Navigation
-  const goNext = () => {
+  // 🎯 FONCTION INTELLIGENTE pour activer le loading avec timeout de sécurité (comme Dodomove)
+  const startLoading = () => {
     setIsLoading(true);
+    const startTime = Date.now();
+    setNavigationStartTime(startTime);
+    setLastNavigationAttempt(startTime);
     
-    setTimeout(() => {
-      if (currentIndex < steps.length - 1) {
-        const nextPath = `/funnel/propose/${steps[currentIndex + 1]}`;
-        router.push(nextPath);
-      } else {
-        // Dernière étape (contact) : aller à la confirmation
-        router.push('/funnel/propose/confirmation');
+    // Timeout ultra-intelligent avec détection d'activité
+    const checkTimeout = () => {
+      const elapsed = Date.now() - startTime;
+      const timeSinceLastAttempt = lastNavigationAttempt ? Date.now() - lastNavigationAttempt : elapsed;
+      
+      // Logs de debug plus détaillés
+      if (elapsed > 2000 && elapsed % 2000 < 1000) { // Log toutes les 2 secondes
+        console.log(`⏳ Navigation en cours... ${elapsed}ms écoulées (pathname: ${pathname === currentPath ? 'inchangé' : 'changé'})`);
       }
-      setIsLoading(false);
-    }, 200);
+      
+      // Conditions pour timeout (beaucoup plus strict) :
+      // 1. Plus de 10 secondes écoulées
+      // 2. ET aucun changement de route détecté
+      // 3. ET pas d'activité de navigation récente
+      if (elapsed > 10000 && pathname === currentPath && timeSinceLastAttempt > 8000) {
+        console.warn(`⏰ Timeout de sécurité final après ${elapsed}ms - navigation définitivement bloquée`);
+        setIsLoading(false);
+        setLoadingTimeout(null);
+        setNavigationStartTime(null);
+        setLastNavigationAttempt(null);
+      } else if (elapsed < 10000 && pathname === currentPath) {
+        // Continuer à vérifier toutes les 1000ms avec beaucoup plus de patience
+        const newTimeout = setTimeout(checkTimeout, 1000);
+        setLoadingTimeout(newTimeout);
+      }
+      // Si pathname a changé, le useEffect s'en occupera automatiquement
+    };
+    
+    // Démarrer la vérification après 2 secondes (encore plus patient)
+    const timeout = setTimeout(checkTimeout, 2000);
+    setLoadingTimeout(timeout);
+  };
+
+  // 🎯 NAVIGATION INTELLIGENTE : Pas de setTimeout arbitraire, loading synchronisé avec la vraie navigation
+  const goNext = () => {
+    // Protection contre les doubles clics
+    if (isLoading) {
+      console.log('🛡️ Double clic détecté, navigation déjà en cours');
+      return;
+    }
+    
+    // Activer l'état de chargement avec sécurité anti-blocage
+    startLoading();
+    
+    console.log(`🚀 Navigation PROPOSE: ${currentStep} → étape suivante`);
+    
+    // Navigation immédiate sans délai artificiel
+    if (currentIndex < steps.length - 1) {
+      const nextPath = `/funnel/propose/${steps[currentIndex + 1]}`;
+      router.push(nextPath);
+    } else {
+      // Dernière étape (contact) : aller à la confirmation
+      router.push('/funnel/propose/confirmation');
+    }
   };
   
   const goPrev = () => {
     if (currentIndex > 0) {
-      setIsLoading(true);
+      // Protection contre les doubles clics
+      if (isLoading) {
+        console.log('🛡️ Double clic détecté, navigation déjà en cours');
+        return;
+      }
       
+      // Activer l'état de chargement avec sécurité anti-blocage
+      startLoading();
+      
+      console.log(`🔙 Navigation PROPOSE retour: ${currentStep} → étape précédente`);
+      
+      // Navigation immédiate avec délai minimal juste pour permettre au state de s'appliquer
       setTimeout(() => {
         const prevPath = `/funnel/propose/${steps[currentIndex - 1]}`;
         router.push(prevPath);
-        setIsLoading(false);
-      }, 200);
+      }, 50); // Délai minimal juste pour permettre au state de s'appliquer
     }
   };
 

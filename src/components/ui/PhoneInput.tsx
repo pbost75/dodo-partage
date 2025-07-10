@@ -24,10 +24,12 @@ const countries: Country[] = [
     maxLength: 10,
     pattern: /^0[1-9]\d{8}$/,
     formatter: (value: string) => {
+      // Format progressif: 06 12 34 56 78 (comme Dodomove) 
       if (value.length <= 2) return value;
       if (value.length <= 4) return value.replace(/(\d{2})(\d+)/, '$1 $2');
       if (value.length <= 6) return value.replace(/(\d{2})(\d{2})(\d+)/, '$1 $2 $3');
       if (value.length <= 8) return value.replace(/(\d{2})(\d{2})(\d{2})(\d+)/, '$1 $2 $3 $4');
+      if (value.length === 9) return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{1})/, '$1 $2 $3 $4 $5');
       return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
     }
   },
@@ -40,10 +42,12 @@ const countries: Country[] = [
     maxLength: 10,
     pattern: /^0[67]\d{8}$/,
     formatter: (value: string) => {
+      // Format progressif: 06 92 12 34 56 (même format que France)
       if (value.length <= 2) return value;
       if (value.length <= 4) return value.replace(/(\d{2})(\d+)/, '$1 $2');
       if (value.length <= 6) return value.replace(/(\d{2})(\d{2})(\d+)/, '$1 $2 $3');
       if (value.length <= 8) return value.replace(/(\d{2})(\d{2})(\d{2})(\d+)/, '$1 $2 $3 $4');
+      if (value.length === 9) return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{1})/, '$1 $2 $3 $4 $5');
       return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
     }
   },
@@ -56,10 +60,12 @@ const countries: Country[] = [
     maxLength: 10,
     pattern: /^0[567]\d{8}$/,
     formatter: (value: string) => {
+      // Format progressif: 05 90 12 34 56 (même format que France)
       if (value.length <= 2) return value;
       if (value.length <= 4) return value.replace(/(\d{2})(\d+)/, '$1 $2');
       if (value.length <= 6) return value.replace(/(\d{2})(\d{2})(\d+)/, '$1 $2 $3');
       if (value.length <= 8) return value.replace(/(\d{2})(\d{2})(\d{2})(\d+)/, '$1 $2 $3 $4');
+      if (value.length === 9) return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{1})/, '$1 $2 $3 $4 $5');
       return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
     }
   },
@@ -72,10 +78,12 @@ const countries: Country[] = [
     maxLength: 10,
     pattern: /^0[567]\d{8}$/,
     formatter: (value: string) => {
+      // Format progressif: 06 96 12 34 56 (même format que France)
       if (value.length <= 2) return value;
       if (value.length <= 4) return value.replace(/(\d{2})(\d+)/, '$1 $2');
       if (value.length <= 6) return value.replace(/(\d{2})(\d{2})(\d+)/, '$1 $2 $3');
       if (value.length <= 8) return value.replace(/(\d{2})(\d{2})(\d{2})(\d+)/, '$1 $2 $3 $4');
+      if (value.length === 9) return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{1})/, '$1 $2 $3 $4 $5');
       return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
     }
   },
@@ -88,10 +96,12 @@ const countries: Country[] = [
     maxLength: 10,
     pattern: /^0[567]\d{8}$/,
     formatter: (value: string) => {
+      // Format progressif: 05 94 12 34 56 (même format que France)
       if (value.length <= 2) return value;
       if (value.length <= 4) return value.replace(/(\d{2})(\d+)/, '$1 $2');
       if (value.length <= 6) return value.replace(/(\d{2})(\d{2})(\d+)/, '$1 $2 $3');
       if (value.length <= 8) return value.replace(/(\d{2})(\d{2})(\d{2})(\d+)/, '$1 $2 $3 $4');
+      if (value.length === 9) return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{1})/, '$1 $2 $3 $4 $5');
       return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
     }
   },
@@ -104,10 +114,12 @@ const countries: Country[] = [
     maxLength: 10,
     pattern: /^0[67]\d{8}$/,
     formatter: (value: string) => {
+      // Format progressif: 06 39 12 34 56 (même format que France)
       if (value.length <= 2) return value;
       if (value.length <= 4) return value.replace(/(\d{2})(\d+)/, '$1 $2');
       if (value.length <= 6) return value.replace(/(\d{2})(\d{2})(\d+)/, '$1 $2 $3');
       if (value.length <= 8) return value.replace(/(\d{2})(\d{2})(\d{2})(\d+)/, '$1 $2 $3 $4');
+      if (value.length === 9) return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{1})/, '$1 $2 $3 $4 $5');
       return value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
     }
   },
@@ -180,7 +192,9 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
         const cleanNumber = value.substring(country.dialCode.length);
         const displayNumber = cleanNumber.startsWith('0') ? cleanNumber : '0' + cleanNumber;
         setPhoneNumber(displayNumber || '');
-        setFormattedDisplay(country.formatter(displayNumber || ''));
+        // 🎯 S'assurer que le formatter retourne toujours une string
+        const formatted = country.formatter(displayNumber || '') || '';
+        setFormattedDisplay(formatted);
       }
       setIsInitialized(true);
     } else if (!isInitialized) {
@@ -194,10 +208,12 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     const truncatedValue = cleanValue.slice(0, country.maxLength);
     
     if (truncatedValue.length > 0) {
-      return country.formatter(truncatedValue);
+      // 🎯 S'assurer que le formatter retourne toujours une string
+      return country.formatter(truncatedValue) || truncatedValue;
     }
     
-    return truncatedValue;
+    // 🎯 Toujours retourner une string, jamais undefined
+    return '';
   }, []);
 
   // Mettre à jour la valeur complète
@@ -277,7 +293,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     
     if (phoneNumber) {
       const formatted = formatPhoneNumber(phoneNumber, country);
-      setFormattedDisplay(formatted);
+      // 🎯 S'assurer que formatted est toujours une string
+      setFormattedDisplay(formatted || '');
     }
   };
 
@@ -302,8 +319,10 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
             </div>
             <input
               type="tel"
+              value=""
               className="flex-1 px-4 rounded-r-xl bg-white focus:outline-none text-gray-900 text-base md:text-lg leading-tight min-w-0 w-full h-full"
               disabled
+              readOnly
             />
           </div>
         </div>
@@ -363,7 +382,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           <input
             type="tel"
             inputMode="numeric"
-            value={formattedDisplay || ''}
+            value={String(formattedDisplay || '')}
             onChange={handlePhoneNumberChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
