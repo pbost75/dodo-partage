@@ -45,6 +45,22 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
   
   // État pour gérer l'espace des dropdowns
   const [dropdownSpacing, setDropdownSpacing] = useState<number>(0);
+  
+  // Détection mobile/desktop pour animations optimisées
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
 
   // Empêcher le scroll de la page quand la modale est ouverte
   useEffect(() => {
@@ -223,8 +239,8 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
 
   if (!isOpen) return null;
 
-  // Hauteur fixe optimisée pour tous les états
-  const modalHeight = 630; // Hauteur fixe réduite mais suffisante pour dropdowns + email + bouton
+  // Hauteur optimisée selon l'étape
+  const modalHeight = step === 'success' ? 450 : 630; // Confirmation plus compacte
 
   return (
     <AnimatePresence>
@@ -232,19 +248,34 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, initialFilters
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className={`
+          fixed inset-0 flex items-center justify-center z-50 md:p-4
+          /* Mobile: pas de backdrop visible pour effet page complète */
+          ${isMobile ? 'bg-white' : 'bg-black/50 backdrop-blur-sm'}
+        `}
         onClick={resetAndClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl w-full max-w-md md:max-w-2xl shadow-2xl overflow-hidden"
-          style={{
-            height: `${modalHeight}px`,
-            maxHeight: '90vh',
-            minHeight: '500px' // Hauteur minimale garantie
+          initial={isMobile ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+          animate={isMobile ? { y: 0 } : { scale: 1, opacity: 1 }}
+          exit={isMobile ? { y: '100%' } : { scale: 0.9, opacity: 0 }}
+          transition={{ 
+            type: isMobile ? 'spring' : 'tween',
+            damping: isMobile ? 25 : undefined,
+            stiffness: isMobile ? 300 : undefined,
+            duration: isMobile ? undefined : 0.2
           }}
+          className={`
+            bg-white w-full shadow-2xl overflow-hidden
+            /* Mobile: plein écran sans bordures */
+            h-screen
+            /* Desktop: popup traditionnelle avec bordures */
+            md:rounded-2xl md:max-w-md md:max-w-2xl
+            ${step === 'success' 
+              ? 'md:h-[450px] md:max-h-[90vh] md:min-h-[400px]' 
+              : 'md:h-[630px] md:max-h-[90vh] md:min-h-[500px]'
+            }
+          `}
           onClick={e => e.stopPropagation()}
         >
           <div className="h-full flex flex-col">
