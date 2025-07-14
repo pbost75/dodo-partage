@@ -788,7 +788,7 @@ function HomePageContent() {
               Partagez vos <span className="bg-[#EFB500] text-[#243163] px-2 py-1">conteneurs de déménagement</span>
             </div>
             <p className="text-lg sm:text-xl text-white/90 font-light max-w-3xl mx-auto">
-              Trouvez ou proposez facilement une place dans un conteneur vers la Réunion et d'autres DOM-TOM.
+              Trouvez ou proposez facilement une place dans un conteneur entre la métropole, la Réunion et tous les autres DOM-TOM !
             </p>
           </div>
         </div>
