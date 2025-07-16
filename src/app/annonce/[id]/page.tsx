@@ -40,7 +40,7 @@ interface AnnouncementDetail {
   price?: string;
   items: string[];
   author: string;
-  authorEmail: string;
+  authorContact: string; // 🔒 Email masqué pour affichage (ex: "pi***re@gmail.com")
   publishedAt: string;
   description: string;
   status: string;
@@ -635,8 +635,8 @@ export default function AnnouncementDetailPage() {
           arrival: announcement.arrival,
           volume: announcement.volume,
           date: announcement.date,
-          author: announcement.author,
-          authorEmail: announcement.authorEmail || ''
+          author: announcement.author
+          // 🔒 SÉCURITÉ : authorEmail retiré - le backend récupère l'email via l'ID
         }}
       />
 

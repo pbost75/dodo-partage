@@ -7,6 +7,7 @@ interface ContactRequest {
   contactEmail: string;
   contactPhone?: string;
   message: string;
+  // 🔒 SÉCURITÉ : Plus besoin de l'email complet côté frontend
   announcementDetails: {
     id: string;
     type: 'offer' | 'request';
@@ -15,7 +16,7 @@ interface ContactRequest {
     volume: string;
     date: string;
     author: string;
-    authorEmail: string;
+    // authorEmail: string; // ❌ RETIRÉ pour la sécurité
   };
 }
 
@@ -76,9 +77,8 @@ export async function POST(request: NextRequest) {
         contactPhone: data.contactPhone,
         message: data.message,
         announcementDetails: data.announcementDetails,
-        // ✅ CORRECTION: Données explicites pour l'envoi d'email
-        recipientEmail: data.announcementDetails.authorEmail, // Email du propriétaire de l'annonce
-        recipientName: data.announcementDetails.author,       // Nom du propriétaire de l'annonce
+        // 🔒 SÉCURITÉ : Le backend récupère l'email depuis la base de données via l'ID
+        // Plus besoin de passer l'email explicitement côté frontend
         senderEmail: data.contactEmail,                       // Email de celui qui répond
         senderName: data.contactName,                         // Nom de celui qui répond
         // 🚫 CORRECTION CC: Désactiver la copie automatique à l'expéditeur

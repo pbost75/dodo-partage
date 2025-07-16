@@ -54,13 +54,34 @@ interface AnnouncementFormatted {
   price?: string;
   items: string[];
   author: string;
-  authorEmail: string;
+  authorContact: string; // 🔒 Email masqué pour affichage uniquement
   publishedAt: string;
   description: string;
   status: string;
   // Champs spécifiques aux demandes "search"
   acceptsCostSharing?: boolean;
   periodFormatted?: string;
+}
+
+// 🔒 Fonction pour masquer les emails (sécurité RGPD)
+function maskEmail(email: string): string {
+  if (!email || !email.includes('@')) return 'Contact disponible';
+  
+  const [username, domain] = email.split('@');
+  
+  // Pour les emails très courts
+  if (username.length <= 2) {
+    return `${username[0]}***@${domain}`;
+  }
+  
+  // Masquage standard : premier + derniers caractères visibles
+  const visibleChars = Math.min(2, Math.floor(username.length / 3));
+  const maskedLength = username.length - (visibleChars * 2);
+  const maskedUsername = username.substring(0, visibleChars) + 
+                        '*'.repeat(Math.max(3, maskedLength)) + 
+                        username.substring(username.length - visibleChars);
+                        
+  return `${maskedUsername}@${domain}`;
 }
 
 // Fonction pour déterminer les objets à partir du texte d'annonce
@@ -369,7 +390,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           price: announcement.accepts_fees ? 'Accepte participation' : 'Transport gratuit souhaité',
           items,
           author: announcement.contact_first_name,
-          authorEmail: announcement.contact_email,
+          authorContact: maskEmail(announcement.contact_email),
           publishedAt: getTimeAgo(announcement.created_at),
           description: announcement.announcement_text,
           status: announcement.status,
@@ -404,7 +425,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           price: offerType === 'paid' ? 'Prix à négocier' : undefined,
           items,
           author: announcement.contact_first_name,
-          authorEmail: announcement.contact_email,
+          authorContact: maskEmail(announcement.contact_email),
           publishedAt: getTimeAgo(announcement.created_at),
           description: announcement.announcement_text,
           status: announcement.status
