@@ -8,6 +8,18 @@ const faqData = [
     answer: "Vous avez trois options simples : recherchez parmi les annonces existantes avec la barre de recherche (filtrez par lieu, volume, gratuit ou payant), postez votre propre annonce si vous ne trouvez pas ce que vous cherchez, ou activez une alerte email pour être automatiquement notifié dès qu'une nouvelle annonce correspond à vos critères."
   },
   {
+    question: "Comment modifier/supprimer une annonce ?",
+    answer: "Pour modifier ou supprimer votre annonce, il vous suffit de : 1️⃣ Retrouver l'email de confirmation reçu lors de la publication. Objet de l'email : « ✅ Votre annonce DodoPartage est maintenant publiée ! » Astuce : recherchez dans votre boîte mail (y compris spams/indésirables) en tapant DodoPartage. 2️⃣ Cliquer sur le lien personnel contenu dans cet email. Il vous permettra de modifier votre annonce ou la supprimer si besoin."
+  },
+  {
+    question: "Que faire si je ne reçois pas le mail de vérification ?",
+    answer: "Si vous ne recevez pas l'email de vérification dans les 5 minutes : vérifiez votre dossier de courriers indésirables/spam, vérifiez que l'adresse email saisie est correcte, ajoutez hello@dodomove.fr à vos contacts pour éviter le filtrage, si le problème persiste après 1 heure, contactez-nous à hello@dodomove.fr avec votre numéro d'annonce."
+  },
+  {
+    question: "Comment paramétrer une alerte de recherche ?",
+    answer: "Pour créer une alerte de recherche : 1. Utilisez notre outil de recherche en sélectionnant vos critères (destinations, dates, type de transport) 2. Cliquez sur 'Créer une alerte' pour être notifié par email 3. Vous recevrez automatiquement un email dès qu'une nouvelle annonce correspond à vos critères 4. Vous pouvez désactiver l'alerte à tout moment via le lien dans l'email de notification."
+  },
+  {
     question: "Puis-je envoyer des objets volumineux comme une moto ou un frigo ?",
     answer: "Oui, tant que vous trouvez une annonce avec assez d'espace. Précisez toujours les dimensions pour éviter les mauvaises surprises."
   },

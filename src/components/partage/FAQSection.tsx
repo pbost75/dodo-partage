@@ -15,6 +15,18 @@ const faqData: FAQItem[] = [
     answer: "Vous avez trois options simples :<br/>– Recherchez parmi les annonces existantes avec la barre de recherche (filtrez par lieu, volume, gratuit ou payant)<br/>– Postez votre propre annonce si vous ne trouvez pas ce que vous cherchez<br/>– Activez une alerte email pour être automatiquement notifié dès qu'une nouvelle annonce correspond à vos critères."
   },
   {
+    question: "Comment modifier/supprimer une annonce ?",
+    answer: "Pour modifier ou supprimer votre annonce, il vous suffit de :<br/><br/><strong>1️⃣ Retrouver l'email de confirmation reçu lors de la publication.</strong><br/><br/>Objet de l'email : <strong>« ✅ Votre annonce DodoPartage est maintenant publiée ! »</strong><br/><br/>💡 <strong>Astuce :</strong> recherchez dans votre boîte mail (y compris spams/indésirables) en tapant \"DodoPartage\".<br/><br/><strong>2️⃣ Cliquer sur le lien personnel contenu dans cet email.</strong> Il vous permettra de :<br/>– <strong>✏️ Modifier</strong> votre annonce<br/>– <strong>🗑️ Supprimer</strong> votre annonce si besoin"
+  },
+  {
+    question: "Que faire si je ne reçois pas le mail de vérification ?",
+    answer: "Si vous ne recevez pas l'email de vérification dans les 5 minutes :<br/><br/>• <strong>Vérifiez votre dossier de courriers indésirables/spam</strong><br/>• <strong>Vérifiez que l'adresse email saisie est correcte</strong><br/>• <strong>Ajoutez hello@dodomove.fr à vos contacts</strong> pour éviter le filtrage<br/>• <strong>Si le problème persiste après 1 heure,</strong> contactez-nous à hello@dodomove.fr avec votre numéro d'annonce"
+  },
+  {
+    question: "Comment paramétrer une alerte de recherche ?",
+    answer: "Pour créer une alerte de recherche :<br/><br/><strong>1.</strong> Utilisez notre outil de recherche en sélectionnant vos critères (destinations, dates, type de transport)<br/><strong>2.</strong> Cliquez sur <strong>'Créer une alerte'</strong> pour être notifié par email<br/><strong>3.</strong> Vous recevrez automatiquement un email dès qu'une nouvelle annonce correspond à vos critères<br/><strong>4.</strong> Vous pouvez désactiver l'alerte à tout moment via le lien dans l'email de notification"
+  },
+  {
     question: "Puis-je envoyer des objets volumineux comme une moto ou un frigo ?",
     answer: "Oui, tant que vous trouvez une annonce avec assez d'espace. Précisez toujours les dimensions pour éviter les mauvaises surprises."
   },
