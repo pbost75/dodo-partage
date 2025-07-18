@@ -783,9 +783,9 @@ function HomePageContent() {
               </h1>
             </div>
             
-            {/* Titre principal avec surlignage jaune */}
+            {/* Titre principal */}
             <div className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-              Partagez vos <span className="bg-[#EFB500] text-[#243163] px-2 py-1">conteneurs de déménagement</span>
+              Partagez vos conteneurs de déménagement
             </div>
             <p className="text-lg sm:text-xl text-white/90 font-light max-w-3xl mx-auto">
               Trouvez ou proposez facilement une place dans un conteneur entre la métropole, la Réunion et tous les autres DOM-TOM !
