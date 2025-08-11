@@ -6,7 +6,7 @@ export async function GET(
 ): Promise<NextResponse> {
   try {
     const { id } = await params;
-    console.log('📋 Récupération optimisée de l\'annonce:', id);
+    console.log('📋 Récupération optimisée TEMPORAIRE de l\'annonce:', id);
 
     // URL du backend centralisé
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -18,65 +18,79 @@ export async function GET(
       );
     }
 
-    // 🚀 OPTIMISATION: Appel direct à la nouvelle route spécifique
-    const response = await fetch(`${backendUrl}/api/partage/get-announcement/${id}`, {
+    // 🚀 OPTIMISATION TEMPORAIRE: Utiliser l'API existante avec cache Next.js 
+    // TODO: Remplacer par la route spécifique quand Railway sera fixé
+    const response = await fetch(`${backendUrl}/api/partage/get-announcements?status=published`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'X-Frontend-Source': 'dodo-partage',
         'X-Frontend-Version': '1.0.0',
       },
-      // Cache Next.js pour éviter les appels répétés
+      // Cache Next.js pour éviter les appels répétés  
       next: { revalidate: 300 } // Cache pendant 5 minutes
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Erreur du backend centralisé:', response.status, errorText);
-      
-      if (response.status === 404) {
-        return NextResponse.json({
-          success: false,
-          error: 'Annonce non trouvée',
-          message: 'Cette annonce n\'existe pas ou n\'est plus disponible'
-        }, { status: 404 });
-      }
-      
-      return NextResponse.json({
-        success: false,
-        error: 'Erreur lors de la récupération de l\'annonce',
-        message: 'Une erreur technique s\'est produite'
-      }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: 'Erreur backend' },
+        { status: response.status }
+      );
     }
 
-    const result = await response.json();
-    console.log('✅ Annonce récupérée optimisée:', result.data?.reference);
-
-    if (!result.success || !result.data) {
-      return NextResponse.json({
-        success: false,
-        error: 'Aucune donnée disponible'
-      }, { status: 404 });
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error('❌ Erreur du backend:', data.error);
+      return NextResponse.json(
+        { success: false, error: data.error || 'Erreur backend' },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-      message: result.message,
-      backend: {
-        ...result.backend,
-        frontendCache: true,
-        optimizedRoute: true
+    // 🔍 TEMPORAIRE: Filtrer côté frontend pour trouver l'annonce spécifique
+    const foundAnnouncement = data.data.find((ann: any) => 
+      ann.reference === id || ann.id === id
+    );
+
+    if (!foundAnnouncement) {
+      console.log(`❌ Annonce ${id} non trouvée dans les ${data.data.length} annonces`);
+      return NextResponse.json(
+        { success: false, error: 'Annonce non trouvée' },
+        { status: 404 }
+      );
+    }
+
+    console.log(`✅ Annonce ${id} trouvée: ${foundAnnouncement.title}`);
+
+    // Retourner l'annonce trouvée
+    return NextResponse.json(
+      {
+        success: true,
+        data: foundAnnouncement,
+        backend: {
+          ...data.backend,
+          cached: data.backend?.cached || false,
+          frontend_cached: true,
+          frontend_filtered: true,
+          frontend_timestamp: new Date().toISOString(),
+          total_announcements: data.data.length,
+          optimization: 'temporary_frontend_filtering'
+        }
+      },
+      { 
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, max-age=300, s-maxage=300',
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
       }
-    }, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        // Cache côté navigateur pour les annonces spécifiques
-        'Cache-Control': 'public, max-age=300, stale-while-revalidate=60'
-      }
-    });
+    );
 
   } catch (error) {
     console.error('❌ Erreur lors de la récupération de l\'annonce:', error);
@@ -86,18 +100,10 @@ export async function GET(
       error: 'Erreur lors de la récupération de l\'annonce',
       message: 'Une erreur technique s\'est produite',
       details: error instanceof Error ? error.message : 'Erreur inconnue'
-    }, { 
-      status: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    });
+    }, { status: 500 });
   }
 }
 
-// Gestion des requêtes OPTIONS pour CORS (preflight)
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
