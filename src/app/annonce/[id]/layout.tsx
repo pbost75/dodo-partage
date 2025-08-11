@@ -47,6 +47,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    
+    // 🚫 NOINDEX : Les annonces expirent automatiquement, on évite les 404 SEO toxiques
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+      }
+    },
+    
     openGraph: {
       title,
       description,

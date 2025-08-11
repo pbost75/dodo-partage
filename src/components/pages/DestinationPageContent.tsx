@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Filter, X, Bell, Plus, BellPlus, RefreshCw, AlertCircle, Clock, Zap, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star, Search, FileText, BellRing, HandHeart, Award, Crown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, MapPin, Filter, X, Bell, Plus, Minus, BellPlus, RefreshCw, AlertCircle, Clock, Zap, UserCheck, DollarSign, MessageCircle, Trophy, Users, LifeBuoy, Truck, Star, Search, FileText, BellRing, HandHeart, Award, Crown } from 'lucide-react';
 import FilterSection from '@/components/partage/FilterSection';
-import AnnouncementCard from '@/components/partage/AnnouncementCard';
 import AnnouncementCardV2 from '@/components/partage/AnnouncementCardV2';
 import AlertModal from '@/components/partage/AlertModal';
 import ChoiceModal from '@/components/partage/ChoiceModal';
@@ -15,19 +14,50 @@ import MonthPicker from '@/components/ui/MonthPicker';
 import CountrySelect from '@/components/ui/CountrySelect';
 import ToggleSwitch from '@/components/ui/ToggleSwitch';
 import DeletedNotification from '@/components/partage/DeletedNotification';
-import FAQSection from '@/components/partage/FAQSection';
+
 import { SEOHead } from '@/components/seo/SEOHead';
 import FAQJsonLD from '@/components/seo/FAQJsonLD';
 import { useSearchParams } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
 import { useSmartRouter } from '@/utils/navigation';
+import { getCountryByValue } from '@/utils/countries';
+import { getPopularRoutes, type DestinationContent } from '@/utils/destinations';
+import Link from 'next/link';
 
 interface FilterState {
   priceType: string; // Gratuit, payant ou tous
   minVolume: string;
 }
 
-function HomePageContent() {
+interface AnnouncementData {
+  id: string;
+  title?: string;
+  departure: string;
+  departureCity?: string;
+  arrival: string;
+  arrivalCity?: string;
+  volume: string;
+  date: string;
+  description: string;
+  author: string;
+  publishedAt: string;
+  price?: string;
+  type?: 'offer' | 'request'; // Ajout du type pour le filtrage
+}
+
+interface DestinationPageContentProps {
+  departure: string;
+  arrival: string;
+  prerenderedAnnouncements: AnnouncementData[];
+  uniqueContent: DestinationContent;
+}
+
+export default function DestinationPageContent({
+  departure,
+  arrival,
+  prerenderedAnnouncements,
+  uniqueContent
+}: DestinationPageContentProps) {
   const router = useSmartRouter();
   const searchParams = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -38,224 +68,33 @@ function HomePageContent() {
     minVolume: 'all'
   });
 
-  // État pour le toggle "Propose" vs "Cherche"
-  const [announcementType, setAnnouncementType] = useState<'offer' | 'request'>('offer');
+  // État pour le toggle "Propose" vs "Cherche" - Par défaut "request" pour cette destination
+  const [announcementType, setAnnouncementType] = useState<'offer' | 'request'>('request');
   const [displayedCount, setDisplayedCount] = useState(7); // Afficher 7 annonces par défaut
+  
+  // Refs
+  const alertButtonRef = useRef<HTMLButtonElement>(null);
+  const announcementsListRef = useRef<HTMLDivElement>(null);
 
-  // États pour la barre de recherche
-  const [searchDeparture, setSearchDeparture] = useState<string>('');
-  const [searchDestination, setSearchDestination] = useState<string>('');
+  // États pour la barre de recherche - PRÉ-REMPLIS avec la destination
+  const [searchDeparture, setSearchDeparture] = useState<string>(departure);
+  const [searchDestination, setSearchDestination] = useState<string>(arrival);
   const [searchDates, setSearchDates] = useState<string[]>([]);
+  
+  // États pour le CTA alerte fixe - IDENTIQUE HOMEPAGE
+  const [showFixedAlert, setShowFixedAlert] = useState(false);
 
-  // États pour les filtres appliqués (pour éviter la re-recherche constante)
-  const [appliedDeparture, setAppliedDeparture] = useState<string>('');
-  const [appliedDestination, setAppliedDestination] = useState<string>('');
+  // États pour les filtres appliqués
+  const [appliedDeparture, setAppliedDeparture] = useState<string>(departure);
+  const [appliedDestination, setAppliedDestination] = useState<string>(arrival);
   const [appliedDates, setAppliedDates] = useState<string[]>([]);
 
-  // États pour le CTA alerte fixe
-  const [showFixedAlert, setShowFixedAlert] = useState(false);
-  
-  // Calculer le nombre de filtres actifs pour l'indicateur visuel
-  const activeFilterCount = (filters.minVolume !== 'all' ? 1 : 0) + (filters.priceType !== 'all' ? 1 : 0);
-  
-  // 🐛 DEBUG: Observer les changements d'état
-  useEffect(() => {
-    console.log('🚨 showFixedAlert changed to:', showFixedAlert);
-  }, [showFixedAlert]);
-  
+  const depData = getCountryByValue(departure);
+  const arrData = getCountryByValue(arrival);
+  const depLabel = depData?.label || departure;
+  const arrLabel = arrData?.label || arrival;
 
-  
-
-
-  // Refs pour le scroll tracking
-  const alertButtonRef = useRef<HTMLButtonElement>(null);
-  const announcementsSectionRef = useRef<HTMLDivElement>(null);
-  const announcementsListRef = useRef<HTMLDivElement>(null);
-  const loadMoreButtonRef = useRef<HTMLDivElement>(null);
-  const contentContainerRef = useRef<HTMLDivElement>(null);
-  const hasProcessedModalParam = useRef(false);
-
-  // Fonction helper pour mettre à jour l'URL avec l'état actuel
-  const updateURLWithCurrentState = (currentFilters?: FilterState, currentType?: 'offer' | 'request') => {
-    const filtersToUse = currentFilters || filters;
-    const typeToUse = currentType || announcementType;
-    
-    const params = new URLSearchParams();
-    if (appliedDeparture) params.set('departure', appliedDeparture);
-    if (appliedDestination) params.set('destination', appliedDestination);
-    if (appliedDates.length > 0) params.set('dates', appliedDates.join(','));
-    params.set('type', typeToUse);
-    if (filtersToUse.priceType !== 'all') params.set('priceType', filtersToUse.priceType);
-    if (filtersToUse.minVolume !== 'all') params.set('minVolume', filtersToUse.minVolume);
-    
-    const url = params.toString() ? `/?${params.toString()}` : '/';
-    
-    // 🔥 CORRECTION PROXY : Sauvegarder les paramètres dans sessionStorage pour les préserver
-    if (typeof window !== 'undefined') {
-      if (params.toString()) {
-        sessionStorage.setItem('dodopartage_search_params', params.toString());
-        console.log('🔄 Paramètres sauvés dans sessionStorage:', params.toString());
-      } else {
-        sessionStorage.removeItem('dodopartage_search_params');
-      }
-    }
-    
-    router.push(url, { scroll: false });
-  };
-
-  // 🔥 CORRECTION PROXY : Hook d'initialisation au montage pour récupérer sessionStorage
-  useEffect(() => {
-    // Ne s'exécuter qu'une seule fois au montage
-    if (typeof window !== 'undefined') {
-      const savedParams = sessionStorage.getItem('dodopartage_search_params');
-      if (savedParams) {
-        console.log('🚀 Initialisation : Paramètres disponibles dans sessionStorage:', savedParams);
-        
-        // Vérifier si l'URL actuelle est vide et que sessionStorage a des paramètres
-        const currentParams = window.location.search;
-        if (!currentParams || currentParams === '') {
-          console.log('🔄 URL vide au montage, application des paramètres sessionStorage');
-          const newUrl = `/?${savedParams}`;
-          router.replace(newUrl);
-        }
-      } else {
-        console.log('🔍 Initialisation : Aucun paramètre dans sessionStorage');
-      }
-    }
-  }, []); // Hook qui ne s'exécute qu'au montage
-
-  // CORRECTION : Séparer la gestion du modal dans un useEffect séparé
-  useEffect(() => {
-    const modalParam = searchParams.get('modal');
-    
-    if (modalParam === 'open' && !hasProcessedModalParam.current) {
-      setIsChoiceModalOpen(true);
-      console.log('🎯 Popup de choix ouverte automatiquement via URL');
-      hasProcessedModalParam.current = true;
-      
-      // Nettoyer l'URL en supprimant le paramètre modal
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete('modal');
-      const newUrl = newParams.toString() ? `/?${newParams.toString()}` : '/';
-      router.replace(newUrl);
-    }
-  }, [searchParams, router]);
-
-  // CORRECTION : useEffect séparé pour la restauration d'état (sans modification d'URL)
-  useEffect(() => {
-    let departure = searchParams.get('departure') || '';
-    let destination = searchParams.get('destination') || '';
-    let dates = searchParams.get('dates') ? searchParams.get('dates')!.split(',') : [];
-    let type = searchParams.get('type') as 'offer' | 'request' || 'offer';
-    let priceType = searchParams.get('priceType') || 'all';
-    let minVolume = searchParams.get('minVolume') || 'all';
-
-    // 🔥 CORRECTION PROXY : Si aucun paramètre URL, essayer sessionStorage comme fallback
-    if (!departure && !destination && dates.length === 0 && typeof window !== 'undefined') {
-      const savedParams = sessionStorage.getItem('dodopartage_search_params');
-      if (savedParams) {
-        console.log('🔄 Récupération depuis sessionStorage car URL vide:', savedParams);
-        const params = new URLSearchParams(savedParams);
-        departure = params.get('departure') || '';
-        destination = params.get('destination') || '';
-        dates = params.get('dates') ? params.get('dates')!.split(',') : [];
-        type = params.get('type') as 'offer' | 'request' || 'offer';
-        priceType = params.get('priceType') || 'all';
-        minVolume = params.get('minVolume') || 'all';
-        
-        // Optionnel : Mettre à jour l'URL avec les paramètres récupérés
-        if (departure || destination || dates.length > 0) {
-          const newUrl = `/?${savedParams}`;
-          console.log('🔄 Mise à jour URL avec paramètres sessionStorage:', newUrl);
-          router.replace(newUrl);
-        }
-      }
-    }
-
-    // Mettre à jour tous les états DE RECHERCHE (ce qui est dans les champs)
-    setSearchDeparture(departure);
-    setSearchDestination(destination);
-    setSearchDates(dates);
-    setAnnouncementType(type);
-    setFilters({ priceType, minVolume });
-
-    // IMPORTANT: Mettre à jour les états APPLIQUÉS seulement s'il y a des paramètres URL
-    // (c'est-à-dire une recherche restaurée, pas une saisie interactive)
-    if (departure || destination || dates.length > 0) {
-      setAppliedDeparture(departure);
-      setAppliedDestination(destination);
-      setAppliedDates(dates);
-      console.log('🔄 États appliqués restaurés depuis URL/sessionStorage:', {
-        departure, destination, dates, type, priceType, minVolume
-      });
-    } else {
-      console.log('🔄 États de recherche restaurés (sans application de filtres):', {
-        departure, destination, dates, type, priceType, minVolume
-      });
-    }
-  }, [searchParams, router]);
-
-  // Gestion simplifiée et élégante du CTA alerte fixe
-  useEffect(() => {
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const alertButton = alertButtonRef.current;
-          const announcementsList = announcementsListRef.current;
-          
-          if (!alertButton || !announcementsList) {
-            console.log('⚠️ Refs manquantes - alertButton:', !!alertButton, 'announcementsList:', !!announcementsList);
-            ticking = false;
-            return;
-          }
-
-          const isMobile = window.innerWidth < 1024;
-          const windowHeight = window.innerHeight;
-          const listRect = announcementsList.getBoundingClientRect();
-          
-          // 🎯 Conditions d'affichage optimisées
-          const hasReachedAnnouncements = listRect.top <= windowHeight * 0.6; // Apparition quand on voit 60% de l'écran
-          const hasPassedEndOfSection = listRect.bottom < windowHeight * 0.4; // Disparition quand il reste moins de 40%
-          
-          // Calculs pour déterminer l'affichage de la bulle
-          
-          if (isMobile) {
-            // Mobile: montrer dans la zone des annonces seulement
-            const isBackOnTop = listRect.top > windowHeight * 0.9;
-            const shouldShow = hasReachedAnnouncements && !isBackOnTop && !hasPassedEndOfSection;
-            setShowFixedAlert(shouldShow);
-          } else {
-            // Desktop: montrer si dans la zone des annonces ET bouton header pas visible
-            const alertButtonRect = alertButton.getBoundingClientRect();
-            const isHeaderButtonVisible = alertButtonRect.top > -50;
-            const shouldShow = hasReachedAnnouncements && !isHeaderButtonVisible && !hasPassedEndOfSection;
-            setShowFixedAlert(shouldShow);
-          }
-
-
-
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    
-    // Écouter les événements
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
-    
-    // Appel initial
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, []);
-
-  // Hook pour récupérer les annonces depuis le backend
+  // Hook pour récupérer les annonces depuis le backend - FILTRÉES pour cette destination
   const {
     announcements,
     loading,
@@ -267,8 +106,10 @@ function HomePageContent() {
     isEmpty,
     hasError
   } = useAnnouncements({
-    type: 'all', // Récupérer toutes les annonces par défaut
-    status: 'published' // Uniquement les annonces validées pour l'affichage public
+    type: announcementType, // FILTRE par type sélectionné
+    departure: departure,   // FILTRE par destination
+    arrival: arrival,       // FILTRE par destination
+    status: 'published'
   });
 
   // Options des pays avec leurs emojis
@@ -304,17 +145,12 @@ function HomePageContent() {
     return normalizedInput;
   };
 
+  // Calculer le nombre de filtres actifs pour l'indicateur visuel
+  const activeFilterCount = (filters.minVolume !== 'all' ? 1 : 0) + (filters.priceType !== 'all' ? 1 : 0);
+
   // Fonction pour filtrer les annonces localement (optimisation UI)
   const getFilteredAnnouncements = () => {
     return announcements.filter(announcement => {
-      console.log('🔍 Filtrage annonce:', {
-        id: announcement.id,
-        date: announcement.date,
-        year: announcement.year,
-        appliedDates,
-        type: announcement.type
-      });
-
       // Filtre par type d'annonce
       if (announcementType === 'offer' && announcement.type !== 'offer') return false;
       if (announcementType === 'request' && announcement.type !== 'request') return false;
@@ -358,121 +194,6 @@ function HomePageContent() {
         if (!destinationMatch) return false;
       }
 
-      // Filtre par dates appliquées (période sélectionnée) - CORRIGÉ
-      if (appliedDates.length > 0) {
-        console.log('🗓️ Filtrage par période:', {
-          appliedDates,
-          announcementDate: announcement.date,
-          announcementYear: announcement.year,
-          announcementType: announcement.type
-        });
-        
-        if (announcement.type === 'offer') {
-          // Pour les offres : on a une date précise au format "18 Déc" + année séparée
-          if (announcement.year) {
-            // Créer les mois sélectionnés au format "Mois Année"
-            const selectedMonthsYears = appliedDates.map(dateStr => {
-              const [month, year] = dateStr.split(' ');
-              return { month, year };
-            });
-            
-            // Extraire le mois de la date de l'annonce "18 Déc" -> "Décembre"
-            const monthAbbreviations: Record<string, string> = {
-              'Jan': 'Janvier', 'Fév': 'Février', 'Mar': 'Mars', 'Avr': 'Avril',
-              'Mai': 'Mai', 'Jui': 'Juin', 'Juil': 'Juillet', 'Aoû': 'Août',
-              'Sep': 'Septembre', 'Oct': 'Octobre', 'Nov': 'Novembre', 'Déc': 'Décembre'
-            };
-            
-            // Parser la date "18 Déc" pour extraire le mois
-            const dateMatch = announcement.date.match(/\d+\s+([A-Za-zàâäéèêëïîôöùûüÿç]+)/);
-            if (dateMatch) {
-              const monthAbbr = dateMatch[1];
-              const fullMonth = monthAbbreviations[monthAbbr];
-              
-              if (fullMonth && announcement.year) {
-                // Vérifier si le mois/année de l'annonce correspond à la sélection
-                const dateMatches = selectedMonthsYears.some(selected => 
-                  selected.month === fullMonth && selected.year === announcement.year
-                );
-                
-                console.log('🗓️ Comparaison offre:', {
-                  announcementMonth: fullMonth,
-                  announcementYear: announcement.year,
-                  selectedMonthsYears,
-                  dateMatches
-                });
-                
-                if (!dateMatches) return false;
-              } else {
-                console.warn('🗓️ Impossible de parser la date offre:', announcement.date);
-                return false;
-              }
-            } else {
-              console.warn('🗓️ Format de date offre non reconnu:', announcement.date);
-              return false;
-            }
-          } else {
-            console.warn('🗓️ Pas d\'année pour l\'offre:', announcement);
-            return false;
-          }
-        } else if (announcement.type === 'request') {
-          // Pour les demandes : on a une période formatée comme "Septembre - Octobre 2025"
-          // ou "Période flexible"
-          
-          if (announcement.date === 'Période flexible') {
-            // Si période flexible, on l'affiche toujours
-            console.log('🗓️ Période flexible détectée, annonce incluse');
-            return true;
-          }
-          
-          // Parser la période de la demande pour extraire les mois
-          let requestMonths: string[] = [];
-          
-          // Format "Septembre - Octobre 2025" ou "Septembre 2025"
-          const periodMatch = announcement.date.match(/([A-Za-zàâäéèêëïîôöùûüÿç]+)(?:\s*-\s*([A-Za-zàâäéèêëïîôöùûüÿç]+))?\s+(\d{4})/);
-          if (periodMatch) {
-            const [, startMonth, endMonth, year] = periodMatch;
-            
-            if (endMonth) {
-              // Période avec plusieurs mois "Septembre - Octobre 2025"
-              const monthsOrder = [
-                'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-              ];
-              
-              const startIndex = monthsOrder.indexOf(startMonth);
-              const endIndex = monthsOrder.indexOf(endMonth);
-              
-              if (startIndex !== -1 && endIndex !== -1) {
-                for (let i = startIndex; i <= endIndex; i++) {
-                  requestMonths.push(`${monthsOrder[i]} ${year}`);
-                }
-              }
-            } else {
-              // Mois unique "Septembre 2025"
-              requestMonths.push(`${startMonth} ${year}`);
-            }
-          } else {
-            console.warn('🗓️ Format de période request non reconnu:', announcement.date);
-            // En cas de format non reconnu, on inclut l'annonce pour éviter de la masquer
-            return true;
-          }
-          
-          // Vérifier si au moins un mois de la demande correspond à la sélection
-          const hasDateMatch = requestMonths.some(requestMonth => 
-            appliedDates.includes(requestMonth)
-          );
-          
-          console.log('🗓️ Comparaison request:', {
-            requestMonths,
-            appliedDates,
-            hasDateMatch
-          });
-          
-          if (!hasDateMatch) return false;
-        }
-      }
-
       return true;
     });
   };
@@ -487,9 +208,6 @@ function HomePageContent() {
   const handleFiltersChange = (newFilters: FilterState) => {
     console.log('🔧 Changement de filtres:', newFilters);
     setFilters(newFilters);
-    
-    // Mettre à jour l'URL avec les nouveaux filtres
-    updateURLWithCurrentState(newFilters, announcementType);
   };
 
   const handleAnnouncementTypeChange = (newType: 'offer' | 'request') => {
@@ -503,11 +221,7 @@ function HomePageContent() {
     
     setAnnouncementType(newType);
     
-    // Mettre à jour l'URL avec le nouveau type
-    updateURLWithCurrentState(filters, newType);
-    
     // Forcer une récupération des données pour le nouveau type
-    // Cela garantit qu'on récupère bien toutes les annonces du type sélectionné
     applyFilters({
       type: newType,
       departure: appliedDeparture,
@@ -523,25 +237,58 @@ function HomePageContent() {
     setDisplayedCount(prev => Math.min(prev + 4, filteredAnnouncements.length));
   };
 
-  // Fonction pour scroller vers la section des annonces (avec délai pour mobile)
-  const scrollToAnnouncements = () => {
-    // Délai pour laisser le temps à la recherche de se terminer et à l'UI de se mettre à jour
-    setTimeout(() => {
-      if (announcementsSectionRef.current) {
-        const isMobile = window.innerWidth < 1024; // lg breakpoint
-        
-        if (isMobile) {
-          // Sur mobile, scroll avec une animation douce vers la section des annonces
-          announcementsSectionRef.current.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
+  // 🎯 SCROLL TRACKING pour bouton flottant alerte - IDENTIQUE HOMEPAGE
+  useEffect(() => {
+    let ticking = false;
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const alertButton = alertButtonRef.current;
+          const announcementsList = announcementsListRef.current;
           
-          console.log('📱 Auto-scroll mobile vers la section des annonces');
-        }
+          if (!alertButton || !announcementsList) {
+            ticking = false;
+            return;
+          }
+
+          const isMobile = window.innerWidth < 1024;
+          const windowHeight = window.innerHeight;
+          const listRect = announcementsList.getBoundingClientRect();
+          
+          // 🎯 Conditions d'affichage optimisées
+          const hasReachedAnnouncements = listRect.top <= windowHeight * 0.6; // Apparition quand on voit 60% de l'écran
+          const hasPassedEndOfSection = listRect.bottom < windowHeight * 0.4; // Disparition quand il reste moins de 40%
+          
+          if (isMobile) {
+            // Mobile: montrer dans la zone des annonces seulement
+            const isBackOnTop = listRect.top > windowHeight * 0.9;
+            const shouldShow = hasReachedAnnouncements && !isBackOnTop && !hasPassedEndOfSection;
+            setShowFixedAlert(shouldShow);
+          } else {
+            // Desktop: montrer si dans la zone des annonces ET bouton header pas visible
+            const alertButtonRect = alertButton.getBoundingClientRect();
+            const isHeaderButtonVisible = alertButtonRect.top > -50;
+            const shouldShow = hasReachedAnnouncements && !isHeaderButtonVisible && !hasPassedEndOfSection;
+            setShowFixedAlert(shouldShow);
+          }
+
+          ticking = false;
+        });
+        ticking = true;
       }
-    }, 300); // 300ms pour laisser le temps à l'API et à l'UI de se mettre à jour
-  };
+    };
+    
+    // Écouter les événements
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
 
   const handleSearch = (e?: React.FormEvent | React.MouseEvent) => {
     // Empêcher le comportement par défaut (refresh de page)
@@ -559,23 +306,13 @@ function HomePageContent() {
     const normalizedDeparture = searchDeparture ? normalizeLocation(searchDeparture) : '';
     const normalizedDestination = searchDestination ? normalizeLocation(searchDestination) : '';
     
-    console.log('🔄 Recherche normalisée:', { 
-      departure: `${searchDeparture} → ${normalizedDeparture}`, 
-      destination: `${searchDestination} → ${normalizedDestination}` 
-    });
-    
-    // Sauvegarder les paramètres dans l'URL pour préserver l'état
-    const params = new URLSearchParams();
-    if (normalizedDeparture) params.set('departure', normalizedDeparture);
-    if (normalizedDestination) params.set('destination', normalizedDestination);
-    if (searchDates.length > 0) params.set('dates', searchDates.join(','));
-    params.set('type', announcementType);
-    if (filters.priceType !== 'all') params.set('priceType', filters.priceType);
-    if (filters.minVolume !== 'all') params.set('minVolume', filters.minVolume);
-    
-    // Mettre à jour l'URL sans recharger la page
-    const url = params.toString() ? `/?${params.toString()}` : '/';
-    router.push(url, { scroll: false });
+    // Si les destinations ont changé, rediriger vers la nouvelle page catégorie
+    if ((normalizedDeparture !== departure || normalizedDestination !== arrival) &&
+        normalizedDeparture && normalizedDestination) {
+      // Navigation intelligente vers la nouvelle catégorie
+      router.push(`/${normalizedDeparture}-${normalizedDestination}/`);
+      return;
+    }
     
     // Appliquer les filtres via le hook (qui fera l'appel API)
     applyFilters({
@@ -592,9 +329,6 @@ function HomePageContent() {
     
     // Réinitialiser le nombre d'annonces affichées
     setDisplayedCount(7);
-    
-    // Auto-scroll vers la section des annonces sur mobile
-    scrollToAnnouncements();
   };
 
   const handleCreateAlert = () => {
@@ -671,18 +405,7 @@ function HomePageContent() {
         }
       </h3>
       <p className="text-gray-600 mb-8 max-w-md mx-auto">
-        {(() => {
-          const hasFilters = appliedDeparture || appliedDestination || appliedDates.length > 0;
-          if (announcementType === 'offer') {
-            return hasFilters
-              ? 'Aucune offre ne correspond à vos critères de recherche.'
-              : 'Aucune offre de conteneur n\'est disponible pour le moment.';
-          } else {
-            return hasFilters
-              ? 'Aucune demande ne correspond à vos critères de recherche.'
-              : 'Aucune demande de place n\'est active pour le moment.';
-          }
-        })()}
+        Aucune annonce active pour {depLabel} → {arrLabel} en ce moment.
       </p>
       
       {/* CTA principaux - Priorisés */}
@@ -702,35 +425,6 @@ function HomePageContent() {
           🔔 Créer une alerte
         </Button>
       </div>
-      
-      {/* CTA secondaire - Moins mis en avant */}
-      {(appliedDeparture || appliedDestination || appliedDates.length > 0) && (
-        <div className="pt-4 border-t border-gray-100">
-          <button
-            onClick={() => {
-              // Réinitialiser tous les filtres de recherche
-              setAppliedDeparture('');
-              setAppliedDestination('');
-              setAppliedDates([]);
-              setSearchDeparture('');
-              setSearchDestination('');
-              setSearchDates([]);
-              
-              // Récupérer toutes les annonces du type actuel
-              applyFilters({
-                type: announcementType,
-                status: 'published'
-              });
-              
-              // Nettoyer l'URL
-              router.push(`/?type=${announcementType}`, { scroll: false });
-            }}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors underline underline-offset-2"
-          >
-            🔄 Ou réinitialiser les filtres pour voir toutes les annonces
-          </button>
-        </div>
-      )}
     </motion.div>
   );
 
@@ -738,14 +432,11 @@ function HomePageContent() {
     <div className="min-h-screen bg-gray-50">
       {/* SEO Head pour canonical et robots */}
       <SEOHead 
-        title="DodoPartage - Groupage conteneurs collaboratif DOM-TOM"
-        description="Plateforme de mise en relation pour le partage de conteneurs entre la France métropolitaine et les DOM-TOM. Proposez ou cherchez de la place pour vos expéditions."
+        title={`Partage de conteneur ${depLabel} → ${arrLabel} | DodoPartage`}
+        description={`Trouvez ou proposez une place dans un conteneur de déménagement entre ${depLabel} et ${arrLabel}. Économisez sur vos frais de transport maritime DOM-TOM.`}
       />
       
-      {/* FAQ JSON-LD pour le référencement AEO */}
-      <FAQJsonLD />
-      
-      {/* Header bleu avec surlignage jaune */}
+      {/* Header bleu avec surlignage jaune - IDENTIQUE HOMEPAGE */}
       <div className="bg-gradient-to-br from-[#243163] to-[#1e2951] relative">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {/* Header avec logo/navigation */}
@@ -760,7 +451,7 @@ function HomePageContent() {
             </div>
           </div>
 
-          {/* Section titres */}
+          {/* Section titres - ADAPTÉE à la destination */}
           <div className="text-center pb-20 sm:pb-24">
             {/* Titre H1 SEO optimisé - responsive mobile/desktop */}
             <div className="mb-6 sm:mb-8 px-4 sm:px-0">
@@ -769,7 +460,7 @@ function HomePageContent() {
                 <div className="flex sm:hidden items-center justify-center gap-2">
                   <Crown className="w-4 h-4 text-[#EFB500] flex-shrink-0" />
                   <span className="font-bold tracking-wide text-center">
-                    DODOPARTAGE - GROUPAGE CONTENEUR DOM-TOM
+                    DODOPARTAGE - GROUPAGE CONTENEUR {depLabel?.toUpperCase()} → {arrLabel?.toUpperCase()}
                   </span>
                 </div>
                 
@@ -777,7 +468,7 @@ function HomePageContent() {
                 <div className="hidden sm:flex items-center justify-center gap-3">
                   <Crown className="w-5 h-5 text-[#EFB500] flex-shrink-0" />
                   <span className="font-bold tracking-wide">
-                    DODOPARTAGE - GROUPAGE CONTENEUR DOM-TOM
+                    DODOPARTAGE - GROUPAGE CONTENEUR {depLabel?.toUpperCase()} → {arrLabel?.toUpperCase()}
                   </span>
                 </div>
               </h1>
@@ -785,16 +476,16 @@ function HomePageContent() {
             
             {/* Titre principal */}
             <div className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-              Partagez vos conteneurs de déménagement
+              {uniqueContent.hero}
             </div>
-            <p className="text-lg sm:text-xl text-white/90 font-light max-w-3xl mx-auto">
-              Trouvez ou proposez facilement une place dans un conteneur entre la métropole, la Réunion et tous les autres DOM-TOM !
+            <p className="text-lg sm:text-xl text-white/90 font-light max-w-4xl lg:max-w-5xl mx-auto">
+              {uniqueContent.intro}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Barre de recherche flottante à cheval */}
+      {/* Barre de recherche flottante à cheval - IDENTIQUE HOMEPAGE */}
       <div className="relative -mt-12 sm:-mt-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 p-3 sm:p-4 lg:p-6">
@@ -864,7 +555,7 @@ function HomePageContent() {
         </div>
       </div>
 
-      {/* Layout principal avec sidebar */}
+      {/* Layout principal avec sidebar - IDENTIQUE HOMEPAGE */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-4 sm:pb-8">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           {/* Sidebar filtres - gauche */}
@@ -943,15 +634,14 @@ function HomePageContent() {
           </div>
 
           {/* Contenu principal - droite */}
-          <div className="flex-1" ref={announcementsSectionRef}>
-            <div ref={contentContainerRef}>
-            {/* Header des annonces */}
+          <div className="flex-1">
+            {/* Header des annonces - IDENTIQUE HOMEPAGE */}
             <div className="mb-6 sm:mb-8">
               {/* Titre et boutons - responsive layout */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-                    Annonces récentes
+                    Annonces {depLabel} → {arrLabel}
                   </h2>
                   <p className="text-base sm:text-lg text-gray-600 font-lato">
                     {filteredAnnouncements.length > 0 
@@ -1030,7 +720,7 @@ function HomePageContent() {
               </div>
             </div>
 
-            {/* Liste des annonces */}
+            {/* Liste des annonces - IDENTIQUE HOMEPAGE */}
             {loading ? (
               <LoadingState />
             ) : error ? (
@@ -1058,7 +748,6 @@ function HomePageContent() {
             {/* Load More Button */}
             {hasMoreAnnouncements && (
               <motion.div
-                ref={loadMoreButtonRef}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.8 }}
@@ -1074,7 +763,6 @@ function HomePageContent() {
                 </Button>
               </motion.div>
             )}
-            </div>
           </div>
         </div>
       </div>
@@ -1099,51 +787,7 @@ function HomePageContent() {
 
 
 
-
-
-
-      {/* CTA Alerte fixe - EXACTEMENT la même structure que "Voir plus d'annonces" */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ 
-          opacity: showFixedAlert ? 1 : 0,
-          y: showFixedAlert ? 0 : 20
-        }}
-        transition={{ 
-          duration: 0.15, 
-          ease: 'easeOut'
-        }}
-        className={`fixed bottom-6 left-0 right-0 z-40 ${showFixedAlert ? 'pointer-events-auto' : 'pointer-events-none'}`}
-      >
-        {/* Reproduire exactement la structure du container principal */}
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
-            {/* Sidebar invisible - même largeur que l'original */}
-            <div className="lg:w-80 flex-shrink-0 hidden lg:block"></div>
-            
-            {/* Contenu principal - même structure que l'original */}
-            <div className="flex-1">
-              <div className="text-center px-3 sm:px-0">
-                <button
-                  onClick={handleCreateAlert}
-                  className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2 sm:gap-3 relative min-w-[200px] sm:min-w-[240px]"
-                  title="Créer une alerte"
-                >
-                  {/* Animation pulse pour attirer l'attention - en arrière-plan */}
-                  <div className="absolute inset-0 rounded-xl bg-[#F47D6C] animate-pulse opacity-20 pointer-events-none -z-10"></div>
-                  
-                  <BellPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
-                  <span className="text-sm sm:text-base font-medium text-white whitespace-nowrap">
-                    Créer une alerte
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Section Comment ça marche */}
+      {/* Section Comment ça marche - IDENTIQUE HOMEPAGE */}
       <section id="how-it-works" className="w-full bg-white py-16 sm:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
@@ -1162,7 +806,7 @@ function HomePageContent() {
               </p>
             </motion.div>
 
-            {/* Colonne droite - Grille des étapes */}
+            {/* Colonne droite - Grille des étapes EXACTE HOMEPAGE */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -1251,7 +895,7 @@ function HomePageContent() {
                 transition={{ duration: 0.8 }}
                 className="w-full lg:w-[45%] space-y-3 sm:space-y-4 text-center lg:text-left"
               >
-                                {/* Logo DodoMove */}
+                {/* Logo DodoMove */}
                 <div className="w-44 sm:w-60 mx-auto lg:mx-0">
                   <img 
                     src="/images/logo-Dodomove-positif-cropped.webp" 
@@ -1323,8 +967,6 @@ function HomePageContent() {
                     alt="Couple préparant un déménagement" 
                     className="w-full h-full object-cover"
                   />
-                  
-
                 </div>
 
                 {/* Image secondaire - Femme avec cartons - Cachée sur mobile et tablet, visible sur desktop */}
@@ -1351,7 +993,8 @@ function HomePageContent() {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Gagnez un temps précieux</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                Votre temps est précieux. En passant par dodomove, obtenez juqu'à 3 devis personnalisés en 24h.                </p>
+                  Votre temps est précieux. En passant par dodomove, obtenez jusqu'à 3 devis personnalisés en 24h.
+                </p>
               </div>
 
               {/* Avantage 2 - Transporteurs fiables */}
@@ -1361,32 +1004,29 @@ function HomePageContent() {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Transporteurs fiables et vérifiés</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                On ne vous propose que des transporteurs sérieux, formés et assurés pour les envois DOM-TOM.
+                  On ne vous propose que des transporteurs sérieux, formés et assurés pour les envois DOM-TOM.
                 </p>
               </div>
 
-              {/* Avantage 3 - Prix compétitifs */}
+              {/* Avantage 3 - Service premium gratuit */}
               <div className="flex flex-col items-center lg:items-start">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                  <Award className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Le bon prix, sans mauvaise surprise</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Service premium gratuit</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                Des devis transparents, sans frais cachés. Comparez et choisissez l'offre qui vous convient, au juste prix.
+                  Notre service est 100% gratuit. Nous sommes rémunérés uniquement par nos partenaires transporteurs.
                 </p>
               </div>
 
-              {/* Avantage 4 - Support */}
+              {/* Avantage 4 - Support expert 7j/7 */}
               <div className="flex flex-col items-center lg:items-start">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#243163] rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                   <LifeBuoy className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
-                  Une question ?<br />
-                  On vous guide.
-                </h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>Support expert 7j/7</h3>
                 <p className="text-white/80 text-sm leading-relaxed">
-                Un doute sur votre volume, vos options ou vos démarches ? On vous répond, gratuitement.
+                  Notre équipe d'experts DOM-TOM vous accompagne depuis votre demande de devis jusqu'à la réception.
                 </p>
               </div>
             </div>
@@ -1394,12 +1034,48 @@ function HomePageContent() {
         </div>
       </section>
 
-      {/* Section FAQ */}
-      <section id="faq">
-        <FAQSection />
+      {/* Section FAQ - AVEC ACCORDÉON INTERACTIF comme homepage */}
+      <DestinationFAQSection departure={departure} arrival={arrival} uniqueContent={uniqueContent} />
+
+      {/* Section destinations populaires */}
+      <PopularDestinationsSection currentDeparture={departure} currentArrival={arrival} />
+
+      {/* Section CTA supplémentaire - IDENTIQUE HOMEPAGE */}
+      <section className="w-full bg-gradient-to-br from-[#243163] to-[#1e2951] py-16 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="max-w-3xl mx-auto"
+            >
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+                Soyez alerté des nouvelles annonces {depLabel} → {arrLabel}
+              </h2>
+              <p className="text-lg text-white/80 mb-8 font-lato">
+                Recevez un email dès qu'une nouvelle annonce correspond à vos critères de recherche.
+              </p>
+              
+              <div className="flex justify-center">
+                <button
+                  onClick={handleCreateAlert}
+                  className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2 sm:gap-3 relative min-w-[200px] sm:min-w-[240px]"
+                  title="Créer une alerte"
+                >
+                  <BellPlus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-semibold">Créer une alerte</span>
+                  
+                  {/* Animation subtile */}
+                  <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
-      {/* Footer simple */}
+      {/* Footer simple identique à l'homepage */}
       <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Navigation footer */}
@@ -1439,6 +1115,47 @@ function HomePageContent() {
         </div>
       </footer>
 
+      {/* CTA Alerte fixe flottant - IDENTIQUE HOMEPAGE */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ 
+          opacity: showFixedAlert ? 1 : 0,
+          y: showFixedAlert ? 0 : 20
+        }}
+        transition={{ 
+          duration: 0.15, 
+          ease: 'easeOut'
+        }}
+        className={`fixed bottom-6 left-0 right-0 z-40 ${showFixedAlert ? 'pointer-events-auto' : 'pointer-events-none'}`}
+      >
+        {/* Reproduire exactement la structure du container principal */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
+            {/* Sidebar invisible - même largeur que l'original */}
+            <div className="lg:w-80 flex-shrink-0 hidden lg:block"></div>
+            
+            {/* Contenu principal - même structure que l'original */}
+            <div className="flex-1">
+              <div className="text-center px-3 sm:px-0">
+                <button
+                  onClick={handleCreateAlert}
+                  className="group bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2 sm:gap-3 relative min-w-[200px] sm:min-w-[240px]"
+                  title="Créer une alerte"
+                >
+                  {/* Animation pulse pour attirer l'attention - en arrière-plan */}
+                  <div className="absolute inset-0 rounded-xl bg-[#F47D6C] animate-pulse opacity-20 pointer-events-none -z-10"></div>
+                  
+                  <BellPlus className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
+                  <span className="text-sm sm:text-base font-medium text-white whitespace-nowrap">
+                    Créer une alerte
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Notification de suppression avec Suspense amélioré */}
       <Suspense fallback={null}>
         <DeletedNotificationWrapper />
@@ -1460,11 +1177,223 @@ function DeletedNotificationWrapper() {
   }
 }
 
-export default function HomePage() {
+// Composant pour les destinations populaires
+function PopularDestinationsSection({ 
+  currentDeparture, 
+  currentArrival 
+}: { 
+  currentDeparture: string; 
+  currentArrival: string; 
+}) {
+  const popularRoutes = getPopularRoutes(currentDeparture, currentArrival);
+  
   return (
-    <Suspense fallback={<div>Chargement...</div>}>
-      <HomePageContent />
-    </Suspense>
+    <section className="w-full bg-[#EDEEFF] py-16 sm:py-20 lg:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#243163] mb-6 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+            🚢 Autres destinations populaires
+          </h2>
+          <p className="text-lg text-[#1a2741] font-lato leading-relaxed max-w-2xl mx-auto">
+            Découvrez toutes les autres routes de groupage disponibles pour vos expéditions DOM-TOM.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {popularRoutes.map(({ departure, arrival, departureLabel, arrivalLabel }) => (
+            <Link
+              key={`${departure}-${arrival}`}
+              href={`/${departure}-${arrival}/`}
+              className="group bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-[#F47D6C]/30 hover:-translate-y-1"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-3xl">
+                  {departure === 'france' ? '🇫🇷' : arrival === 'france' ? '🏠' : '🏝️'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-lg text-gray-900 group-hover:text-[#243163] transition-colors">
+                    {departureLabel}
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <ArrowRight className="w-4 h-4" />
+                    <span className="font-medium">{arrivalLabel}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors">
+                  Voir les annonces
+                </span>
+                <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-[#F47D6C] transition-colors flex items-center justify-center">
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        
+        {/* CTA vers toutes les destinations */}
+        <div className="mt-12 text-center">
+          <Link 
+            href="/"
+            className="inline-flex items-center gap-2 bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          >
+            <Search className="w-5 h-5" />
+            Voir toutes les destinations
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
+// Composant FAQ item individuel - IDENTIQUE à la homepage
+interface DestinationFAQItemProps {
+  item: { q: string; a: string };
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+function DestinationFAQItem({ item, isOpen, onToggle }: DestinationFAQItemProps) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
+        <h3 className="text-base font-semibold text-[#243163] pr-4 leading-relaxed font-title" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+          {item.q}
+        </h3>
+        <div className="flex-shrink-0">
+          {isOpen ? (
+            <Minus className="w-5 h-5 text-[#F47D6C]" />
+          ) : (
+            <Plus className="w-5 h-5 text-[#F47D6C]" />
+          )}
+        </div>
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pb-5 border-t border-gray-100">
+              <div className="text-gray-600 leading-relaxed font-lato pt-4">
+                {item.a}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Composant FAQ spécialisé pour les destinations - IDENTIQUE à FAQSection mais avec contenu adapté
+interface DestinationFAQSectionProps {
+  departure: string;
+  arrival: string;
+  uniqueContent: DestinationContent;
+}
+
+function DestinationFAQSection({ departure, arrival, uniqueContent }: DestinationFAQSectionProps) {
+  const [openItems, setOpenItems] = useState<Set<string>>(new Set());
+
+  const toggleItem = (itemId: string) => {
+    const newOpenItems = new Set(openItems);
+    if (newOpenItems.has(itemId)) {
+      newOpenItems.delete(itemId);
+    } else {
+      newOpenItems.add(itemId);
+    }
+    setOpenItems(newOpenItems);
+  };
+
+  const dep = getCountryByValue(departure);
+  const arr = getCountryByValue(arrival);
+  const depLabel = dep?.label || departure;
+  const arrLabel = arr?.label || arrival;
+
+  return (
+    <section className="w-full bg-white py-16 sm:py-20 lg:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header de la section - IDENTIQUE homepage */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12 lg:mb-16"
+        >
+          {/* Badge FAQ avec lignes décoratives */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex-1 h-px bg-gray-400 max-w-24"></div>
+            <div className="px-4">
+              <span className="text-sm font-medium text-gray-600 tracking-wider uppercase">FAQ</span>
+            </div>
+            <div className="flex-1 h-px bg-gray-400 max-w-24"></div>
+          </div>
+
+          {/* Titre principal */}
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#243163] mb-4 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+            Questions fréquentes {depLabel} → {arrLabel}
+          </h2>
+
+          {/* Description */}
+          <p className="text-lg text-gray-600 font-lato max-w-2xl mx-auto leading-relaxed">
+            Tout ce que vous devez savoir sur le transport de conteneurs pour cette destination.
+          </p>
+        </motion.div>
+
+        {/* FAQ spécialisée en format accordéon - STRUCTURE IDENTIQUE homepage */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12"
+        >
+          {/* Colonne gauche - Questions 0 et 2 */}
+          <div>
+            {uniqueContent.faq.filter((_, index) => index % 2 === 0).map((item, filteredIndex) => {
+              const originalIndex = filteredIndex * 2;
+              const itemId = `dest-faq-${originalIndex}`;
+              return (
+                <div key={itemId} className="mb-4">
+                  <DestinationFAQItem
+                    item={item}
+                    isOpen={openItems.has(itemId)}
+                    onToggle={() => toggleItem(itemId)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Colonne droite - Questions 1 et 3 */}
+          <div>
+            {uniqueContent.faq.filter((_, index) => index % 2 === 1).map((item, filteredIndex) => {
+              const originalIndex = filteredIndex * 2 + 1;
+              const itemId = `dest-faq-${originalIndex}`;
+              return (
+                <div key={itemId} className="mb-4">
+                  <DestinationFAQItem
+                    item={item}
+                    isOpen={openItems.has(itemId)}
+                    onToggle={() => toggleItem(itemId)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+      </div>
+    </section>
+  );
+}
