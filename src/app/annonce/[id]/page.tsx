@@ -67,8 +67,8 @@ export default function AnnouncementDetailPage() {
         setLoading(true);
         setError(null);
 
-        // Appel API pour récupérer l'annonce spécifique
-        const response = await apiFetch(`/api/get-announcements`);
+        // 🚀 OPTIMISATION: Appel API dédié pour une seule annonce
+        const response = await apiFetch(`/api/get-announcement/${params.id}`);
         if (!response.ok) {
           throw new Error('Erreur lors de la récupération de l\'annonce');
         }
@@ -78,15 +78,9 @@ export default function AnnouncementDetailPage() {
           throw new Error(result.error || 'Annonce non trouvée');
         }
 
-        // Trouver l'annonce par référence OU par ID (pour compatibilité avec les anciennes URLs)
-        const foundAnnouncement = result.data.find((ann: AnnouncementDetail) => 
-          ann.reference === params.id || ann.id === params.id
-        );
-        if (!foundAnnouncement) {
-          throw new Error('Annonce non trouvée');
-        }
-
-        setAnnouncement(foundAnnouncement);
+        // 🎯 OPTIMISATION: Plus besoin de chercher dans un tableau !
+        setAnnouncement(result.data);
+        console.log('✅ Annonce récupérée optimisée:', result.data.reference);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
         setError(errorMessage);
