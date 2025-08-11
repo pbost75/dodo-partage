@@ -46,6 +46,18 @@ Bienvenue dans la documentation complète de **DodoPartage** - Plateforme de gro
 | [`pages-categories-seo.md`](pages-categories-seo.md) | **Pages catégories et stratégie SEO** | ✅ À jour |
 | [`moderation.md`](moderation.md) | Système de modération | ⚠️ À réviser |
 
+### 👥 **Guides utilisateur**
+
+| Fichier | Description | Statut |
+|---------|------------|--------|
+| [`user-guides/notifications-system.md`](user-guides/notifications-system.md) | Guide du système de notifications automatiques | ✅ À jour |
+
+### 📝 **Changelog des fonctionnalités**
+
+| Fichier | Description | Statut |
+|---------|------------|--------|
+| [`features-changelog/whatsapp-improvements.md`](features-changelog/whatsapp-improvements.md) | Améliorations système WhatsApp | ✅ Archivé |
+
 ### 🧪 **Tests et qualité**
 
 | Fichier | Description | Statut |
@@ -63,6 +75,14 @@ Bienvenue dans la documentation complète de **DodoPartage** - Plateforme de gro
 | Fichier | Description | Statut |
 |---------|------------|--------|
 | [`CHANGELOG-DISPLAY-NAME.md`](CHANGELOG-DISPLAY-NAME.md) | Changelog suppression display_name | 📚 Archivé |
+
+### 🗄️ **Archives (corrections historiques)**
+
+| Fichier | Description | Statut |
+|---------|------------|--------|
+| [`archive/CROSSDOMAIN-FIXES.md`](archive/CROSSDOMAIN-FIXES.md) | Corrections navigation cross-domain | 📚 Archivé |
+| [`archive/EMAIL-LINKS-FIXES.md`](archive/EMAIL-LINKS-FIXES.md) | Corrections liens emails | 📚 Archivé |
+| [`archive/UI-FIXES-MODIFIER.md`](archive/UI-FIXES-MODIFIER.md) | Corrections UI page modification | 📚 Archivé |
 
 ---
 
