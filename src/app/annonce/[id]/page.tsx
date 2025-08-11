@@ -67,8 +67,8 @@ export default function AnnouncementDetailPage() {
         setLoading(true);
         setError(null);
 
-        // 🚀 OPTIMISATION : Appel API dédié pour une seule annonce
-        const response = await apiFetch(`/api/get-announcement/${params.id}`);
+        // Appel API pour récupérer l'annonce spécifique
+        const response = await apiFetch(`/api/get-announcements`);
         if (!response.ok) {
           throw new Error('Erreur lors de la récupération de l\'annonce');
         }
@@ -78,9 +78,15 @@ export default function AnnouncementDetailPage() {
           throw new Error(result.error || 'Annonce non trouvée');
         }
 
-        // 🎯 OPTIMISATION : Plus besoin de chercher dans un tableau !
-        setAnnouncement(result.data);
-        console.log('✅ Annonce récupérée:', result.data.reference);
+        // Trouver l'annonce par référence OU par ID (pour compatibilité avec les anciennes URLs)
+        const foundAnnouncement = result.data.find((ann: AnnouncementDetail) => 
+          ann.reference === params.id || ann.id === params.id
+        );
+        if (!foundAnnouncement) {
+          throw new Error('Annonce non trouvée');
+        }
+
+        setAnnouncement(foundAnnouncement);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
         setError(errorMessage);
@@ -171,36 +177,11 @@ export default function AnnouncementDetailPage() {
       }
     }
     
-    // 🎯 NOUVELLE LOGIQUE : Détecter si on doit retourner vers une page catégorie
-    if (finalParams && announcement) {
-      const urlParams = new URLSearchParams(finalParams);
-      const departure = urlParams.get('departure');
-      const arrival = urlParams.get('arrival');
-      
-      // Si on a des filtres de destination ET qu'ils correspondent à l'annonce
-      if (departure && arrival && 
-          departure === announcement.departure && 
-          arrival === announcement.arrival) {
-        
-        // 🚀 CORRECTION : Retourner vers la page catégorie spécifique
-        const categoryUrl = `/${departure}-${arrival}/`;
-        
-        // Garder les autres paramètres (volume, prix, etc.) mais sans departure/arrival
-        urlParams.delete('departure');
-        urlParams.delete('arrival');
-        const otherParams = urlParams.toString();
-        
-        const finalUrl = otherParams ? `${categoryUrl}?${otherParams}` : categoryUrl;
-        router.push(finalUrl);
-        console.log('🎯 Navigation retour vers page catégorie:', finalUrl);
-        return;
-      }
-    }
-    
     if (finalParams) {
-      // Si on a des paramètres mais pas de correspondance catégorie, retourner à la homepage
+      // Si on a des paramètres de recherche, retourner à la page d'accueil avec ces paramètres
+      // CORRECTION : useSmartRouter gère automatiquement le contexte proxy
       router.push(`/?${finalParams}`);
-      console.log('🚀 Navigation retour vers homepage avec paramètres:', finalParams);
+      console.log('🚀 Navigation retour avec paramètres:', finalParams);
     } else {
       // Sinon, utiliser le retour historique classique
       console.log('🚀 Navigation retour historique classique');
