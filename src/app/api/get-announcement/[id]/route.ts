@@ -18,13 +18,19 @@ export async function GET(
       );
     }
 
-    // 🚀 OPTIMISATION TEMPORAIRE: Utiliser l'API existante avec cache Next.js 
+    // 🚀 OPTIMISATION TEMPORAIRE: Utiliser notre API transformée avec cache Next.js 
     // TODO: Remplacer par la route spécifique quand Railway sera fixé
-    const response = await fetch(`${backendUrl}/api/partage/get-announcements?status=published`, {
+    
+    // IMPORTANT: On appelle notre propre API qui fait la transformation des données !
+    const apiUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://partage.dodomove.fr/api/get-announcements'
+      : 'http://localhost:3000/api/get-announcements';
+      
+    const response = await fetch(`${apiUrl}?status=published`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'X-Frontend-Source': 'dodo-partage',
+        'X-Frontend-Source': 'dodo-partage-internal',
         'X-Frontend-Version': '1.0.0',
       },
       // Cache Next.js pour éviter les appels répétés  
@@ -63,7 +69,7 @@ export async function GET(
       );
     }
 
-    console.log(`✅ Annonce ${id} trouvée: ${foundAnnouncement.title}`);
+    console.log(`✅ Annonce ${id} trouvée: ${foundAnnouncement.title || foundAnnouncement.reference}`);
 
     // Retourner l'annonce trouvée
     return NextResponse.json(

@@ -416,7 +416,7 @@ export default function AnnouncementDetailPage() {
               </h2>
               <div className="max-w-none">
                 <p className="text-gray-700 leading-normal">
-                  {announcement.description.replace(/\n/g, ' ')}
+                  {announcement.description?.replace(/\n/g, ' ') || 'Description non disponible'}
                 </p>
               </div>
             </div>
@@ -523,7 +523,7 @@ export default function AnnouncementDetailPage() {
                 </h2>
                 <div className="max-w-none">
                   <p className="text-gray-700 leading-normal">
-                    {announcement.description.replace(/\n/g, ' ')}
+                    {announcement.description?.replace(/\n/g, ' ') || 'Description non disponible'}
                   </p>
                 </div>
               </div>
