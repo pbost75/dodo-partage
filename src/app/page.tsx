@@ -1515,27 +1515,11 @@ function PopularDestinationsHomepage() {
           ))}
         </div>
         
-        {/* CTA pour explorer plus */}
+        {/* Message informatif simple */}
         <div className="mt-12 text-center">
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600">
             Plus de 72 combinaisons de destinations disponibles
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link 
-              href={createHref("/funnel-choice/offer")}
-              className="inline-flex items-center gap-2 bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-            >
-              <Plus className="w-5 h-5" />
-              Proposer de la place
-            </Link>
-            <Link 
-              href={createHref("/funnel-choice/search")}
-              className="inline-flex items-center gap-2 bg-[#243163] hover:bg-[#1a2741] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-            >
-              <Search className="w-5 h-5" />
-              Chercher de la place
-            </Link>
-          </div>
         </div>
       </div>
     </section>
