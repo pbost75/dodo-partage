@@ -1211,12 +1211,11 @@ function PopularDestinationsSection({
                   {departure === 'france' ? '🇫🇷' : arrival === 'france' ? '🏠' : '🏝️'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-lg text-gray-900 group-hover:text-[#243163] transition-colors">
-                    {departureLabel}
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <ArrowRight className="w-4 h-4" />
-                    <span className="font-medium">{arrivalLabel}</span>
+                  <h3 className="font-semibold text-lg text-gray-900 group-hover:text-[#243163] transition-colors leading-tight">
+                    Groupage {departureLabel} → {arrivalLabel}
+                  </h3>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Transport maritime de conteneur
                   </div>
                 </div>
               </div>
