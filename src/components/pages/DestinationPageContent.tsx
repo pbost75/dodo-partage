@@ -19,7 +19,7 @@ import { SEOHead } from '@/components/seo/SEOHead';
 import FAQJsonLD from '@/components/seo/FAQJsonLD';
 import { useSearchParams } from 'next/navigation';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
-import { useSmartRouter } from '@/utils/navigation';
+import { useSmartRouter, createHref } from '@/utils/navigation';
 import { getCountryByValue } from '@/utils/countries';
 import { getPopularRoutes, type DestinationContent } from '@/utils/destinations';
 import Link from 'next/link';
@@ -1203,7 +1203,7 @@ function PopularDestinationsSection({
           {popularRoutes.map(({ departure, arrival, departureLabel, arrivalLabel }) => (
             <Link
               key={`${departure}-${arrival}`}
-              href={`/${departure}-${arrival}/`}
+              href={createHref(`/${departure}-${arrival}/`)}
               className="group bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-[#F47D6C]/30 hover:-translate-y-1"
             >
               <div className="flex items-center gap-4 mb-4">
@@ -1236,7 +1236,7 @@ function PopularDestinationsSection({
         {/* CTA vers toutes les destinations */}
         <div className="mt-12 text-center">
           <Link 
-            href="/"
+            href={createHref("/")}
             className="inline-flex items-center gap-2 bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
             <Search className="w-5 h-5" />
