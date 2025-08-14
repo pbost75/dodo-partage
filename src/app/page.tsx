@@ -1471,7 +1471,7 @@ function PopularDestinationsHomepage() {
   const popularRoutes = getPopularRoutes('', ''); // Pas de route courante à exclure
   
   return (
-    <section className="w-full bg-[#EDEEFF] py-16 sm:py-20 lg:py-24">
+    <section className="w-full bg-gray-50 py-16 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#243163] mb-6 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
