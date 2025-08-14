@@ -19,8 +19,10 @@ import FAQSection from '@/components/partage/FAQSection';
 import { SEOHead } from '@/components/seo/SEOHead';
 import FAQJsonLD from '@/components/seo/FAQJsonLD';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAnnouncements, type AnnouncementFilters } from '@/hooks/useAnnouncements';
-import { useSmartRouter } from '@/utils/navigation';
+import { useSmartRouter, createHref } from '@/utils/navigation';
+import { getPopularRoutes } from '@/utils/destinations';
 
 interface FilterState {
   priceType: string; // Gratuit, payant ou tous
@@ -1399,6 +1401,9 @@ function HomePageContent() {
         <FAQSection />
       </section>
 
+      {/* Section Destinations populaires */}
+      <PopularDestinationsHomepage />
+
       {/* Footer simple */}
       <footer className="bg-[#243163] text-gray-300 py-6 sm:py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -1458,6 +1463,83 @@ function DeletedNotificationWrapper() {
     console.warn('⚠️ Erreur Suspense DeletedNotification:', error);
     return null;
   }
+}
+
+// Composant pour les destinations populaires sur la homepage
+function PopularDestinationsHomepage() {
+  // Pour la homepage, on affiche toutes les routes populaires sans exclusion
+  const popularRoutes = getPopularRoutes('', ''); // Pas de route courante à exclure
+  
+  return (
+    <section className="w-full bg-[#EDEEFF] py-16 sm:py-20 lg:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#243163] mb-6 font-title leading-tight" style={{ fontFamily: 'var(--font-roboto-slab), serif' }}>
+            🚢 Destinations populaires
+          </h2>
+          <p className="text-lg text-[#1a2741] font-lato leading-relaxed max-w-2xl mx-auto">
+            Découvrez toutes les routes de groupage disponibles pour vos expéditions DOM-TOM.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {popularRoutes.map(({ departure, arrival, departureLabel, arrivalLabel }) => (
+            <Link
+              key={`${departure}-${arrival}`}
+              href={createHref(`/${departure}-${arrival}/`)}
+              className="group bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-[#F47D6C]/30 hover:-translate-y-1"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-3xl">
+                  {departure === 'france' ? '🇫🇷' : arrival === 'france' ? '🏠' : '🏝️'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-lg text-gray-900 group-hover:text-[#243163] transition-colors leading-tight">
+                    Groupage {departureLabel} → {arrivalLabel}
+                  </h3>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Transport maritime de conteneur
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors">
+                  Voir les annonces
+                </span>
+                <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-[#F47D6C] transition-colors flex items-center justify-center">
+                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        
+        {/* CTA pour explorer plus */}
+        <div className="mt-12 text-center">
+          <p className="text-gray-600 mb-4">
+            Plus de 72 combinaisons de destinations disponibles
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link 
+              href={createHref("/funnel-choice/offer")}
+              className="inline-flex items-center gap-2 bg-[#F47D6C] hover:bg-[#e66b5a] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              <Plus className="w-5 h-5" />
+              Proposer de la place
+            </Link>
+            <Link 
+              href={createHref("/funnel-choice/search")}
+              className="inline-flex items-center gap-2 bg-[#243163] hover:bg-[#1a2741] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              <Search className="w-5 h-5" />
+              Chercher de la place
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default function HomePage() {
