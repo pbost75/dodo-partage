@@ -13,6 +13,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Fonction pour normaliser les accents et caractères spéciaux en ASCII
+function normalizeToAscii(text: string): string {
+  return text
+    .normalize('NFD') // Décompose les caractères accentués (é → e + ´)
+    .replace(/[\u0300-\u036f]/g, '') // Supprime les diacritiques (accents)
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Remplace les espaces par des tirets
+    .replace(/[^a-z0-9-]/g, ''); // Supprime tout ce qui n'est pas alphanumérique ou tiret
+}
+
 export async function middleware(request: NextRequest) {
   // Intercepter uniquement les URLs d'annonces individuelles
   const url = request.nextUrl.clone();
@@ -71,9 +81,9 @@ export async function middleware(request: NextRequest) {
         const arrival = announcement.arrival_country || announcement.arrival;
         
         if (departure && arrival) {
-          // Normaliser les noms de destinations (minuscules, tirets)
-          const normalizedDeparture = departure.toLowerCase().replace(/\s+/g, '-');
-          const normalizedArrival = arrival.toLowerCase().replace(/\s+/g, '-');
+          // Normaliser les noms de destinations (minuscules, tirets, sans accents)
+          const normalizedDeparture = normalizeToAscii(departure);
+          const normalizedArrival = normalizeToAscii(arrival);
           
           // 🔧 SIMPLIFICATION: Utiliser une URL relative simple
           // Le worker Cloudflare la transfèrera correctement vers www.dodomove.fr/partage/...
