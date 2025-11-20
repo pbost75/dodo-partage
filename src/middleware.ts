@@ -62,6 +62,9 @@ export async function middleware(request: NextRequest) {
       
       const announcement = result.data;
       
+      // 🔍 DEBUG: Log le statut de l'annonce
+      console.log(`📊 Middleware: Annonce ${announcementId} trouvée avec statut: ${announcement.status}`);
+      
       // Si l'annonce est expirée ou supprimée, rediriger vers la page destination
       if (announcement.status === 'expired' || announcement.status === 'deleted') {
         const departure = announcement.departure_country || announcement.departure;
@@ -115,8 +118,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Appliquer le middleware uniquement aux URLs d'annonces
-    // Format Next.js 13+ : utiliser des patterns glob simples
-    '/annonce/:id',
-    '/annonce/:id/',
+    // Format Next.js 13+ : utiliser des patterns glob
+    // Essayer avec et sans trailing slash
+    '/annonce/:path*',
   ],
 };
