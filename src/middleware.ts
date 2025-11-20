@@ -57,15 +57,43 @@ export async function middleware(request: NextRequest) {
               // Normaliser les noms de destinations (minuscules, tirets)
               const normalizedDeparture = departure.toLowerCase().replace(/\s+/g, '-');
               const normalizedArrival = arrival.toLowerCase().replace(/\s+/g, '-');
-              const destinationUrl = `/${normalizedDeparture}-${normalizedArrival}/`;
               
-              console.log(`🔄 Middleware: Redirection ${announcementId} (${announcement.status}) → ${destinationUrl}`);
+              // 🔧 FIX: Détecter le contexte proxy via les headers
+              const forwardedHost = request.headers.get('x-forwarded-host');
+              const originalUrl = request.headers.get('x-original-url');
               
-              return NextResponse.redirect(new URL(destinationUrl, request.url), 301); // Redirection permanente
+              // Construire l'URL de redirection
+              // Si on est dans un contexte proxy (www.dodomove.fr), utiliser URL absolue
+              // Sinon, utiliser URL relative (sera résolue par Next.js)
+              let redirectUrl: URL;
+              if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
+                // Contexte proxy : URL absolue vers www.dodomove.fr/partage
+                redirectUrl = new URL(`https://www.dodomove.fr/partage/${normalizedDeparture}-${normalizedArrival}/`);
+                console.log(`🔄 Middleware: Redirection PROXY ${announcementId} (${announcement.status}) → ${redirectUrl.toString()}`);
+              } else {
+                // Contexte direct : URL relative (le worker la transfèrera si nécessaire)
+                redirectUrl = new URL(`/${normalizedDeparture}-${normalizedArrival}/`, request.url);
+                console.log(`🔄 Middleware: Redirection DIRECTE ${announcementId} (${announcement.status}) → ${redirectUrl.toString()}`);
+              }
+              
+              console.log(`   Headers: forwardedHost=${forwardedHost}, originalUrl=${originalUrl}`);
+              console.log(`   Request URL: ${request.url}, Hostname: ${url.hostname}`);
+              
+              return NextResponse.redirect(redirectUrl, 301); // Redirection permanente
             } else {
               // Si pas de destination, rediriger vers homepage
-              console.log(`🔄 Middleware: Redirection ${announcementId} (${announcement.status}) → homepage (pas de destination)`);
-              return NextResponse.redirect(new URL('/', request.url), 301);
+              const forwardedHost = request.headers.get('x-forwarded-host');
+              const originalUrl = request.headers.get('x-original-url');
+              
+              let homepageUrl: URL;
+              if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
+                homepageUrl = new URL('https://www.dodomove.fr/partage/');
+              } else {
+                homepageUrl = new URL('/', request.url);
+              }
+              
+              console.log(`🔄 Middleware: Redirection ${announcementId} (${announcement.status}) → homepage (pas de destination) → ${homepageUrl.toString()}`);
+              return NextResponse.redirect(homepageUrl, 301);
             }
           }
           
@@ -76,24 +104,45 @@ export async function middleware(request: NextRequest) {
       }
       
       // Si l'annonce n'existe pas (404) ou erreur, rediriger vers homepage
-      if (response.status === 404) {
-        console.log(`🔄 Middleware: Annonce ${announcementId} non trouvée (404) → homepage`);
+      const forwardedHost = request.headers.get('x-forwarded-host');
+      const originalUrl = request.headers.get('x-original-url');
+      
+      let homepageUrl: URL;
+      if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
+        homepageUrl = new URL('https://www.dodomove.fr/partage/');
       } else {
-        console.log(`⚠️ Middleware: Erreur backend pour ${announcementId} (${response.status}) → homepage`);
+        homepageUrl = new URL('/', request.url);
       }
       
-      return NextResponse.redirect(new URL('/', request.url), 301);
+      if (response.status === 404) {
+        console.log(`🔄 Middleware: Annonce ${announcementId} non trouvée (404) → homepage → ${homepageUrl.toString()}`);
+      } else {
+        console.log(`⚠️ Middleware: Erreur backend pour ${announcementId} (${response.status}) → homepage → ${homepageUrl.toString()}`);
+      }
+      
+      return NextResponse.redirect(homepageUrl, 301);
       
     } catch (error) {
       // Gérer les erreurs de timeout ou réseau
-      if (error instanceof Error && error.name === 'TimeoutError') {
+      if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
         console.error(`⏱️ Middleware: Timeout pour annonce ${announcementId}`);
       } else {
         console.error(`❌ Middleware: Erreur pour annonce ${announcementId}:`, error);
       }
       
       // En cas d'erreur, rediriger vers homepage plutôt que de laisser passer (évite les 404)
-      return NextResponse.redirect(new URL('/', request.url), 301);
+      const forwardedHost = request.headers.get('x-forwarded-host');
+      const originalUrl = request.headers.get('x-original-url');
+      
+      let homepageUrl: URL;
+      if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
+        homepageUrl = new URL('https://www.dodomove.fr/partage/');
+      } else {
+        homepageUrl = new URL('/', request.url);
+      }
+      
+      console.log(`🔄 Middleware: Redirection erreur ${announcementId} → homepage → ${homepageUrl.toString()}`);
+      return NextResponse.redirect(homepageUrl, 301);
     }
   }
   
