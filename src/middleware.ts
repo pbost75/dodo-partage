@@ -48,138 +48,60 @@ export async function middleware(request: NextRequest) {
       
       // Si le backend ne répond pas correctement, rediriger vers homepage
       if (!response || !response.ok) {
-        const forwardedHost = request.headers.get('x-forwarded-host');
-        const originalUrl = request.headers.get('x-original-url');
+        console.log(`⚠️ Middleware: Backend non disponible pour ${announcementId} (status: ${response?.status || 'no response'}) → homepage`);
+        return NextResponse.redirect(new URL('/', request.url), 301);
+      }
+      
+      const result = await response.json();
+      
+      // Si pas de données, rediriger vers homepage
+      if (!result.success || !result.data) {
+        console.log(`⚠️ Middleware: Backend OK mais pas de données pour ${announcementId} → homepage`);
+        return NextResponse.redirect(new URL('/', request.url), 301);
+      }
+      
+      const announcement = result.data;
+      
+      // Si l'annonce est expirée ou supprimée, rediriger vers la page destination
+      if (announcement.status === 'expired' || announcement.status === 'deleted') {
+        const departure = announcement.departure_country || announcement.departure;
+        const arrival = announcement.arrival_country || announcement.arrival;
         
-        let homepageUrl: URL;
-        if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
-          homepageUrl = new URL('https://www.dodomove.fr/partage/');
+        if (departure && arrival) {
+          // Normaliser les noms de destinations (minuscules, tirets)
+          const normalizedDeparture = departure.toLowerCase().replace(/\s+/g, '-');
+          const normalizedArrival = arrival.toLowerCase().replace(/\s+/g, '-');
+          
+          // 🔧 SIMPLIFICATION: Utiliser une URL relative simple
+          // Le worker Cloudflare la transfèrera correctement vers www.dodomove.fr/partage/...
+          const destinationUrl = `/${normalizedDeparture}-${normalizedArrival}/`;
+          const redirectUrl = new URL(destinationUrl, request.url);
+          
+          console.log(`🔄 Middleware: Redirection ${announcementId} (${announcement.status}) → ${redirectUrl.toString()}`);
+          
+          return NextResponse.redirect(redirectUrl, 301); // Redirection permanente
         } else {
-          homepageUrl = new URL('/', request.url);
+          // Si pas de destination, rediriger vers homepage
+          console.log(`🔄 Middleware: Redirection ${announcementId} (${announcement.status}) → homepage (pas de destination)`);
+          return NextResponse.redirect(new URL('/', request.url), 301);
         }
-        
-        console.log(`⚠️ Middleware: Backend non disponible pour ${announcementId} (status: ${response?.status || 'no response'}) → homepage → ${homepageUrl.toString()}`);
-        return NextResponse.redirect(homepageUrl, 301);
       }
       
-      if (response.ok) {
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          const announcement = result.data;
-          
-          // Si l'annonce est expirée ou supprimée, rediriger vers la page destination
-          if (announcement.status === 'expired' || announcement.status === 'deleted') {
-            const departure = announcement.departure_country || announcement.departure;
-            const arrival = announcement.arrival_country || announcement.arrival;
-            
-            if (departure && arrival) {
-              // Normaliser les noms de destinations (minuscules, tirets)
-              const normalizedDeparture = departure.toLowerCase().replace(/\s+/g, '-');
-              const normalizedArrival = arrival.toLowerCase().replace(/\s+/g, '-');
-              
-              // 🔧 FIX: Détecter le contexte proxy via les headers
-              const forwardedHost = request.headers.get('x-forwarded-host');
-              const originalUrl = request.headers.get('x-original-url');
-              
-              // Construire l'URL de redirection
-              // Si on est dans un contexte proxy (www.dodomove.fr), utiliser URL absolue
-              // Sinon, utiliser URL relative (sera résolue par Next.js)
-              let redirectUrl: URL;
-              if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
-                // Contexte proxy : URL absolue vers www.dodomove.fr/partage
-                redirectUrl = new URL(`https://www.dodomove.fr/partage/${normalizedDeparture}-${normalizedArrival}/`);
-                console.log(`🔄 Middleware: Redirection PROXY ${announcementId} (${announcement.status}) → ${redirectUrl.toString()}`);
-              } else {
-                // Contexte direct : URL relative (le worker la transfèrera si nécessaire)
-                redirectUrl = new URL(`/${normalizedDeparture}-${normalizedArrival}/`, request.url);
-                console.log(`🔄 Middleware: Redirection DIRECTE ${announcementId} (${announcement.status}) → ${redirectUrl.toString()}`);
-              }
-              
-              console.log(`   Headers: forwardedHost=${forwardedHost}, originalUrl=${originalUrl}`);
-              console.log(`   Request URL: ${request.url}, Hostname: ${url.hostname}`);
-              
-              return NextResponse.redirect(redirectUrl, 301); // Redirection permanente
-            } else {
-              // Si pas de destination, rediriger vers homepage
-              const forwardedHost = request.headers.get('x-forwarded-host');
-              const originalUrl = request.headers.get('x-original-url');
-              
-              let homepageUrl: URL;
-              if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
-                homepageUrl = new URL('https://www.dodomove.fr/partage/');
-              } else {
-                homepageUrl = new URL('/', request.url);
-              }
-              
-              console.log(`🔄 Middleware: Redirection ${announcementId} (${announcement.status}) → homepage (pas de destination) → ${homepageUrl.toString()}`);
-              return NextResponse.redirect(homepageUrl, 301);
-            }
-          }
-          
-          // Si l'annonce est active (published, pending_validation, etc.), laisser passer
-          console.log(`✅ Middleware: Annonce ${announcementId} active (${announcement.status}), passage normal`);
-          return NextResponse.next();
-        } else {
-          // Backend a répondu mais pas de données - rediriger vers homepage
-          console.log(`⚠️ Middleware: Backend OK mais pas de données pour ${announcementId} → homepage`);
-          const forwardedHost = request.headers.get('x-forwarded-host');
-          const originalUrl = request.headers.get('x-original-url');
-          
-          let homepageUrl: URL;
-          if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
-            homepageUrl = new URL('https://www.dodomove.fr/partage/');
-          } else {
-            homepageUrl = new URL('/', request.url);
-          }
-          
-          return NextResponse.redirect(homepageUrl, 301);
-        }
-      } else {
-        // Response pas OK - déjà géré plus haut, mais au cas où
-        console.log(`⚠️ Middleware: Response pas OK pour ${announcementId} (status: ${response.status})`);
-      }
-      
-      // Si l'annonce n'existe pas (404) ou erreur, rediriger vers homepage
-      const forwardedHost = request.headers.get('x-forwarded-host');
-      const originalUrl = request.headers.get('x-original-url');
-      
-      let homepageUrl: URL;
-      if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
-        homepageUrl = new URL('https://www.dodomove.fr/partage/');
-      } else {
-        homepageUrl = new URL('/', request.url);
-      }
-      
-      if (response.status === 404) {
-        console.log(`🔄 Middleware: Annonce ${announcementId} non trouvée (404) → homepage → ${homepageUrl.toString()}`);
-      } else {
-        console.log(`⚠️ Middleware: Erreur backend pour ${announcementId} (${response.status}) → homepage → ${homepageUrl.toString()}`);
-      }
-      
-      return NextResponse.redirect(homepageUrl, 301);
+      // Si l'annonce est active (published, pending_validation, etc.), laisser passer
+      console.log(`✅ Middleware: Annonce ${announcementId} active (${announcement.status}), passage normal`);
+      return NextResponse.next();
       
     } catch (error) {
       // Gérer les erreurs de timeout ou réseau
       if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
-        console.error(`⏱️ Middleware: Timeout pour annonce ${announcementId}`);
+        console.error(`⏱️ Middleware: Timeout pour annonce ${announcementId} → homepage`);
       } else {
         console.error(`❌ Middleware: Erreur pour annonce ${announcementId}:`, error);
       }
       
       // En cas d'erreur, rediriger vers homepage plutôt que de laisser passer (évite les 404)
-      const forwardedHost = request.headers.get('x-forwarded-host');
-      const originalUrl = request.headers.get('x-original-url');
-      
-      let homepageUrl: URL;
-      if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
-        homepageUrl = new URL('https://www.dodomove.fr/partage/');
-      } else {
-        homepageUrl = new URL('/', request.url);
-      }
-      
-      console.log(`🔄 Middleware: Redirection erreur ${announcementId} → homepage → ${homepageUrl.toString()}`);
-      return NextResponse.redirect(homepageUrl, 301);
+      console.log(`🔄 Middleware: Redirection erreur ${announcementId} → homepage`);
+      return NextResponse.redirect(new URL('/', request.url), 301);
     }
   } else {
     // Pas de match - laisser passer
@@ -193,7 +115,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Appliquer le middleware uniquement aux URLs d'annonces
-    // Format Next.js 13+ : utiliser des patterns glob
-    '/annonce/:path*',
+    // Format Next.js 13+ : utiliser des patterns glob simples
+    '/annonce/:id',
+    '/annonce/:id/',
   ],
 };
