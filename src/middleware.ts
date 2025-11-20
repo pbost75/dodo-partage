@@ -17,10 +17,14 @@ export async function middleware(request: NextRequest) {
   // Intercepter uniquement les URLs d'annonces individuelles
   const url = request.nextUrl.clone();
   
+  // 🔍 DEBUG: Log toutes les requêtes pour voir ce qui passe
+  console.log(`🔍 Middleware: Requête reçue - ${request.method} ${url.pathname} (hostname: ${url.hostname})`);
+  
   // Matcher les URLs du type /annonce/[id] avec ou sans slash final
   const announcementMatch = url.pathname.match(/^\/annonce\/([^\/]+)\/?$/);
   
   if (announcementMatch) {
+    console.log(`✅ Middleware: Match trouvé pour ${url.pathname}`);
     const announcementId = announcementMatch[1];
     
     try {
@@ -41,6 +45,22 @@ export async function middleware(request: NextRequest) {
       });
       
       clearTimeout(timeoutId);
+      
+      // Si le backend ne répond pas correctement, rediriger vers homepage
+      if (!response || !response.ok) {
+        const forwardedHost = request.headers.get('x-forwarded-host');
+        const originalUrl = request.headers.get('x-original-url');
+        
+        let homepageUrl: URL;
+        if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
+          homepageUrl = new URL('https://www.dodomove.fr/partage/');
+        } else {
+          homepageUrl = new URL('/', request.url);
+        }
+        
+        console.log(`⚠️ Middleware: Backend non disponible pour ${announcementId} (status: ${response?.status || 'no response'}) → homepage → ${homepageUrl.toString()}`);
+        return NextResponse.redirect(homepageUrl, 301);
+      }
       
       if (response.ok) {
         const result = await response.json();
@@ -100,7 +120,24 @@ export async function middleware(request: NextRequest) {
           // Si l'annonce est active (published, pending_validation, etc.), laisser passer
           console.log(`✅ Middleware: Annonce ${announcementId} active (${announcement.status}), passage normal`);
           return NextResponse.next();
+        } else {
+          // Backend a répondu mais pas de données - rediriger vers homepage
+          console.log(`⚠️ Middleware: Backend OK mais pas de données pour ${announcementId} → homepage`);
+          const forwardedHost = request.headers.get('x-forwarded-host');
+          const originalUrl = request.headers.get('x-original-url');
+          
+          let homepageUrl: URL;
+          if (forwardedHost === 'www.dodomove.fr' || originalUrl?.includes('www.dodomove.fr')) {
+            homepageUrl = new URL('https://www.dodomove.fr/partage/');
+          } else {
+            homepageUrl = new URL('/', request.url);
+          }
+          
+          return NextResponse.redirect(homepageUrl, 301);
         }
+      } else {
+        // Response pas OK - déjà géré plus haut, mais au cas où
+        console.log(`⚠️ Middleware: Response pas OK pour ${announcementId} (status: ${response.status})`);
       }
       
       // Si l'annonce n'existe pas (404) ou erreur, rediriger vers homepage
@@ -144,6 +181,9 @@ export async function middleware(request: NextRequest) {
       console.log(`🔄 Middleware: Redirection erreur ${announcementId} → homepage → ${homepageUrl.toString()}`);
       return NextResponse.redirect(homepageUrl, 301);
     }
+  } else {
+    // Pas de match - laisser passer
+    console.log(`⏭️ Middleware: Pas de match pour ${url.pathname}, passage normal`);
   }
   
   // Pour toutes les autres URLs, laisser passer normalement
@@ -153,6 +193,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Appliquer le middleware uniquement aux URLs d'annonces
-    '/annonce/:id*',
+    // Format Next.js 13+ : utiliser des patterns glob
+    '/annonce/:path*',
   ],
 };
